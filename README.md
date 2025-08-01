@@ -5,7 +5,7 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-# LOA-KU - Letter of Acceptance Management System
+# LOA-SIPTENAN
 
 ![Laravel](https://img.shields.io/badge/Laravel-12.x-red.svg)
 ![PHP](https://img.shields.io/badge/PHP-8.1+-blue.svg)
