@@ -1,16 +1,11 @@
-# LOA Management System
+# LOA-SIPTENAN Management System
+(EKO SISWANTO)
 
 ![Laravel](https://img.shields.io/badge/Laravel-12.x-red.svg)
 ![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-# LOA-SIPTENAN
-
-![Laravel](https://img.shields.io/badge/Laravel-12.x-red.svg)
-![PHP](https://img.shields.io/badge/PHP-8.1+-blue.svg)
-![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)
 
 ## 📋 Deskripsi Project
 
