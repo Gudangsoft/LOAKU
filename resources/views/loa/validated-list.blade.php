@@ -109,28 +109,28 @@
                     <form method="GET" action="{{ route('loa.validated') }}" class="row g-3">
                         <div class="col-md-4">
                             <label for="search_loa_code" class="form-label">Kode LOA</label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="search_loa_code" 
-                                   name="loa_code" 
+                            <input type="text"
+                                   class="form-control"
+                                   id="search_loa_code"
+                                   name="loa_code"
                                    value="{{ request('loa_code') }}"
                                    placeholder="Contoh: LOA20250801030918">
                         </div>
                         <div class="col-md-4">
                             <label for="search_title" class="form-label">Judul Artikel</label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="search_title" 
-                                   name="title" 
+                            <input type="text"
+                                   class="form-control"
+                                   id="search_title"
+                                   name="title"
                                    value="{{ request('title') }}"
                                    placeholder="Cari berdasarkan judul artikel">
                         </div>
                         <div class="col-md-4">
                             <label for="search_author" class="form-label">Penulis</label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="search_author" 
-                                   name="author" 
+                            <input type="text"
+                                   class="form-control"
+                                   id="search_author"
+                                   name="author"
                                    value="{{ request('author') }}"
                                    placeholder="Nama penulis">
                         </div>
@@ -188,7 +188,7 @@
                 <div class="alert alert-info d-flex align-items-center mb-4">
                     <i class="fas fa-info-circle me-2"></i>
                     <div>
-                        <strong>Hasil Pencarian:</strong> 
+                        <strong>Hasil Pencarian:</strong>
                         Ditemukan {{ $validatedLoas->total() }} LOA
                         @if(request('loa_code'))
                             dengan kode "<strong>{{ request('loa_code') }}</strong>"
@@ -223,12 +223,12 @@
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <div class="card-body">
                                     <h6 class="card-title text-truncate" title="{{ $loa->loaRequest->article_title }}">
                                         {{ Str::limit($loa->loaRequest->article_title, 60) }}
                                     </h6>
-                                    
+
                                     <div class="row text-sm mb-3">
                                         <div class="col-12 mb-2">
                                             <strong><i class="fas fa-user me-1 text-primary"></i>Penulis:</strong><br>
@@ -243,7 +243,7 @@
                                             <span class="text-muted">{{ $loa->loaRequest->journal->publisher->name ?? 'N/A' }}</span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="row text-sm mb-3">
                                         <div class="col-6">
                                             <strong class="text-success">No. Reg:</strong><br>
@@ -255,11 +255,11 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="card-footer bg-light">
                                     <div class="d-flex gap-2 mb-2">
-                                        <a href="{{ route('loa.view', [$loa->loa_code, 'id']) }}" 
-                                           class="btn btn-sm btn-outline-primary flex-grow-1" 
+                                        <a href="{{ route('loa.view', [$loa->loa_code, 'id']) }}"
+                                           class="btn btn-sm btn-outline-primary flex-grow-1"
                                            target="_blank">
                                             <i class="fas fa-eye me-1"></i>
                                             Lihat
@@ -283,36 +283,35 @@
                                             </ul>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- QR Code Section -->
                                     <div class="d-flex gap-2">
-                                        <button type="button" 
-                                                class="btn btn-sm btn-outline-info flex-grow-1" 
-                                                data-bs-toggle="modal" 
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-info flex-grow-1"
+                                                data-bs-toggle="modal"
                                                 data-bs-target="#qrModal{{ $loop->index }}">
                                             <i class="fas fa-qrcode me-1"></i>
                                             Lihat QR
                                         </button>
-                                        <div class="btn-group flex-grow-1">
-                                            <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                                        <div class="btn-group flex-grow-1" role="group">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-success"
+                                                    onclick="downloadQrImage('{{ route('qr.download', $loa->loa_code) }}')"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Download QR Code">
                                                 <i class="fas fa-download me-1"></i>
                                                 Download QR
                                             </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}">
-                                                        <i class="fas fa-qrcode me-2"></i>QR Code PNG
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}?format=svg">
-                                                        <i class="fas fa-vector-square me-2"></i>QR Code SVG
-                                                    </a>
-                                                </li>
-                                            </ul>
+                                            <a href="{{ route('qr.download', $loa->loa_code) }}"
+                                               class="btn btn-sm btn-outline-success"
+                                               target="_blank"
+                                               data-bs-toggle="tooltip"
+                                               title="Buka di tab baru">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- QR Code Modal -->
                                     <div class="modal fade" id="qrModal{{ $loop->index }}" tabindex="-1">
                                         <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -332,7 +331,7 @@
                                                         </div>
                                                         <p class="text-muted mt-2">Memuat QR Code...</p>
                                                     </div>
-                                                    
+
                                                     <!-- QR Code Container -->
                                                     <div id="qrContainer{{ $loop->index }}" class="mb-3" style="display: none;">
                                                         <div class="qr-code-wrapper p-3 bg-white border rounded shadow-sm d-inline-block">
@@ -342,7 +341,7 @@
                                                                  style="width: 200px; height: 200px; object-fit: contain;">
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <!-- Error State -->
                                                     <div id="qrError{{ $loop->index }}" class="mb-3" style="display: none;">
                                                         <div class="alert alert-warning">
@@ -350,7 +349,7 @@
                                                             Gagal memuat QR Code
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div id="qrDescription{{ $loop->index }}" style="display: none;">
                                                         <p class="text-muted small mb-0">
                                                             <i class="fas fa-mobile-alt me-1"></i>
@@ -359,17 +358,15 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" 
-                                                            class="btn btn-primary btn-sm qr-download-btn"
-                                                            data-loa-code="{{ $loa->loa_code }}"
-                                                            onclick="downloadQrCode('{{ $loa->loa_code }}')">
+                                                    <button type="button"
+                                                            class="btn btn-primary btn-sm"
+                                                            onclick="downloadQrImage('{{ route('qr.download', $loa->loa_code) }}')">
                                                         <i class="fas fa-download me-1"></i>
                                                         Download QR
                                                     </button>
-                                                    <button type="button" 
-                                                            class="btn btn-secondary btn-sm" 
-                                                            data-bs-dismiss="modal"
-                                                            onclick="closeQrModal('qrModal{{ $loop->index }}')">
+                                                    <button type="button"
+                                                            class="btn btn-secondary btn-sm"
+                                                            data-bs-dismiss="modal">
                                                         <i class="fas fa-times me-1"></i>
                                                         Close
                                                     </button>
@@ -426,50 +423,50 @@
     .badge {
         font-size: 0.75rem;
     }
-    
+
     /* Search Form Styling */
     .bg-gradient-primary {
         background: linear-gradient(45deg, #007bff, #0056b3) !important;
     }
-    
+
     .form-control:focus, .form-select:focus {
         border-color: #007bff;
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
-    
+
     .search-form .form-label {
         font-weight: 600;
         color: #495057;
         margin-bottom: 0.5rem;
     }
-    
+
     .search-form .btn-group .btn {
         border-radius: 0.375rem;
     }
-    
+
     .search-form .btn-group .btn:first-child {
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
-    
+
     .search-form .btn-group .btn:last-child {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
     }
-    
+
     .alert-info {
         border-left: 4px solid #17a2b8;
         background-color: #f8f9fa;
         border-color: #bee5eb;
     }
-    
+
     /* QR Code Modal Styling */
     .modal-content {
         border: none;
         border-radius: 12px;
         box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
     }
-    
+
     .qr-code-wrapper {
         background: #ffffff !important;
         border: 2px solid #dee2e6 !important;
@@ -478,7 +475,7 @@
         display: inline-block;
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
     }
-    
+
     .qr-code-wrapper img {
         display: block !important;
         opacity: 1 !important;
@@ -486,32 +483,32 @@
         background: white !important;
         border: none !important;
     }
-    
+
     /* Loading Spinner */
     .spinner-border {
         width: 3rem;
         height: 3rem;
     }
-    
+
     /* Modal Backdrop Fix */
     .modal-backdrop {
         background-color: rgba(0, 0, 0, 0.5) !important;
     }
-    
+
     .modal {
         z-index: 1050 !important;
     }
-    
+
     .modal-dialog {
         z-index: 1051 !important;
     }
-    
+
     /* Prevent modal from flickering */
     .modal.fade .modal-dialog {
         transition: transform 0.3s ease-out;
         transform: translate(0, -50px);
     }
-    
+
     .modal.show .modal-dialog {
         transform: none;
     }
@@ -520,117 +517,106 @@
 
 @push('scripts')
 <script>
-// Simple and reliable QR download function
+// Download QR Code function with better error handling
 function downloadQrCode(loaCode) {
     const downloadBtn = event.target.closest('button');
     const originalContent = downloadBtn.innerHTML;
-    
+
     // Show loading state
     downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Downloading...';
     downloadBtn.disabled = true;
-    
+
     try {
-        // Create direct download link
+        // Create download link
         const downloadUrl = `/loa/${loaCode}/qr/download`;
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = `QR_${loaCode}.png`;
-        link.target = '_blank';
-        link.style.display = 'none';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Show success message
-        showNotification('QR Code berhasil didownload!', 'success');
-        
+
+        // Method 1: Try direct window.open for download
+        const downloadWindow = window.open(downloadUrl, '_blank');
+
+        // Method 2: If that fails, use fetch and blob
+        if (!downloadWindow) {
+            fetch(downloadUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `QR_${loaCode}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                })
+                .catch(error => {
+                    console.error('Download failed:', error);
+                    alert('Download gagal. Silakan coba lagi.');
+                });
+        }
+
     } catch (error) {
         console.error('Download error:', error);
-        // Fallback: open in new window
-        window.open(`/loa/${loaCode}/qr/download`, '_blank');
-        showNotification('QR Code dibuka di tab baru untuk download', 'info');
+        alert('Terjadi kesalahan saat download. Silakan coba lagi.');
     }
-    
-    // Reset button state
+
+    // Reset button state after delay
     setTimeout(() => {
         downloadBtn.innerHTML = originalContent;
         downloadBtn.disabled = false;
-    }, 1500);
-}
-
-// Simple close modal function
-function closeQrModal(modalId) {
-    const modalElement = document.getElementById(modalId);
-    if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-            modal.hide();
-        } else {
-            // Fallback if bootstrap instance not found
-            modalElement.classList.remove('show');
-            modalElement.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            
-            // Remove backdrop if exists
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) {
-                backdrop.remove();
-            }
-        }
-    }
+    }, 2000);
 }
 
 // Enhanced modal management
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize all QR modals
     const qrModals = document.querySelectorAll('[id^="qrModal"]');
-    
+
     qrModals.forEach(function(modalElement, index) {
         const modalId = modalElement.id;
-        const modal = new bootstrap.Modal(modalElement);
-        
+
+        // Buat modal tanpa backdrop
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: false, // <--- Hilangkan backdrop
+            keyboard: true   // (opsional) biarkan tombol Esc tetap menutup modal
+        });
+
         // Get LOA code from modal title
         const modalTitle = modalElement.querySelector('.modal-title');
         const loaCode = modalTitle ? modalTitle.textContent.split(' - ')[1] : '';
-        
+
         if (!loaCode) {
             console.error('LOA code not found for modal:', modalId);
             return;
         }
-        
+
         // Handle modal show event
         modalElement.addEventListener('show.bs.modal', function () {
             resetModalState(modalElement);
         });
-        
+
         modalElement.addEventListener('shown.bs.modal', function () {
             loadQrCode(modalElement, loaCode);
         });
-        
+
         // Handle modal hide event
         modalElement.addEventListener('hidden.bs.modal', function () {
             resetModalState(modalElement);
         });
-        
-        // Enhanced close button functionality with event delegation
-        modalElement.addEventListener('click', function(e) {
-            if (e.target.matches('[data-bs-dismiss="modal"]') || 
-                e.target.closest('[data-bs-dismiss="modal"]')) {
+
+        // Enhanced close button functionality
+        const closeButtons = modalElement.querySelectorAll('[data-bs-dismiss="modal"]');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 modal.hide();
-            }
-        });
-        
-        // Handle escape key
-        modalElement.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                modal.hide();
-            }
+            });
         });
     });
 });
-});
+
 
 // Reset modal state
 function resetModalState(modalElement) {
@@ -639,7 +625,7 @@ function resetModalState(modalElement) {
     const containerDiv = modalElement.querySelector('[id^="qrContainer"]');
     const errorDiv = modalElement.querySelector('[id^="qrError"]');
     const descriptionDiv = modalElement.querySelector('[id^="qrDescription"]');
-    
+
     if (qrImage) qrImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // Transparent pixel
     if (loadingDiv) loadingDiv.style.display = 'block';
     if (containerDiv) containerDiv.style.display = 'none';
@@ -654,22 +640,22 @@ function loadQrCode(modalElement, loaCode) {
     const containerDiv = modalElement.querySelector('[id^="qrContainer"]');
     const errorDiv = modalElement.querySelector('[id^="qrError"]');
     const descriptionDiv = modalElement.querySelector('[id^="qrDescription"]');
-    
+
     // Show loading state
     if (loadingDiv) loadingDiv.style.display = 'block';
     if (containerDiv) containerDiv.style.display = 'none';
     if (errorDiv) errorDiv.style.display = 'none';
     if (descriptionDiv) descriptionDiv.style.display = 'none';
-    
+
     if (!qrImage) {
         console.error('QR Image element not found');
         showError(modalElement);
         return;
     }
-    
+
     // Create new image to test loading
     const testImage = new Image();
-    
+
     testImage.onload = function() {
         qrImage.src = this.src;
         setTimeout(() => {
@@ -678,16 +664,16 @@ function loadQrCode(modalElement, loaCode) {
             if (descriptionDiv) descriptionDiv.style.display = 'block';
         }, 500); // Smoother transition
     };
-    
+
     testImage.onerror = function() {
         console.error('Failed to load QR code for:', loaCode);
         showError(modalElement);
     };
-    
+
     // Load QR code with cache-busting
     const timestamp = new Date().getTime();
     testImage.src = `/loa/${loaCode}/qr?t=${timestamp}`;
-    
+
     // Timeout fallback
     setTimeout(() => {
         if (loadingDiv && loadingDiv.style.display !== 'none') {
@@ -701,9 +687,136 @@ function loadQrCode(modalElement, loaCode) {
 function showError(modalElement) {
     const loadingDiv = modalElement.querySelector('[id^="qrLoading"]');
     const errorDiv = modalElement.querySelector('[id^="qrError"]');
-    
+
     if (loadingDiv) loadingDiv.style.display = 'none';
     if (errorDiv) errorDiv.style.display = 'block';
+}
+
+// Download QR image function (with multiple fallbacks)
+function downloadQrImage(url) {
+    try {
+        showNotification('Memulai download QR Code...', 'info');
+
+        // Method 1: Direct download link
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'QR_Code_' + Date.now() + '.png';
+        link.target = '_blank';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+
+        // Trigger download
+        link.click();
+
+        // Cleanup
+        setTimeout(() => {
+            document.body.removeChild(link);
+        }, 100);
+
+        showNotification('QR Code berhasil didownload!', 'success');
+
+    } catch (error) {
+        console.error('Download error:', error);
+
+        // Fallback: Open in new tab
+        try {
+            window.open(url, '_blank');
+            showNotification('QR Code dibuka di tab baru', 'warning');
+        } catch (error2) {
+            // Last resort: Copy link to clipboard
+            copyToClipboard(url);
+            showNotification('Link QR Code disalin ke clipboard', 'info');
+        }
+    }
+}
+
+// Alternative download using fetch API
+function downloadQrImageAdvanced(loaCode) {
+    const apiUrl = '/api/qr/download/' + loaCode;
+
+    showNotification('Generating QR Code...', 'info');
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Convert base64 to blob and download
+                const link = document.createElement('a');
+                link.href = data.data;
+                link.download = data.filename;
+                link.click();
+
+                showNotification('QR Code berhasil didownload!', 'success');
+            } else {
+                throw new Error(data.error || 'Download failed');
+            }
+        })
+        .catch(error => {
+            console.error('API Download error:', error);
+            showNotification('Download gagal: ' + error.message, 'danger');
+
+            // Fallback to direct method
+            const fallbackUrl = '/qr/download/' + loaCode;
+            downloadQrImage(fallbackUrl);
+        });
+}
+
+// Copy text to clipboard
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+    }
+}
+
+// Close modal function
+function closeModal(modalId) {
+    try {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            // Method 1: Try Bootstrap modal hide
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                if (bsModal) {
+                    bsModal.hide();
+                    return;
+                }
+            }
+
+            // Method 2: Manual close
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            modal.removeAttribute('aria-modal');
+
+            // Remove backdrop
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+
+            // Restore body
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+
+            showNotification('Modal ditutup', 'success');
+        }
+    } catch (error) {
+        // Fallback: Reload page if all fails
+        console.error('Error closing modal:', error);
+        showNotification('Menutup modal...', 'warning');
+        setTimeout(function() {
+            location.reload();
+        }, 1000);
+    }
 }
 
 // Show notification function
@@ -717,9 +830,9 @@ function showNotification(message, type = 'info') {
         ${message}
         <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Auto remove after 3 seconds
     setTimeout(function() {
         if (notification && notification.parentElement) {

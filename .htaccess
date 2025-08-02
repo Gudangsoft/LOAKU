@@ -1,0 +1,32 @@
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+
+#     # Redirect semua permintaan ke public/index.php
+#     RewriteCond %{REQUEST_FILENAME} !-f
+#     RewriteCond %{REQUEST_FILENAME} !-d
+#     RewriteRule ^ index.php [L]
+
+#     # Batasi akses langsung ke file environment
+#     <FilesMatch "^\.env">
+#         Order allow,deny
+#         Deny from all
+#     </FilesMatch>
+# </IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  #Loading PHP as if is public/ from /
+  RewriteRule ^$ public/index.php [L]
+  #Loading page as if is public/ from /
+  RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
+
+  RewriteRule (^\.|/\.) - [F]
+
+  <Files .env>
+     order allow,deny
+     Deny from all
+  </Files>
+
+
+</IfModule>
