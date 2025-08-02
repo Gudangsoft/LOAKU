@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LoaRequest;
 use App\Models\LoaValidated;
+use App\Models\LoaTemplate;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -213,14 +214,101 @@ class LoaController extends Controller
             ->with(['loaRequest.journal.publisher'])
             ->firstOrFail();
 
+        // Get publisher ID for template selection
+        $publisherId = $loaValidated->loaRequest->journal->publisher_id ?? null;
+        
+        // Try to get custom template, fallback to default
+        $template = LoaTemplate::getDefault($lang, $publisherId);
+        
         $data = [
             'loa' => $loaValidated,
             'request' => $loaValidated->loaRequest,
             'journal' => $loaValidated->loaRequest->journal,
             'publisher' => $loaValidated->loaRequest->journal->publisher,
-            'lang' => $lang
+            'lang' => $lang,
+            'template' => $template
         ];
 
-        return view('pdf.loa-certificate', $data);
+        // If custom template exists, use it with template rendering
+        if ($template) {
+            return $this->renderDynamicTemplate($template, $data);
+        }
+
+        // Fallback to default view
+        return view('loa.view', $data);
+    }
+    
+    private function renderDynamicTemplate($template, $data)
+    {
+        // Prepare template variables
+        $variables = [
+            'publisher_name' => $data['publisher']->name ?? '',
+            'publisher_address' => $data['publisher']->address ?? '',
+            'publisher_email' => $data['publisher']->email ?? '',
+            'publisher_phone' => $data['publisher']->phone ?? '',
+            'publisher_logo' => $data['publisher']->logo ? asset('storage/' . $data['publisher']->logo) : '',
+            'journal_name' => $data['journal']->name ?? '',
+            'journal_issn_e' => $data['journal']->e_issn ?? '',
+            'journal_issn_p' => $data['journal']->p_issn ?? '',
+            'chief_editor' => $data['journal']->chief_editor ?? '',
+            'signature_stamp' => $data['journal']->ttd_stample ? asset('storage/' . $data['journal']->ttd_stample) : '',
+            'loa_code' => $data['loa']->loa_code ?? '',
+            'article_title' => $data['request']->article_title ?? '',
+            'author_name' => $data['request']->author ?? '',
+            'author_email' => $data['request']->author_email ?? '',
+            'volume' => $data['request']->volume ?? '',
+            'number' => $data['request']->number ?? '',
+            'month' => $data['request']->month ?? '',
+            'year' => $data['request']->year ?? '',
+            'registration_number' => $data['request']->no_reg ?? '',
+            'approval_date' => isset($data['request']->approved_at) ? $data['request']->approved_at->format('d F Y') : $data['loa']->created_at->format('d F Y'),
+            'current_date' => now()->format('d F Y, H:i:s'),
+            'verification_url' => route('loa.verify'),
+            'qr_code_url' => route('qr.code', $data['loa']->loa_code),
+        ];
+
+        // Render template content
+        $content = $template->header_template . $template->body_template . $template->footer_template;
+        
+        // Replace variables
+        foreach ($variables as $key => $value) {
+            $content = str_replace('{{' . $key . '}}', $value, $content);
+        }
+        
+        // Handle conditional statements for language
+        $content = $this->processConditionals($content, $data['lang']);
+        
+        return response($content)->header('Content-Type', 'text/html');
+    }
+    
+    private function processConditionals($content, $lang)
+    {
+        // Process @if($lang == "id") ... @else ... @endif
+        $content = preg_replace_callback(
+            '/@if\(\$lang\s*==\s*["\']id["\']\)(.*?)(?:@else(.*?))?@endif/s',
+            function ($matches) use ($lang) {
+                if ($lang == 'id') {
+                    return $matches[1];
+                } else {
+                    return isset($matches[2]) ? $matches[2] : '';
+                }
+            },
+            $content
+        );
+        
+        // Process @if($lang == "en") ... @else ... @endif  
+        $content = preg_replace_callback(
+            '/@if\(\$lang\s*==\s*["\']en["\']\)(.*?)(?:@else(.*?))?@endif/s',
+            function ($matches) use ($lang) {
+                if ($lang == 'en') {
+                    return $matches[1];
+                } else {
+                    return isset($matches[2]) ? $matches[2] : '';
+                }
+            },
+            $content
+        );
+        
+        return $content;
     }
 }

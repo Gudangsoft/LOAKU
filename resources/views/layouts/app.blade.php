@@ -16,6 +16,47 @@
             font-weight: bold;
             color: #0066cc !important;
         }
+        
+        /* Admin Navbar Styling */
+        .navbar.admin-navbar {
+            background: linear-gradient(45deg, #2c3e50, #34495e) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .admin-navbar .navbar-brand {
+            color: #fff !important;
+            font-size: 1.3rem;
+        }
+        
+        .admin-navbar .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+            margin: 0 2px;
+            padding: 8px 12px !important;
+        }
+        
+        .admin-navbar .nav-link:hover {
+            color: #fff !important;
+            background-color: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .admin-navbar .dropdown-menu {
+            background-color: #34495e;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .admin-navbar .dropdown-item {
+            color: rgba(255,255,255,0.9) !important;
+        }
+        
+        .admin-navbar .dropdown-item:hover {
+            background-color: #2c3e50;
+            color: #fff !important;
+        }
         .hero-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -53,7 +94,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm @auth @if(auth()->user()->is_admin ?? false) admin-navbar @endif @endauth">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
                 <i class="fas fa-certificate me-2"></i>
@@ -65,30 +106,98 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('loa.create') }}">Request LOA</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('loa.validated') }}">Cari & Download LOA</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-shield-alt"></i> Verifikasi
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('qr.scanner') }}">
-                                <i class="fas fa-qrcode me-2"></i>Scan QR Code
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ route('loa.verify') }}">
-                                <i class="fas fa-keyboard me-2"></i>Input Manual
-                            </a></li>
+                @auth
+                    @if(auth()->user()->is_admin ?? false)
+                        <!-- Menu khusus untuk Admin -->
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.loa-requests.index') }}">
+                                    <i class="fas fa-file-alt me-1"></i>Permohonan LOA
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('loa.validated') }}">
+                                    <i class="fas fa-certificate me-1"></i>LOA Tervalidasi
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-cog me-1"></i>Kelola Data
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ route('admin.journals.index') }}">
+                                        <i class="fas fa-book me-2"></i>Jurnal
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.publishers.index') }}">
+                                        <i class="fas fa-building me-2"></i>Penerbit
+                                    </a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('home') }}" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i>Lihat Website
+                                </a>
+                            </li>
                         </ul>
-                    </li>
-                </ul>
+                    @else
+                        <!-- Menu untuk User biasa -->
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('home') }}">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('loa.create') }}">Request LOA</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('loa.validated') }}">Cari & Download LOA</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-shield-alt"></i> Verifikasi
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ route('qr.scanner') }}">
+                                        <i class="fas fa-qrcode me-2"></i>Scan QR Code
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('loa.verify') }}">
+                                        <i class="fas fa-keyboard me-2"></i>Input Manual
+                                    </a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    @endif
+                @else
+                    <!-- Menu untuk Guest -->
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('home') }}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('loa.create') }}">Request LOA</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('loa.validated') }}">Cari & Download LOA</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-shield-alt"></i> Verifikasi
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ route('qr.scanner') }}">
+                                    <i class="fas fa-qrcode me-2"></i>Scan QR Code
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ route('loa.verify') }}">
+                                    <i class="fas fa-keyboard me-2"></i>Input Manual
+                                </a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                @endauth
                 
                 <!-- Admin Menu -->
                 <ul class="navbar-nav ms-auto">
@@ -107,11 +216,11 @@
                                     <li><a class="dropdown-item" href="{{ route('admin.loa-requests.index') }}">
                                         <i class="fas fa-file-alt me-2"></i>LOA Requests
                                     </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('loa.validated') }}">
+                                        <i class="fas fa-certificate me-2"></i>LOA Tervalidasi
+                                    </a></li>
                                     <li><a class="dropdown-item" href="{{ route('admin.journals.index') }}">
                                         <i class="fas fa-book me-2"></i>Journals
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{{ route('admin.publishers.index') }}">
-                                        <i class="fas fa-building me-2"></i>Publishers
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoaRequestController as AdminLoaRequestController;
 use App\Http\Controllers\Admin\JournalController;
 use App\Http\Controllers\Admin\PublisherController;
+use App\Http\Controllers\Admin\LoaTemplateController;
 use App\Http\Controllers\Admin\AuthController;
 
 // Public Routes
@@ -30,6 +31,7 @@ Route::post('/verify-loa', [LoaController::class, 'checkVerification'])->name('l
 Route::get('/qr-scanner', [QrCodeController::class, 'showScanner'])->name('qr.scanner');
 Route::get('/verify-qr/{loaCode}', [QrCodeController::class, 'verifyFromQr'])->name('qr.verify');
 Route::get('/loa/{loaCode}/qr', [QrCodeController::class, 'generateLoaQr'])->name('loa.qr');
+Route::get('/qr/{loaCode}', [QrCodeController::class, 'generateLoaQr'])->name('qr.code');
 Route::get('/loa/{loaCode}/qr/download', [QrCodeController::class, 'downloadQr'])->name('loa.qr.download');
 Route::get('/qr/download/{loaCode}', [QrCodeController::class, 'downloadQr'])->name('qr.download');
 Route::get('/api/qr/download/{loaCode}', [QrCodeController::class, 'downloadQrApi'])->name('api.qr.download');
@@ -178,6 +180,94 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Route for creating admin user (development only)
     Route::get('/create-admin', [AuthController::class, 'createAdmin'])->name('create-admin');
     
+    // Debug route to check users
+    Route::get('/debug-users', function() {
+        $users = \App\Models\User::all();
+        return response()->json([
+            'total_users' => $users->count(),
+            'users' => $users->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'is_admin' => $user->is_admin ?? false,
+                    'email_verified_at' => $user->email_verified_at,
+                    'created_at' => $user->created_at
+                ];
+            })
+        ]);
+    })->name('debug-users');
+    
+    // Test login route
+    Route::get('/test-auth', function() {
+        try {
+            // Test login directly
+            $user = \App\Models\User::where('email', 'admin@admin.com')->first();
+            if (!$user) {
+                return 'User not found';
+            }
+            
+            $passwordCheck = \Hash::check('admin', $user->password);
+            
+            return response()->json([
+                'user_found' => !!$user,
+                'user_data' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'is_admin' => $user->is_admin,
+                    'password_hash' => $user->password
+                ] : null,
+                'password_check' => $passwordCheck,
+                'auth_attempt' => \Auth::attempt(['email' => 'admin@admin.com', 'password' => 'admin']),
+                'current_user' => \Auth::user() ? \Auth::user()->email : 'not logged in'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+    })->name('test-auth');
+    
+    // Route untuk membuat LOA untuk request yang sudah approved tapi belum ada LOA-nya
+    Route::get('/generate-missing-loa', function() {
+        try {
+            $approvedRequests = \App\Models\LoaRequest::where('status', 'approved')
+                ->whereDoesntHave('loaValidated')
+                ->with('journal.publisher')
+                ->get();
+            
+            $generated = [];
+            foreach ($approvedRequests as $request) {
+                $loaCode = \App\Models\LoaValidated::generateLoaCodeWithArticleId($request->article_id);
+                
+                \App\Models\LoaValidated::create([
+                    'loa_request_id' => $request->id,
+                    'loa_code' => $loaCode,
+                    'verification_url' => route('loa.verify')
+                ]);
+                
+                $generated[] = [
+                    'request_id' => $request->id,
+                    'article_title' => $request->article_title,
+                    'loa_code' => $loaCode
+                ];
+            }
+            
+            return response()->json([
+                'message' => 'LOA codes generated successfully',
+                'count' => count($generated),
+                'generated_loa' => $generated
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+    })->name('generate-missing-loa');
+    
     // Public admin dashboard (accessible without login for testing)
     Route::get('/', [DashboardController::class, 'index']);
 });
@@ -202,4 +292,65 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     
     // Publishers Management
     Route::resource('publishers', PublisherController::class);
+    
+    // LOA Templates Management
+    Route::resource('loa-templates', LoaTemplateController::class);
+    Route::get('/loa-templates/{loaTemplate}/preview', [LoaTemplateController::class, 'preview'])->name('loa-templates.preview');
 });
+
+// Test route for template system
+Route::get('/test-template', function() {
+    $template = \App\Models\LoaTemplate::first();
+    if (!$template) {
+        return 'No templates found. Please run the seeder first.';
+    }
+    
+    $sampleData = [
+        'title' => 'Test Article Title',
+        'author_name' => 'John Doe',
+        'author_email' => 'john@example.com',
+        'publisher_name' => 'Test Publisher',
+        'publication_date' => '2025-01-02',
+        'verification_date' => '2025-01-02',
+        'verification_code' => 'TEST123',
+        'qr_code_url' => route('qr.code', 'TEST123'),
+        'current_date' => date('d F Y'),
+        'document_type' => 'Letter of Acceptance'
+    ];
+    
+    return $template->renderTemplate($sampleData, 'id');
+})->name('test.template');
+
+// Test LOA creation and view
+Route::get('/test-loa-create', function() {
+    // Create sample publisher if not exists
+    $publisher = \App\Models\Publisher::firstOrCreate([
+        'name' => 'Test Publisher',
+        'email' => 'test@publisher.com'
+    ]);
+    
+    // Create sample journal if not exists
+    $journal = \App\Models\Journal::firstOrCreate([
+        'name' => 'Test Journal',
+        'publisher_id' => $publisher->id,
+        'issn' => '1234-5678'
+    ]);
+    
+    // Create sample LOA request
+    $loaRequest = \App\Models\LoaRequest::create([
+        'author_name' => 'Test Author',
+        'author_email' => 'author@test.com',
+        'title' => 'Sample Research Article',
+        'journal_id' => $journal->id,
+        'status' => 'approved'
+    ]);
+    
+    // Create validated LOA
+    $loaValidated = \App\Models\LoaValidated::create([
+        'loa_request_id' => $loaRequest->id,
+        'loa_code' => 'TEST' . time(),
+        'verification_url' => url('/verify-loa')
+    ]);
+    
+    return redirect()->route('loa.view', $loaValidated->loa_code);
+})->name('test.loa.create');

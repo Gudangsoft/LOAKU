@@ -143,6 +143,20 @@
                         </li>
                         
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('loa.validated') ? 'active' : '' }}" href="{{ route('loa.validated') }}">
+                                <i class="fas fa-certificate"></i>
+                                <span>LOA Tervalidasi</span>
+                            </a>
+                        </li>
+                        
+                        <hr class="sidebar-divider my-3" style="border-color: rgba(255,255,255,0.15);">
+                        
+                        <!-- Kelola Data Section -->
+                        <div class="sidebar-heading" style="color: rgba(255,255,255,0.6); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1rem; margin-bottom: 0.5rem; padding: 0 1rem;">
+                            Kelola Data
+                        </div>
+                        
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.journals.*') ? 'active' : '' }}" href="{{ route('admin.journals.index') }}">
                                 <i class="fas fa-book"></i>
                                 <span>Kelola Jurnal</span>
@@ -153,6 +167,13 @@
                             <a class="nav-link {{ request()->routeIs('admin.publishers.*') ? 'active' : '' }}" href="{{ route('admin.publishers.index') }}">
                                 <i class="fas fa-building"></i>
                                 <span>Kelola Penerbit</span>
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.loa-templates.*') ? 'active' : '' }}" href="{{ route('admin.loa-templates.index') }}">
+                                <i class="fas fa-file-code"></i>
+                                <span>Template LOA</span>
                             </a>
                         </li>
                         

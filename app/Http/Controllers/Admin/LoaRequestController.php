@@ -36,12 +36,13 @@ class LoaRequestController extends Controller
             'approved_at' => now(),
         ]);
 
-        // Generate LOA code and create validated record
-        $loaCode = LoaValidated::generateLoaCode();
+        // Generate LOA code based on article ID if available
+        $loaCode = LoaValidated::generateLoaCodeWithArticleId($loaRequest->article_id);
         
         LoaValidated::create([
             'loa_request_id' => $loaRequest->id,
             'loa_code' => $loaCode,
+            'verification_url' => route('loa.verify')
         ]);
 
         return redirect()->route('admin.loa-requests.index')

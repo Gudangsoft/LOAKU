@@ -21,8 +21,7 @@ class TestLoaSeeder extends Seeder
             'name' => 'Test Scientific Publisher',
             'address' => 'Jl. Ilmu Pengetahuan No. 123, Jakarta',
             'email' => 'info@testpublisher.com',
-            'phone' => '+62-21-12345678',
-            'website' => 'https://testpublisher.com'
+            'phone' => '+62-21-12345678'
         ]);
 
         // Create a test journal
@@ -31,21 +30,21 @@ class TestLoaSeeder extends Seeder
             'publisher_id' => $publisher->id,
             'e_issn' => '2345-6789',
             'p_issn' => '1234-5678',
-            'chief_editor' => 'Dr. Test Editor',
-            'description' => 'A test journal for scientific articles'
+            'chief_editor' => 'Dr. Test Editor'
         ]);
 
         // Create a test LOA request
         $loaRequest = LoaRequest::firstOrCreate([
             'no_reg' => 'REG001',
+            'article_id' => 'ART001',
             'article_title' => 'Test Article: Advanced Studies in Testing',
             'author' => 'John Doe, Jane Smith',
             'author_email' => 'john.doe@example.com',
             'journal_id' => $journal->id,
-            'volume' => '10',
-            'number' => '2',
+            'volume' => 10,
+            'number' => 2,
             'month' => 'August',
-            'year' => '2025',
+            'year' => 2025,
             'status' => 'approved',
             'approved_at' => Carbon::now()
         ]);
@@ -54,7 +53,7 @@ class TestLoaSeeder extends Seeder
         LoaValidated::firstOrCreate([
             'loa_code' => 'LOA20250801030918',
             'loa_request_id' => $loaRequest->id,
-            'approved_at' => Carbon::now()
+            'verification_url' => url('/verify-loa')
         ]);
 
         $this->command->info('Test LOA data created successfully!');
