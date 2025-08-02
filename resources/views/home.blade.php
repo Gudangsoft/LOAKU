@@ -188,4 +188,89 @@
         </div>
     </div>
 </section>
+
+<!-- Publishers Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Publisher Terdaftar</h2>
+        <div class="row">
+            @if($publishers->count() > 0)
+                @foreach($publishers as $publisher)
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        @if($publisher->logo)
+                        <div class="text-center p-3">
+                            <img src="{{ asset('storage/' . $publisher->logo) }}" 
+                                 alt="{{ $publisher->name }}" 
+                                 class="img-fluid" 
+                                 style="max-height: 80px; object-fit: contain;">
+                        </div>
+                        @endif
+                        <div class="card-body">
+                            <h5 class="card-title">{{ $publisher->name }}</h5>
+                            <p class="card-text text-muted mb-2">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                {{ Str::limit($publisher->address, 50) }}
+                            </p>
+                            @if($publisher->phone)
+                            <p class="card-text text-muted mb-2">
+                                <i class="fas fa-phone me-2"></i>
+                                {{ $publisher->phone }}
+                            </p>
+                            @endif
+                            @if($publisher->email)
+                            <p class="card-text text-muted mb-2">
+                                <i class="fas fa-envelope me-2"></i>
+                                <a href="mailto:{{ $publisher->email }}" class="text-decoration-none">
+                                    {{ $publisher->email }}
+                                </a>
+                            </p>
+                            @endif
+                            @if($publisher->website)
+                            <p class="card-text text-muted mb-2">
+                                <i class="fas fa-globe me-2"></i>
+                                <a href="{{ $publisher->website }}" target="_blank" class="text-decoration-none">
+                                    Website
+                                </a>
+                            </p>
+                            @endif
+                            @if($publisher->whatsapp)
+                            <p class="card-text text-muted">
+                                <i class="fab fa-whatsapp me-2"></i>
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $publisher->whatsapp) }}" 
+                                   target="_blank" class="text-decoration-none text-success">
+                                    WhatsApp
+                                </a>
+                            </p>
+                            @endif
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">
+                                <i class="fas fa-journal-whills me-1"></i>
+                                {{ $publisher->journals->count() }} Jurnal Terdaftar
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            @else
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Belum ada publisher yang terdaftar
+                    </div>
+                </div>
+            @endif
+        </div>
+        
+        @if($totalPublishers > 6)
+        <div class="text-center mt-4">
+            <a href="/publishers" class="btn btn-outline-primary">
+                <i class="fas fa-plus me-2"></i>Lihat Semua Publisher
+            </a>
+        </div>
+        @endif
+    </div>
+</section>
+
 @endsection

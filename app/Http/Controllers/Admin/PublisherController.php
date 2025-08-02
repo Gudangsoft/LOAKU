@@ -27,12 +27,13 @@ class PublisherController extends Controller
             'address' => 'required|string',
             'phone' => 'nullable|string|max:20',
             'whatsapp' => 'nullable|string|max:20',
-            'email' => 'required|email|max:255|unique:publishers',
+            'email' => 'required|email|max:255|unique:publishers,email',
+            'website' => 'nullable|url|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $data = $request->only([
-            'name', 'address', 'phone', 'whatsapp', 'email'
+            'name', 'address', 'phone', 'whatsapp', 'email', 'website'
         ]);
 
         if ($request->hasFile('logo')) {
@@ -64,11 +65,12 @@ class PublisherController extends Controller
             'phone' => 'nullable|string|max:20',
             'whatsapp' => 'nullable|string|max:20',
             'email' => 'required|email|max:255|unique:publishers,email,' . $publisher->id,
+            'website' => 'nullable|url|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $data = $request->only([
-            'name', 'address', 'phone', 'whatsapp', 'email'
+            'name', 'address', 'phone', 'whatsapp', 'email', 'website'
         ]);
 
         if ($request->hasFile('logo')) {

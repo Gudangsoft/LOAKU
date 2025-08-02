@@ -78,6 +78,23 @@
                                 <p class="form-control-plaintext bg-light p-2 rounded">{{ $publisher->email }}</p>
                             </div>
                             
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-globe me-1"></i>
+                                    Website
+                                </label>
+                                <p class="form-control-plaintext bg-light p-2 rounded">
+                                    @if($publisher->website)
+                                        <a href="{{ $publisher->website }}" target="_blank" class="text-decoration-none">
+                                            {{ $publisher->website }}
+                                            <i class="fas fa-external-link-alt ms-1 small"></i>
+                                        </a>
+                                    @else
+                                        -
+                                    @endif
+                                </p>
+                            </div>
+                            
                         </div>
                     </div>
                     

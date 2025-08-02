@@ -17,6 +17,7 @@ class Publisher extends Model
         'phone',
         'whatsapp',
         'email',
+        'website',
         'logo',
     ];
 

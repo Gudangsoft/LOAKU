@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('whatsapp')->nullable();
             $table->string('email');
+            $table->string('website')->nullable();
             $table->string('logo')->nullable();
             $table->timestamps();
         });

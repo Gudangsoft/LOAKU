@@ -77,7 +77,15 @@
                                         @if($publisher->whatsapp)
                                             <div><i class="fab fa-whatsapp me-1"></i>{{ $publisher->whatsapp }}</div>
                                         @endif
-                                        @if(!$publisher->phone && !$publisher->whatsapp)
+                                        @if($publisher->website)
+                                            <div>
+                                                <i class="fas fa-globe me-1"></i>
+                                                <a href="{{ $publisher->website }}" target="_blank" class="text-decoration-none">
+                                                    {{ $publisher->website }}
+                                                </a>
+                                            </div>
+                                        @endif
+                                        @if(!$publisher->phone && !$publisher->whatsapp && !$publisher->website)
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>

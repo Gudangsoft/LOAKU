@@ -15,6 +15,20 @@ use App\Http\Controllers\Admin\AuthController;
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Test route for publisher form
+Route::get('/test-publisher-form', function() {
+    return view('test-publisher-form');
+});
+
+// Test route for publisher API
+Route::get('/test-publisher-api', [App\Http\Controllers\TestController::class, 'testPublisher']);
+
+// Database check route
+Route::get('/db-check', [App\Http\Controllers\DatabaseCheckController::class, 'checkPublishersTable']);
+
+// Publisher test route
+Route::get('/publisher-test', [App\Http\Controllers\PublisherTestController::class, 'testPublisherData']);
+
 // LOA Request Routes
 Route::get('/request-loa', [LoaRequestController::class, 'create'])->name('loa.create');
 Route::post('/request-loa', [LoaRequestController::class, 'store'])->name('loa.store');

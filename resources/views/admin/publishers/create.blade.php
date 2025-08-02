@@ -108,6 +108,23 @@
                             @enderror
                         </div>
                         
+                        <!-- Website -->
+                        <div class="mb-3">
+                            <label for="website" class="form-label">
+                                <i class="fas fa-globe me-1"></i>
+                                Website
+                            </label>
+                            <input type="url" 
+                                   class="form-control @error('website') is-invalid @enderror" 
+                                   id="website" 
+                                   name="website" 
+                                   value="{{ old('website') }}" 
+                                   placeholder="https://www.example.com">
+                            @error('website')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
                         <!-- Logo -->
                         <div class="mb-3">
                             <label for="logo" class="form-label">
