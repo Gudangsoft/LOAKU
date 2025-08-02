@@ -359,14 +359,16 @@
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" 
-                                                            class="btn btn-primary btn-sm"
-                                                            onclick="downloadQrImage('{{ route('qr.download', $loa->loa_code) }}')">
+                                                            class="btn btn-primary btn-sm qr-download-btn"
+                                                            data-loa-code="{{ $loa->loa_code }}"
+                                                            onclick="downloadQrCode('{{ $loa->loa_code }}')">
                                                         <i class="fas fa-download me-1"></i>
                                                         Download QR
                                                     </button>
                                                     <button type="button" 
                                                             class="btn btn-secondary btn-sm" 
-                                                            data-bs-dismiss="modal">
+                                                            data-bs-dismiss="modal"
+                                                            onclick="closeQrModal('qrModal{{ $loop->index }}')">
                                                         <i class="fas fa-times me-1"></i>
                                                         Close
                                                     </button>
@@ -517,7 +519,7 @@
 
 @push('scripts')
 <script>
-// Download QR Code function with better error handling
+// Simple and reliable QR download function
 function downloadQrCode(loaCode) {
     const downloadBtn = event.target.closest('button');
     const originalContent = downloadBtn.innerHTML;
@@ -527,46 +529,55 @@ function downloadQrCode(loaCode) {
     downloadBtn.disabled = true;
     
     try {
-        // Create download link
+        // Create direct download link
         const downloadUrl = `/loa/${loaCode}/qr/download`;
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `QR_${loaCode}.png`;
+        link.target = '_blank';
+        link.style.display = 'none';
         
-        // Method 1: Try direct window.open for download
-        const downloadWindow = window.open(downloadUrl, '_blank');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         
-        // Method 2: If that fails, use fetch and blob
-        if (!downloadWindow) {
-            fetch(downloadUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.blob();
-                })
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `QR_${loaCode}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                })
-                .catch(error => {
-                    console.error('Download failed:', error);
-                    alert('Download gagal. Silakan coba lagi.');
-                });
-        }
+        // Show success message
+        showNotification('QR Code berhasil didownload!', 'success');
         
     } catch (error) {
         console.error('Download error:', error);
-        alert('Terjadi kesalahan saat download. Silakan coba lagi.');
+        // Fallback: open in new window
+        window.open(`/loa/${loaCode}/qr/download`, '_blank');
+        showNotification('QR Code dibuka di tab baru untuk download', 'info');
     }
     
-    // Reset button state after delay
+    // Reset button state
     setTimeout(() => {
         downloadBtn.innerHTML = originalContent;
         downloadBtn.disabled = false;
-    }, 2000);
+    }, 1500);
+}
+
+// Simple close modal function
+function closeQrModal(modalId) {
+    const modalElement = document.getElementById(modalId);
+    if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+            modal.hide();
+        } else {
+            // Fallback if bootstrap instance not found
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            
+            // Remove backdrop if exists
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        }
+    }
 }
 
 // Enhanced modal management
@@ -601,15 +612,23 @@ document.addEventListener('DOMContentLoaded', function() {
             resetModalState(modalElement);
         });
         
-        // Enhanced close button functionality
-        const closeButtons = modalElement.querySelectorAll('[data-bs-dismiss="modal"]');
-        closeButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
+        // Enhanced close button functionality with event delegation
+        modalElement.addEventListener('click', function(e) {
+            if (e.target.matches('[data-bs-dismiss="modal"]') || 
+                e.target.closest('[data-bs-dismiss="modal"]')) {
                 e.preventDefault();
                 modal.hide();
-            });
+            }
+        });
+        
+        // Handle escape key
+        modalElement.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                modal.hide();
+            }
         });
     });
+});
 });
 
 // Reset modal state
@@ -684,133 +703,6 @@ function showError(modalElement) {
     
     if (loadingDiv) loadingDiv.style.display = 'none';
     if (errorDiv) errorDiv.style.display = 'block';
-}
-
-// Download QR image function (with multiple fallbacks)
-function downloadQrImage(url) {
-    try {
-        showNotification('Memulai download QR Code...', 'info');
-        
-        // Method 1: Direct download link
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'QR_Code_' + Date.now() + '.png';
-        link.target = '_blank';
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        
-        // Trigger download
-        link.click();
-        
-        // Cleanup
-        setTimeout(() => {
-            document.body.removeChild(link);
-        }, 100);
-        
-        showNotification('QR Code berhasil didownload!', 'success');
-        
-    } catch (error) {
-        console.error('Download error:', error);
-        
-        // Fallback: Open in new tab
-        try {
-            window.open(url, '_blank');
-            showNotification('QR Code dibuka di tab baru', 'warning');
-        } catch (error2) {
-            // Last resort: Copy link to clipboard
-            copyToClipboard(url);
-            showNotification('Link QR Code disalin ke clipboard', 'info');
-        }
-    }
-}
-
-// Alternative download using fetch API
-function downloadQrImageAdvanced(loaCode) {
-    const apiUrl = '/api/qr/download/' + loaCode;
-    
-    showNotification('Generating QR Code...', 'info');
-    
-    fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Convert base64 to blob and download
-                const link = document.createElement('a');
-                link.href = data.data;
-                link.download = data.filename;
-                link.click();
-                
-                showNotification('QR Code berhasil didownload!', 'success');
-            } else {
-                throw new Error(data.error || 'Download failed');
-            }
-        })
-        .catch(error => {
-            console.error('API Download error:', error);
-            showNotification('Download gagal: ' + error.message, 'danger');
-            
-            // Fallback to direct method
-            const fallbackUrl = '/qr/download/' + loaCode;
-            downloadQrImage(fallbackUrl);
-        });
-}
-
-// Copy text to clipboard
-function copyToClipboard(text) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text);
-    } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-    }
-}
-
-// Close modal function
-function closeModal(modalId) {
-    try {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            // Method 1: Try Bootstrap modal hide
-            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                const bsModal = bootstrap.Modal.getInstance(modal);
-                if (bsModal) {
-                    bsModal.hide();
-                    return;
-                }
-            }
-            
-            // Method 2: Manual close
-            modal.style.display = 'none';
-            modal.classList.remove('show');
-            modal.setAttribute('aria-hidden', 'true');
-            modal.removeAttribute('aria-modal');
-            
-            // Remove backdrop
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) {
-                backdrop.remove();
-            }
-            
-            // Restore body
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-            
-            showNotification('Modal ditutup', 'success');
-        }
-    } catch (error) {
-        // Fallback: Reload page if all fails
-        console.error('Error closing modal:', error);
-        showNotification('Menutup modal...', 'warning');
-        setTimeout(function() {
-            location.reload();
-        }, 1000);
-    }
 }
 
 // Show notification function
