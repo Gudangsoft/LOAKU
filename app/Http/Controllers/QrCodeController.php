@@ -104,7 +104,7 @@ class QrCodeController extends Controller
     /**
      * Generate QR Code for download
      */
-    public function downloadQr($loaCode)
+    public function downloadQr($loaCode, Request $request)
     {
         // Check if LOA exists and get publisher info
         $loaValidated = LoaValidated::where('loa_code', $loaCode)
@@ -118,21 +118,29 @@ class QrCodeController extends Controller
         // Generate verification URL
         $verificationUrl = route('qr.verify', $loaCode);
         
-        // Generate simple QR Code for download (larger size, no logo)
+        // Get requested format (default to PNG)
+        $format = $request->get('format', 'png');
+        
+        // Generate QR Code with appropriate size
         $qrImage = $this->qrService->generateQrFromService($verificationUrl, 512, null);
         
-        // Check if we got SVG (fallback) or PNG (from service)
-        if (strpos($qrImage, '<?xml') === 0) {
-            // For SVG, we need to convert or return as SVG
-            return response($qrImage)
-                ->header('Content-Type', 'image/svg+xml')
-                ->header('Content-Disposition', 'attachment; filename="QR_' . $loaCode . '.svg"');
-        } else {
-            // PNG response from service
-            return response($qrImage)
-                ->header('Content-Type', 'image/png')
-                ->header('Content-Disposition', 'attachment; filename="QR_' . $loaCode . '.png"');
+        // Handle different formats
+        if ($format === 'svg' || strpos($qrImage, '<?xml') === 0) {
+            // SVG format
+            if (strpos($qrImage, '<?xml') !== 0) {
+                // If service returned PNG but SVG requested, we'll still return PNG
+                $format = 'png';
+            } else {
+                return response($qrImage)
+                    ->header('Content-Type', 'image/svg+xml')
+                    ->header('Content-Disposition', 'attachment; filename="QR_' . $loaCode . '.svg"');
+            }
         }
+        
+        // Default PNG response
+        return response($qrImage)
+            ->header('Content-Type', 'image/png')
+            ->header('Content-Disposition', 'attachment; filename="QR_' . $loaCode . '.png"');
     }
 
     /**

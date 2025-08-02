@@ -293,22 +293,23 @@
                                             <i class="fas fa-qrcode me-1"></i>
                                             Lihat QR
                                         </button>
-                                        <div class="btn-group flex-grow-1" role="group">
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-success"
-                                                    onclick="downloadQrImage('{{ route('qr.download', $loa->loa_code) }}')"
-                                                    data-bs-toggle="tooltip"
-                                                    title="Download QR Code">
+                                        <div class="btn-group flex-grow-1">
+                                            <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
                                                 <i class="fas fa-download me-1"></i>
                                                 Download QR
                                             </button>
-                                            <a href="{{ route('qr.download', $loa->loa_code) }}" 
-                                               class="btn btn-sm btn-outline-success"
-                                               target="_blank"
-                                               data-bs-toggle="tooltip"
-                                               title="Buka di tab baru">
-                                                <i class="fas fa-external-link-alt"></i>
-                                            </a>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}">
+                                                        <i class="fas fa-qrcode me-2"></i>QR Code PNG
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}?format=svg">
+                                                        <i class="fas fa-vector-square me-2"></i>QR Code SVG
+                                                    </a>
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
                                     
