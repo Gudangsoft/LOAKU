@@ -9,7 +9,7 @@
 
 ## 📋 Deskripsi Project
 
-**LOA-KU** adalah sistem manajemen Letter of Acceptance (LOA) untuk artikel jurnal ilmiah berbasis web. Sistem ini memungkinkan pengelolaan permohonan LOA secara digital dengan fitur verifikasi QR Code dan dashboard admin yang komprehensif.
+**LOA-SIPTENAN** adalah sistem manajemen Letter of Acceptance (LOA) untuk artikel jurnal ilmiah berbasis web. Sistem ini memungkinkan pengelolaan permohonan LOA secara digital dengan fitur verifikasi QR Code dan dashboard admin yang komprehensif.
 
 ## ✨ Fitur Utama
 
