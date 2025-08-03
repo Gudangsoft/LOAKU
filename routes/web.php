@@ -32,6 +32,55 @@ Route::get('/publisher-test', [App\Http\Controllers\PublisherTestController::cla
 // Journal test route
 Route::get('/journal-test', [App\Http\Controllers\JournalTestController::class, 'testJournalData']);
 
+// Test new LOA PDF format
+Route::get('/test-new-loa-pdf', function() {
+    try {
+        // Create fake data for testing
+        $fakeData = [
+            'loa' => (object)[
+                'loa_code' => '711/Menulis-Vol.1/No.8/2025',
+                'qr_code' => null
+            ],
+            'request' => (object)[
+                'article_title' => 'Perancangan Media Informasi Desa Wisata Partungko Naginjang Kabupaten Samosir Melalui Media Website',
+                'author' => 'Andraal Celvin, Ruth Deby Sarvalistia, Khairunisa',
+                'author_email' => 'author@example.com',
+                'volume' => '1',
+                'number' => '8',
+                'month' => 'Agustus',
+                'year' => '2025',
+                'no_reg' => 'LOA320580821323411',
+                'approved_at' => now()
+            ],
+            'journal' => (object)[
+                'name' => 'Menulis: Jurnal Penelitian Nusantara',
+                'e_issn' => '3018-683X',
+                'p_issn' => '1234-5678',
+                'chief_editor' => 'Mardalius, M.Kom',
+                'logo' => null,
+                'signature_image' => null
+            ],
+            'publisher' => (object)[
+                'name' => 'PT. PADANG TEKNO CORP',
+                'address' => 'Jl. Bandar Purus Nauli, Sumatera Utara.',
+                'email' => 'padang.tekno.corp@gmail.com',
+                'phone' => '+62 851-5862-9831',
+                'logo' => null
+            ],
+            'lang' => 'id',
+            'qrCode' => base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(200)->generate('https://loa.siptenan.org/verify/711-Menulis-Vol1-No8-2025'))
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.loa-new-format', $fakeData);
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->download('test_new_format_LOA.pdf');
+        
+    } catch (\Exception $e) {
+        return response('<h1>Error</h1><p>' . $e->getMessage() . '</p>');
+    }
+});
+
 // LOA Request Routes
 Route::get('/request-loa', [LoaRequestController::class, 'create'])->name('loa.create');
 Route::post('/request-loa', [LoaRequestController::class, 'store'])->name('loa.store');

@@ -7,6 +7,7 @@ use App\Models\LoaValidated;
 use App\Models\LoaTemplate;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class LoaController extends Controller
 {
@@ -176,21 +177,24 @@ class LoaController extends Controller
                     'lang' => $lang
                 ];
             } else {
+                // Generate QR Code for verification
+                $verificationUrl = route('loa.verify.result', $loaValidated->loa_code);
+                $qrCode = base64_encode(QrCode::format('png')->size(200)->generate($verificationUrl));
+                
                 $data = [
                     'loa' => $loaValidated,
                     'request' => $loaValidated->loaRequest,
                     'journal' => $loaValidated->loaRequest ? $loaValidated->loaRequest->journal : null,
                     'publisher' => $loaValidated->loaRequest && $loaValidated->loaRequest->journal ? $loaValidated->loaRequest->journal->publisher : null,
-                    'lang' => $lang
+                    'lang' => $lang,
+                    'qrCode' => $qrCode
                 ];
             }
 
-            // Check if PDF template exists
-            if (!view()->exists('pdf.loa-certificate')) {
-                return response()->json(['error' => 'PDF template not found'], 500);
-            }
+            // Check if new PDF template exists, fallback to old template
+            $templateName = view()->exists('pdf.loa-new-format') ? 'pdf.loa-new-format' : 'pdf.loa-certificate';
 
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.loa-certificate', $data);
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($templateName, $data);
             $pdf->setPaper('A4', 'portrait');
 
             $filename = $loaCode . '_' . $lang . '.pdf';
