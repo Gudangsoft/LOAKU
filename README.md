@@ -375,7 +375,7 @@ Proyek ini menggunakan [MIT License](LICENSE).
 
 Jika menemukan bug atau membutuhkan bantuan:
 - Buat [Issue](../../issues) di GitHub
-- Email: upport@loa.siptenan.org
+- Email: support@loa.siptenan.org
 - Dokumentasi: [Wiki](../../wiki)
 
 ## 📈 Roadmap
