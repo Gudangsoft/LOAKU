@@ -188,12 +188,20 @@
                                     id="journal_id" 
                                     name="journal_id" 
                                     required>
-                                <option value="">Pilih Jurnal</option>
-                                @foreach($journals as $journal)
-                                    <option value="{{ $journal->id }}" {{ old('journal_id') == $journal->id ? 'selected' : '' }}>
-                                        {{ $journal->name }} - {{ $journal->publisher->name }}
-                                    </option>
-                                @endforeach
+                                <option value="">-- Pilih Jurnal --</option>
+                                @if($journals->count() > 0)
+                                    @foreach($journals as $journal)
+                                        <option value="{{ $journal->id }}" {{ old('journal_id') == $journal->id ? 'selected' : '' }}>
+                                            {{ $journal->name }} 
+                                            @if($journal->e_issn)
+                                                (e-ISSN: {{ $journal->e_issn }})
+                                            @endif
+                                            - {{ $journal->publisher->name }}
+                                        </option>
+                                    @endforeach
+                                @else
+                                    <option value="" disabled>Tidak ada jurnal tersedia</option>
+                                @endif
                             </select>
                             @error('journal_id')
                                 <div class="invalid-feedback">{{ $message }}</div>

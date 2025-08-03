@@ -29,6 +29,9 @@ Route::get('/db-check', [App\Http\Controllers\DatabaseCheckController::class, 'c
 // Publisher test route
 Route::get('/publisher-test', [App\Http\Controllers\PublisherTestController::class, 'testPublisherData']);
 
+// Journal test route
+Route::get('/journal-test', [App\Http\Controllers\JournalTestController::class, 'testJournalData']);
+
 // LOA Request Routes
 Route::get('/request-loa', [LoaRequestController::class, 'create'])->name('loa.create');
 Route::post('/request-loa', [LoaRequestController::class, 'store'])->name('loa.store');
