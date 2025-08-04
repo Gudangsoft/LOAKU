@@ -74,8 +74,8 @@ Route::get('/test-new-loa-pdf', function() {
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.loa-new-format', $fakeData);
         $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->stream()('test_new_format_LOA.pdf');
-        
+        return $pdf->stream('test_new_format_LOA.pdf');
+
     } catch (\Exception $e) {
         return response('<h1>Error</h1><p>' . $e->getMessage() . '</p>');
     }

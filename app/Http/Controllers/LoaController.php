@@ -244,7 +244,7 @@ class LoaController extends Controller
 
             $filename = $loaCode . '_' . $lang . '.pdf';
             
-            return $pdf->download($filename);
+            return $pdf->stream($filename);
             
         } catch (\Exception $e) {
             \Log::error('PDF Generation Error: ' . $e->getMessage());
