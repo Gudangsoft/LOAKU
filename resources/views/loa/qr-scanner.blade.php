@@ -151,24 +151,68 @@
             });
 
             function handleScanResult(content) {
+                console.log('Raw QR content:', content);
+                
                 let loaCode = content;
+                
+                // Try to extract LOA code from various URL formats
                 if (content.includes('/verify-qr/')) {
                     const urlParts = content.split('/verify-qr/');
                     if (urlParts.length > 1) {
                         loaCode = urlParts[1];
                     }
+                } else if (content.includes('/verify-loa/')) {
+                    const urlParts = content.split('/verify-loa/');
+                    if (urlParts.length > 1) {
+                        loaCode = urlParts[1];
+                    }
                 }
-
-                if (loaCode.match(/^LOA\d{8}\d{3}$/)) {
+                
+                // Clean up LOA code (remove query parameters, trailing slashes, etc.)
+                loaCode = loaCode.split('?')[0].split('#')[0].replace(/\/$/, '');
+                
+                console.log('Extracted LOA code:', loaCode);
+                
+                // More flexible regex - accept various LOA code formats
+                if (loaCode.match(/^LOA\d{8}\d{3}$/) || // LOAyyyymmddxxx format
+                    loaCode.match(/^LOA\d+$/) ||       // LOA followed by numbers
+                    loaCode.match(/^\d+\/.*$/)) {      // Registration number format like 711/Menulis-Vol.1/No.8/2025
+                    
                     detectedCode.textContent = loaCode;
                     scanResult.style.display = 'block';
                     stopScanning();
 
                     verifyBtn.onclick = function() {
-                        window.location.href = '/verify-qr/' + loaCode;
+                        // Try both verification routes
+                        if (loaCode.match(/^LOA/)) {
+                            window.location.href = '/verify-qr/' + loaCode;
+                        } else {
+                            // For other formats, try the general verify route
+                            window.location.href = '/verify-loa/' + loaCode;
+                        }
                     };
                 } else {
-                    alert('QR Code tidak valid atau bukan QR Code LOA.');
+                    console.log('Invalid LOA code format:', loaCode);
+                    
+                    // Show detailed error with what was scanned
+                    let errorMsg = 'QR Code tidak valid atau bukan QR Code LOA.\n\n';
+                    errorMsg += 'Detail scan:\n';
+                    errorMsg += '• URL asli: ' + content + '\n';
+                    errorMsg += '• Kode yang diekstrak: ' + loaCode + '\n\n';
+                    errorMsg += 'Format yang valid:\n';
+                    errorMsg += '• LOA20250803001 (LOA + tanggal + nomor)\n';
+                    errorMsg += '• 711/Menulis-Vol.1/No.8/2025 (Nomor registrasi)';
+                    
+                    alert(errorMsg);
+                    
+                    // Still show the result for debugging purposes
+                    detectedCode.textContent = loaCode + ' (FORMAT TIDAK VALID)';
+                    scanResult.style.display = 'block';
+                    stopScanning();
+
+                    verifyBtn.onclick = function() {
+                        alert('Tidak dapat memverifikasi kode dengan format tidak valid.');
+                    };
                 }
             }
 

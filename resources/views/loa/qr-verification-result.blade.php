@@ -209,6 +209,13 @@
                                 <li><i class="fas fa-minus me-2"></i>Kode LOA sudah expired atau dihapus</li>
                                 <li><i class="fas fa-minus me-2"></i>QR Code rusak atau tidak terbaca dengan benar</li>
                             </ul>
+                            @if(isset($searchCode))
+                                <hr class="my-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-search me-1"></i>
+                                    Kode yang dicari: <code>{{ $searchCode }}</code>
+                                </small>
+                            @endif
                         </div>
 
                         <div class="d-flex gap-2 justify-content-center">

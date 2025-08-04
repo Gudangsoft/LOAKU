@@ -92,6 +92,7 @@ Route::get('/search-loa', function() {
 Route::post('/search-loa', [LoaController::class, 'find'])->name('loa.find');
 Route::get('/verify-loa', [LoaController::class, 'verify'])->name('loa.verify');
 Route::post('/verify-loa', [LoaController::class, 'checkVerification'])->name('loa.check');
+Route::get('/verify-loa/{loaCode}', [LoaController::class, 'verifyResult'])->name('loa.verify.result');
 
 // QR Code Routes
 Route::get('/qr-scanner', [QrCodeController::class, 'showScanner'])->name('qr.scanner');

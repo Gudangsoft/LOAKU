@@ -92,12 +92,31 @@ class QrCodeController extends Controller
      */
     public function verifyFromQr($loaCode)
     {
+        // Try to find LOA by various methods
+        $loaValidated = null;
+        
+        // First try direct LOA code match
         $loaValidated = LoaValidated::where('loa_code', $loaCode)
             ->with(['loaRequest.journal.publisher'])
             ->first();
+        
+        // If not found, try to find by registration number
+        if (!$loaValidated) {
+            $loaValidated = LoaValidated::whereHas('loaRequest', function($query) use ($loaCode) {
+                $query->where('no_reg', $loaCode);
+            })
+            ->with(['loaRequest.journal.publisher'])
+            ->first();
+        }
+        
+        // Log for debugging
+        if (!$loaValidated) {
+            \Log::info('QR Verification failed for code: ' . $loaCode);
+        }
 
         return view('loa.qr-verification-result', [
-            'loa' => $loaValidated
+            'loa' => $loaValidated,
+            'searchCode' => $loaCode
         ]);
     }
 

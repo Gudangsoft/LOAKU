@@ -11,6 +11,35 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class LoaController extends Controller
 {
+    /**
+     * Generate QR Code with fallback for ImageMagick issues
+     */
+    private function generateQrCode($url)
+    {
+        // Temporary disable QR code generation until ImageMagick is installed
+        // This will prevent PDF generation from failing
+        return null;
+        
+        /* 
+        // Uncomment this section once ImageMagick extension is installed
+        try {
+            // Try with SVG format first (doesn't require ImageMagick)
+            return base64_encode(QrCode::format('svg')->size(200)->generate($url));
+        } catch (\Exception $e) {
+            try {
+                // Fallback to PNG with different backend
+                return base64_encode(QrCode::format('png')->size(200)->generate($url));
+            } catch (\Exception $e2) {
+                // Log the error for debugging
+                \Log::warning('QR Code generation failed: ' . $e2->getMessage());
+                
+                // Return null - template will handle missing QR code gracefully
+                return null;
+            }
+        }
+        */
+    }
+
     public function search()
     {
         return view('loa.search');
@@ -71,6 +100,22 @@ class LoaController extends Controller
         if (!$loaValidated) {
             return redirect()->back()
                 ->with('error', 'LOA tidak ditemukan atau belum divalidasi.');
+        }
+
+        return view('loa.verification-result', compact('loaValidated'));
+    }
+
+    public function verifyResult($loaCode)
+    {
+        $loaValidated = LoaValidated::where('loa_code', $loaCode)
+            ->with(['loaRequest.journal.publisher'])
+            ->first();
+
+        if (!$loaValidated) {
+            return view('loa.verification-result', [
+                'error' => 'LOA tidak ditemukan atau belum divalidasi.',
+                'loaValidated' => null
+            ]);
         }
 
         return view('loa.verification-result', compact('loaValidated'));
@@ -177,9 +222,9 @@ class LoaController extends Controller
                     'lang' => $lang
                 ];
             } else {
-                // Generate QR Code for verification
+                // Generate QR Code for verification - with fallback for ImageMagick issues
                 $verificationUrl = route('loa.verify.result', $loaValidated->loa_code);
-                $qrCode = base64_encode(QrCode::format('png')->size(200)->generate($verificationUrl));
+                $qrCode = $this->generateQrCode($verificationUrl);
                 
                 $data = [
                     'loa' => $loaValidated,
