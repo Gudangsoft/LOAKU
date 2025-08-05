@@ -331,20 +331,21 @@
     </div>
     
     
+
 <!-- Footer with QR Code and Signature -->
 <div class="footer-section">
     <table class="footer-table">
         <tr>
             <td class="qr-section">
                 <!-- QR Code -->
-                <div style="text-align: center; margin-bottom: 10px;">
+                <div style="text-align: left; margin-bottom: 10px;">
                     @if(isset($qrCodePath) && file_exists($qrCodePath))
                         <img src="{{ $qrCodePath }}" alt="QR Code" style="width: 80px; height: 80px; border: 1px solid #ddd;">
                     @elseif(isset($qrCode))
                         <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code" style="width: 80px; height: 80px; border: 1px solid #ddd;">
                     @else
                         <div style="width: 80px; height: 80px; border: 2px solid #ddd; margin: 0 auto; display: table;">
-                            <div style="display: table-cell; vertical-align: middle; text-align: center; font-size: 8px; color: #666;">
+                            <div style="display: table-cell; vertical-align: middle; text-align: left; font-size: 8px; color: #666;">
                                 QR CODE<br>PLACEHOLDER
                             </div>
                         </div>
@@ -352,16 +353,14 @@
                 </div>
                     
                     <div class="verification-info">
+                        {{ (isset($loa) ? $loa->loa_code : null) ?? 'LOA320580821323411' }} <br>
                         <strong>{{ $lang == 'id' ? 'Keaslian LOA Dapat' : 'LOA Authenticity Can' }}</strong><br>
                         <strong>{{ $lang == 'id' ? 'Diverifikasi Dengan' : 'Be Verified With' }}</strong><br>
                         <strong>{{ $lang == 'id' ? 'Memindai QR Code' : 'Scanning QR Code' }}</strong><br>
                         
                     </div>
                     
-                    <div style="margin-top: 10px; font-size: 9px;">
-                        {{ (isset($loa) ? $loa->loa_code : null) ?? 'LOA320580821323411' }}
-                    </div>
-                </td>
+                  
                 
                 <td class="signature-section">
                     <!-- Date -->
@@ -421,10 +420,10 @@
     <!-- Publisher Info -->
     <div class="publisher-info">
         <strong>{{ $lang == 'id' ? 'Penerbit' : 'Publisher' }}:</strong><br>
-        <strong>{{ (isset($publisher) ? $publisher->name : null) ?? 'PT. Padang Tekno Corp' }}</strong><br>
-        Alamat : {{ (isset($publisher) ? $publisher->address : null) ?? 'Jl. Bandar Purus Nauli, Sumatera Utara.' }}<br>
-       Phone :  {{ (isset($publisher) ? $publisher->phone : null) ?? '+62 851-5862-9831' }}<br>
-       E- Mail :  {{ (isset($publisher) ? $publisher->email : null) ?? 'padang.tekno.corp@gmail.com' }}
+        <strong>{{ (isset($publisher) ? $publisher->name : null) ?? 'GUDANGSOFT.NET' }}</strong><br>
+        Alamat : {{ (isset($publisher) ? $publisher->address : null) ?? 'Jl.Raya Guntur-Karangawen, Kab,Demak.' }}<br>
+        Phone :  {{ (isset($publisher) ? $publisher->phone : null) ?? '+62 851-585640236283' }}<br>
+        E- Mail :  {{ (isset($publisher) ? $publisher->email : null) ?? 'info@gudangsoft.net' }}
     </div>
 </body>
 </html>

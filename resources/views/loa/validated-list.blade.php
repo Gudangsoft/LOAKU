@@ -271,12 +271,12 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'id']) }}">
+                                                    <a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'id']) }}" target="_blank">
                                                         <i class="fas fa-flag me-2"></i>Bahasa Indonesia
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'en']) }}">
+                                                    <a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'en']) }}" target="_blank">
                                                         <i class="fas fa-flag-usa me-2"></i>English
                                                     </a>
                                                 </li>
