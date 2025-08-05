@@ -98,7 +98,7 @@
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
                 <i class="fas fa-certificate me-2"></i>
-                HOME 
+                LOA SIPTENAN 
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -107,7 +107,7 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 @auth
-                    @if(auth()->user()->is_admin ?? false)
+                    @if(auth()->user()->is_admin ?? true)
                         <!-- Menu khusus untuk Admin -->
                         <ul class="navbar-nav me-auto">
                             <li class="nav-item">
@@ -181,9 +181,7 @@
                 @else
                     <!-- Menu untuk Guest -->
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('home') }}">Home</a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('loa.create') }}">Request LOA</a>
                         </li>
