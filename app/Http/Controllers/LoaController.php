@@ -19,8 +19,8 @@ class LoaController extends Controller
         // Temporary disable QR code generation until ImageMagick is installed
         // This will prevent PDF generation from failing
         return null;
-        
-        /* 
+
+        /*
         // Uncomment this section once ImageMagick extension is installed
         try {
             // Try with SVG format first (doesn't require ImageMagick)
@@ -32,7 +32,7 @@ class LoaController extends Controller
             } catch (\Exception $e2) {
                 // Log the error for debugging
                 \Log::warning('QR Code generation failed: ' . $e2->getMessage());
-                
+
                 // Return null - template will handle missing QR code gracefully
                 return null;
             }
@@ -54,7 +54,7 @@ class LoaController extends Controller
         ]);
 
         $search = $request->search;
-        
+
         // Search by LOA code first
         $loaValidated = LoaValidated::where('loa_code', $search)
             ->with(['loaRequest.journal.publisher'])
@@ -66,7 +66,7 @@ class LoaController extends Controller
                 ->where('status', 'approved')
                 ->with(['journal.publisher', 'loaValidated'])
                 ->first();
-            
+
             if ($loaRequest && $loaRequest->loaValidated) {
                 $loaValidated = $loaRequest->loaValidated;
             }
@@ -225,7 +225,7 @@ class LoaController extends Controller
                 // Generate QR Code for verification - with fallback for ImageMagick issues
                 $verificationUrl = route('loa.verify.result', $loaValidated->loa_code);
                 $qrCode = $this->generateQrCode($verificationUrl);
-                
+
                 $data = [
                     'loa' => $loaValidated,
                     'request' => $loaValidated->loaRequest,
@@ -243,9 +243,9 @@ class LoaController extends Controller
             $pdf->setPaper('A4', 'portrait');
 
             $filename = $loaCode . '_' . $lang . '.pdf';
-            
+
             return $pdf->download($filename);
-            
+
         } catch (\Exception $e) {
             \Log::error('PDF Generation Error: ' . $e->getMessage());
             return response()->json([
@@ -265,10 +265,10 @@ class LoaController extends Controller
 
         // Get publisher ID for template selection
         $publisherId = $loaValidated->loaRequest->journal->publisher_id ?? null;
-        
+
         // Try to get custom template, fallback to default
         $template = LoaTemplate::getDefault($lang, $publisherId);
-        
+
         $data = [
             'loa' => $loaValidated,
             'request' => $loaValidated->loaRequest,
@@ -286,7 +286,7 @@ class LoaController extends Controller
         // Fallback to default view
         return view('loa.view', $data);
     }
-    
+
     private function renderDynamicTemplate($template, $data)
     {
         // Prepare template variables
@@ -318,18 +318,18 @@ class LoaController extends Controller
 
         // Render template content
         $content = $template->header_template . $template->body_template . $template->footer_template;
-        
+
         // Replace variables
         foreach ($variables as $key => $value) {
             $content = str_replace('{{' . $key . '}}', $value, $content);
         }
-        
+
         // Handle conditional statements for language
         $content = $this->processConditionals($content, $data['lang']);
-        
+
         return response($content)->header('Content-Type', 'text/html');
     }
-    
+
     private function processConditionals($content, $lang)
     {
         // Process @if($lang == "id") ... @else ... @endif
@@ -344,8 +344,8 @@ class LoaController extends Controller
             },
             $content
         );
-        
-        // Process @if($lang == "en") ... @else ... @endif  
+
+        // Process @if($lang == "en") ... @else ... @endif
         $content = preg_replace_callback(
             '/@if\(\$lang\s*==\s*["\']en["\']\)(.*?)(?:@else(.*?))?@endif/s',
             function ($matches) use ($lang) {
@@ -357,7 +357,7 @@ class LoaController extends Controller
             },
             $content
         );
-        
+
         return $content;
     }
 }
