@@ -18,9 +18,9 @@ class LoaController extends Controller
     {
         // Temporary disable QR code generation until ImageMagick is installed
         // This will prevent PDF generation from failing
-        return null;
+        // return null;
 
-        /*
+
         // Uncomment this section once ImageMagick extension is installed
         try {
             // Try with SVG format first (doesn't require ImageMagick)
@@ -37,7 +37,7 @@ class LoaController extends Controller
                 return null;
             }
         }
-        */
+
     }
 
     public function search()
@@ -234,6 +234,7 @@ class LoaController extends Controller
                     'lang' => $lang,
                     'qrCode' => $qrCode
                 ];
+
             }
 
             // Check if new PDF template exists, fallback to old template
