@@ -98,7 +98,7 @@
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
                 <i class="fas fa-certificate me-2"></i>
-                LOA Management System
+                HOME 
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -116,7 +116,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('loa.create') }}">
+                                <a class="nav-link" href="{{ route('admin.loa-requests.index') }}">
                                     <i class="fas fa-file-alt me-1"></i>LOA Requests
                                 </a>
                             </li>
@@ -128,12 +128,29 @@
                                 </a>
                             </li>
                             
+                            </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('home') }}" target="_blank">
-                                    <i class="fas fa-external-link-alt me-1"></i>Lihat Website
+                                <a class="nav-link" href="{{ route('admin.publishers.index') }}">
+                                    <i class="fas fa-certificate me-1"></i>Data Publisher
                                 </a>
                             </li>
-                        </ul>
+
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.journals.index') }}">
+                                    <i class="fas fa-certificate me-1"></i>Data Jurnal
+                                </a>
+                            </li>
+
+
+
+
+
+
+
+
+
+
                     @else
                         <!-- Menu untuk User biasa -->
                         <ul class="navbar-nav me-auto">
@@ -200,23 +217,9 @@
                                 @if(auth()->user()->is_admin ?? false)
                                     <!-- Menu untuk admin yang sudah login -->
                                     <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                        <i class="fas fa-tachometer-alt me-2"></i>Profile
                                     </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ route('admin.loa-requests.index') }}">
-                                        <i class="fas fa-file-alt me-2"></i>LOA Requests
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{{ route('loa.validated') }}">
-                                        <i class="fas fa-certificate me-2"></i>LOA Tervalidasi
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{{ route('admin.publishers.index') }}">
-                                        <i class="fas fa-book me-2"></i>Penerbit
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{{ route('admin.journals.index') }}">
-                                        <i class="fas fa-book me-2"></i>Journals
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
+                                   
                                         <form method="POST" action="{{ route('admin.logout') }}" class="d-inline">
                                             @csrf
                                             <button type="submit" class="dropdown-item">
@@ -289,7 +292,7 @@
             </div>
             <hr class="my-4">
             <div class="text-center">
-                <p>&copy; {{ date('Y') }} LOA Management System. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} LOA Management System By : SIPTENAN . All rights reserved.</p>
             </div>
         </div>
     </footer>
