@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Admin Dashboard - LOA Management System')
+@section('title', 'Admin Dashboard - LOA Management System SIPTENAN')
 
 @section('content')
 <div class="container-fluid py-4">
@@ -11,7 +11,7 @@
                 <i class="fas fa-tachometer-alt me-2"></i>
                 Dashboard Admin
             </h1>
-            <p class="mb-0 text-muted">Selamat datang di panel administrasi LOA Management System</p>
+            <p class="mb-0 text-muted">Selamat datang di panel administrasi LOA Management System SIPTENAN</p>
         </div>
         <div class="text-muted">
             <i class="fas fa-calendar me-1"></i>

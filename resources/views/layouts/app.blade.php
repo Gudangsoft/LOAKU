@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'LOA Management System')</title>
+    <title>@yield('title', 'LOA SIPTENAN')</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -116,28 +116,18 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.loa-requests.index') }}">
-                                    <i class="fas fa-file-alt me-1"></i>Permohonan LOA
+                                <a class="nav-link" href="{{ route('loa.create') }}">
+                                    <i class="fas fa-file-alt me-1"></i>LOA Requests
                                 </a>
+                            </li>
+                            
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('loa.validated') }}">
                                     <i class="fas fa-certificate me-1"></i>LOA Tervalidasi
                                 </a>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-cog me-1"></i>Kelola Data
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{ route('admin.journals.index') }}">
-                                        <i class="fas fa-book me-2"></i>Jurnal
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{{ route('admin.publishers.index') }}">
-                                        <i class="fas fa-building me-2"></i>Penerbit
-                                    </a></li>
-                                </ul>
-                            </li>
+                            
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('home') }}" target="_blank">
                                     <i class="fas fa-external-link-alt me-1"></i>Lihat Website
@@ -218,6 +208,9 @@
                                     </a></li>
                                     <li><a class="dropdown-item" href="{{ route('loa.validated') }}">
                                         <i class="fas fa-certificate me-2"></i>LOA Tervalidasi
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.publishers.index') }}">
+                                        <i class="fas fa-book me-2"></i>Penerbit
                                     </a></li>
                                     <li><a class="dropdown-item" href="{{ route('admin.journals.index') }}">
                                         <i class="fas fa-book me-2"></i>Journals

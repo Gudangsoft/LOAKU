@@ -51,17 +51,30 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <!-- ISSN -->
+                        <!-- E- ISSN -->
                         <div class="mb-3">
-                            <label for="issn" class="form-label">
+                            <label for="e_issn" class="form-label">
                                 <i class="fas fa-barcode me-1"></i>
-                                ISSN
+                               E-  ISSN
                             </label>
-                            <input type="text" class="form-control @error('issn') is-invalid @enderror" id="issn" name="issn" value="{{ old('issn', $journal->issn) }}" placeholder="Contoh: 1234-5678">
-                            @error('issn')
+                            <input type="text" class="form-control @error('e_issn') is-invalid @enderror" id="e_issn" name="e_issn" value="{{ old('e_issn', $journal->e_issn) }}" placeholder="Contoh: 1234-5678">
+                            @error('e_issn')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                       <!-- P-ISSN -->
+                        <div class="mb-3">
+                            <label for="p_issn" class="form-label">
+                                <i class="fas fa-barcode me-1"></i>
+                               P-ISSN
+                            </label>
+                            <input type="text" class="form-control @error('p_issn') is-invalid @enderror" id="p_issn" name="p_issn" value="{{ old('p_issn', $journal->p_issn) }}" placeholder="Contoh: 1234-5678">
+                            @error('p_issn')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <!-- Website -->
                         <div class="mb-3">
                             <label for="website" class="form-label">
@@ -73,6 +86,67 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+
+ <!-- Chief Edito-->
+                        <div class="mb-3">
+                            <label for="chief_editor" class="form-label">
+                                <i class="fas fa-user-tie me-1"></i>
+                                Editor-in-Chief <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control @error('chief_editor') is-invalid @enderror" id="chief_editor" name="chief_editor" value="{{ old('chief_editor', $journal->chief_editor) }}" placeholder="Eko Siswanto">
+                            @error('chief_editor')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+
+
+ 
+
+<div class="row">
+                            <!-- Logo -->
+                            <div class="col-md-6 mb-3">
+                                <label for="logo" class="form-label">
+                                    <i class="fas fa-image me-1"></i>
+                                    Logo Jurnal
+                                </label>
+                                <input type="file" 
+                                       class="form-control @error('logo') is-invalid @enderror" 
+                                       id="logo" 
+                                       name="logo" 
+                                       accept="image/jpeg,image/png,image/jpg">
+                                <div class="form-text">Format: JPG, PNG. Maksimal 2MB</div>
+                                @error('logo')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <!-- TTD & Stempel -->
+                            <div class="col-md-6 mb-3">
+                                <label for="ttd_stample" class="form-label">
+                                    <i class="fas fa-stamp me-1"></i>
+                                    TTD & Stempel
+                                </label>
+                                <input type="file" 
+                                       class="form-control @error('ttd_stample') is-invalid @enderror" 
+                                       id="ttd_stample" 
+                                       name="ttd_stample" 
+                                       accept="image/jpeg,image/png,image/jpg">
+                                <div class="form-text">Format: JPG, PNG. Maksimal 2MB</div>
+                                @error('ttd_stample')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
                         <div class="d-flex justify-content-end">
                             <a href="{{ route('admin.journals.index') }}" class="btn btn-secondary me-2">
                                 <i class="fas fa-arrow-left me-1"></i> Kembali
