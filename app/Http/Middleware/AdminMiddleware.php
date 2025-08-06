@@ -11,17 +11,48 @@ class AdminMiddleware
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is authenticated and is admin (using web guard only)
-        if (!Auth::guard('web')->check() || !Auth::guard('web')->user()->is_admin) {
-            // Redirect to login with message
-            return redirect()->route('admin.login')->with('error', 'Akses ditolak. Silakan login sebagai admin.');
+        // Check if user is authenticated
+        if (!Auth::guard('web')->check()) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            return redirect()->route('admin.login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $user = Auth::guard('web')->user();
+        
+        // Check if user has admin privileges
+        if (!$this->isAdminUser($user)) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Access denied'], 403);
+            }
+            return redirect()->route('home')->with('error', 'Akses ditolak. Anda tidak memiliki hak akses admin.');
         }
 
         return $next($request);
+    }
+
+    /**
+     * Check if user is admin
+     */
+    private function isAdminUser($user): bool
+    {
+        // Check direct admin flag
+        if ($user->is_admin) {
+            return true;
+        }
+
+        // Check if user has admin roles
+        if (method_exists($user, 'hasRole')) {
+            return $user->hasRole('super_admin') || 
+                   $user->hasRole('administrator') || 
+                   $user->hasRole('admin');
+        }
+
+        // Fallback to role field
+        return in_array($user->role, ['super_admin', 'administrator', 'admin']);
     }
 }

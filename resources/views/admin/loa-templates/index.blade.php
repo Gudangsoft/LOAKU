@@ -1,6 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Template LOA - Admin')
+@section('title', 'LOA Templates')
+@section('subtitle', 'Manage LOA document templates')
 
 @section('content')
 <div class="container-fluid py-4">

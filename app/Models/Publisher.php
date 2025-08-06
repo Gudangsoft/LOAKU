@@ -12,6 +12,7 @@ class Publisher extends Model
     protected $table = 'publishers';
 
     protected $fillable = [
+        'user_id',
         'name',
         'address',
         'phone',
@@ -20,6 +21,11 @@ class Publisher extends Model
         'website',
         'logo',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function journals()
     {

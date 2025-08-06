@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Controller;
+use App\Http\Controllers\Controller;
 use App\Models\Publisher;
 
 class PublisherTestController extends Controller

@@ -12,6 +12,7 @@ class Journal extends Model
     protected $table = 'journals';
 
     protected $fillable = [
+        'user_id',
         'name',
         'e_issn',
         'p_issn',
@@ -21,6 +22,11 @@ class Journal extends Model
         'website',
         'publisher_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function publisher()
     {

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Controller;
+use App\Http\Controllers\Controller;
 use App\Models\Journal;
 use App\Models\Publisher;
 

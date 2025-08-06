@@ -1,6 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Data Jurnal - Admin')
+@section('title', 'Journals')
+@section('subtitle', 'Manage journal information')
 
 @section('content')
 <div class="container-fluid py-4">

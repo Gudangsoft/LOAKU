@@ -1,6 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Data Penerbit - Admin')
+@section('title', 'Publishers')
+@section('subtitle', 'Manage publisher information')
 
 @section('content')
 <div class="container-fluid py-4">

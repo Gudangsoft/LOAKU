@@ -1,6 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Kelola Permintaan LOA - Admin')
+@section('title', 'LOA Requests')
+@section('subtitle', 'Manage and review all LOA requests')
 
 @section('content')
 <div class="container-fluid py-4">

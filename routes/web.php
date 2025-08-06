@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoaRequestController;
 use App\Http\Controllers\LoaController;
@@ -9,8 +11,63 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoaRequestController as AdminLoaRequestController;
 use App\Http\Controllers\Admin\JournalController;
 use App\Http\Controllers\Admin\PublisherController;
-use App\Http\Controllers\Admin\LoaTemplateController;
+use App\Http\Controllers\Admin\LoaTemplateController as AdminLoaTemplateController;
+use App\Http\Controllers\LoaTemplateController;
 use App\Http\Controllers\Admin\AuthController;
+
+// Test route untuk debug publisher LOA templates
+Route::get('/test-publisher-loa-templates', function() {
+    try {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated']);
+        }
+        
+        if ($user->role !== 'publisher') {
+            return response()->json(['error' => 'User role is: ' . $user->role . ', not publisher']);
+        }
+        
+        // Test controller instantiation
+        $controller = new \App\Http\Controllers\LoaTemplateController();
+        
+        // Test basic data retrieval
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        $templatesCount = \App\Models\LoaTemplate::count();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Controller and data access working',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role
+            ],
+            'publisher' => $publisher ? [
+                'id' => $publisher->id,
+                'name' => $publisher->name
+            ] : null,
+            'templates_total' => $templatesCount,
+            'controller_class' => get_class($controller)
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+})->middleware(['auth']);
+
+// Test route simple untuk LOA templates
+Route::get('/test-simple-loa-templates', function() {
+    return response()->json([
+        'message' => 'Simple route working',
+        'templates_count' => \App\Models\LoaTemplate::count(),
+        'publishers_count' => \App\Models\Publisher::count()
+    ]);
+});
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -244,8 +301,128 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
+    // Admin Registration Routes
+    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+    
+    // Test route for admin functionality
+    Route::get('/test-routes', function() { 
+        return view('test-admin-routes'); 
+    })->name('test-routes');
+
+    // Test role system
+    Route::get('/test-roles', function() {
+        try {
+            $data = [
+                'roles' => \App\Models\Role::with('users')->get(),
+                'permissions' => \App\Models\Permission::all(),
+                'users' => \App\Models\User::with('roles')->get(),
+            ];
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Role system not available',
+                'message' => $e->getMessage(),
+                'roles' => [],
+                'permissions' => [],
+                'users' => \App\Models\User::all()
+            ]);
+        }
+    })->name('test-roles');
+
+    // Setup role system endpoint
+    Route::post('/setup-roles', function() {
+        try {
+            // Run the role permission seeder
+            \Artisan::call('db:seed', ['--class' => 'RolePermissionSeeder']);
+            $output = \Artisan::output();
+            
+            // Get counts for verification
+            $rolesCount = \App\Models\Role::count();
+            $permissionsCount = \App\Models\Permission::count();
+            $usersCount = \App\Models\User::count();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Role system has been set up successfully!',
+                'setup_info' => [
+                    'roles' => \App\Models\Role::pluck('display_name')->toArray(),
+                    'roles_count' => $rolesCount,
+                    'permissions_count' => $permissionsCount,
+                    'users_count' => $usersCount
+                ],
+                'output' => $output
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to setup role system',
+                'message' => $e->getMessage(),
+                'exception' => $e->getTraceAsString()
+            ], 500);
+        }
+    })->name('setup-roles');
+    
+    // Database fix route
+    Route::get('/fix-database', function() {
+        try {
+            // Check and create role_users table
+            if (!Schema::hasTable('role_users')) {
+                DB::statement("
+                    CREATE TABLE `role_users` (
+                        `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                        `user_id` bigint(20) unsigned NOT NULL,
+                        `role_id` bigint(20) unsigned NOT NULL,
+                        `assigned_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        `expires_at` timestamp NULL DEFAULT NULL,
+                        `additional_permissions` json,
+                        `is_active` tinyint(1) NOT NULL DEFAULT 1,
+                        `created_at` timestamp NULL DEFAULT NULL,
+                        `updated_at` timestamp NULL DEFAULT NULL,
+                        PRIMARY KEY (`id`),
+                        UNIQUE KEY `role_users_user_id_role_id_unique` (`user_id`,`role_id`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ");
+            }
+            
+            // Check and create roles table
+            if (!Schema::hasTable('roles')) {
+                DB::statement("
+                    CREATE TABLE `roles` (
+                        `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                        `name` varchar(255) NOT NULL UNIQUE,
+                        `display_name` varchar(255) NOT NULL,
+                        `description` text,
+                        `permissions` json,
+                        `is_active` tinyint(1) NOT NULL DEFAULT 1,
+                        `created_at` timestamp NULL DEFAULT NULL,
+                        `updated_at` timestamp NULL DEFAULT NULL,
+                        PRIMARY KEY (`id`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ");
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Database tables created successfully!',
+                'tables' => [
+                    'roles' => Schema::hasTable('roles'),
+                    'role_users' => Schema::hasTable('role_users'),
+                    'users' => Schema::hasTable('users')
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+    })->name('fix-database');
+
     // Route for creating admin user (development only)
-    Route::get('/create-admin', [AuthController::class, 'createAdmin'])->name('create-admin');
+    Route::get('/create-admin', [AuthController::class, 'showCreateAdminForm'])->name('create-admin.form');
+    Route::get('/create-admin-api', [AuthController::class, 'createAdmin'])->name('create-admin');
     
     // Debug route to check users
     Route::get('/debug-users', function() {
@@ -339,6 +516,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index']);
 });
 
+// Member Routes (untuk users yang bukan admin)
+Route::middleware(['auth'])->prefix('member')->name('member.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\MemberController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [App\Http\Controllers\MemberController::class, 'profile'])->name('profile');
+    Route::put('/profile', [App\Http\Controllers\MemberController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/password', [App\Http\Controllers\MemberController::class, 'updatePassword'])->name('password.update');
+    Route::get('/requests', [App\Http\Controllers\MemberController::class, 'requests'])->name('requests');
+    Route::get('/requests/{id}', [App\Http\Controllers\MemberController::class, 'getRequest'])->name('requests.show');
+});
+
 // Protected Admin Routes
 Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -363,6 +550,17 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     // LOA Templates Management
     Route::resource('loa-templates', LoaTemplateController::class);
     Route::get('/loa-templates/{loaTemplate}/preview', [LoaTemplateController::class, 'preview'])->name('loa-templates.preview');
+    
+    // User Management - dengan permission khusus
+    Route::middleware(['permission:manage_users'])->group(function() {
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+        Route::patch('/users/{user}/toggle-admin', [\App\Http\Controllers\Admin\UserController::class, 'toggleAdmin'])->name('users.toggle-admin');
+        Route::post('/users/{user}/toggle-role', [\App\Http\Controllers\Admin\UserController::class, 'toggleRole'])->name('users.toggle-role');
+        Route::patch('/users/{user}/reset-password', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{user}/verify-email', [\App\Http\Controllers\Admin\UserController::class, 'verifyEmail'])->name('users.verify-email');
+        Route::post('/users/{user}/unverify-email', [\App\Http\Controllers\Admin\UserController::class, 'unverifyEmail'])->name('users.unverify-email');
+        Route::post('/users/{user}/resend-verification', [\App\Http\Controllers\Admin\UserController::class, 'resendVerification'])->name('users.resend-verification');
+    });
 });
 
 // Test route for template system
@@ -421,3 +619,407 @@ Route::get('/test-loa-create', function() {
     
     return redirect()->route('loa.view', $loaValidated->loa_code);
 })->name('test.loa.create');
+
+// Debug User Management
+Route::get('/debug-users', function() {
+    try {
+        $users = \App\Models\User::all();
+        return response()->json([
+            'success' => true,
+            'total_users' => $users->count(),
+            'users' => $users->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'is_admin' => $user->is_admin ?? false,
+                    'role' => $user->role ?? 'member'
+                ];
+            })
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+})->name('debug.users');
+
+// Create test user for delete testing
+Route::get('/create-test-user', function() {
+    try {
+        $user = \App\Models\User::create([
+            'name' => 'Test User Member',
+            'email' => 'test-member@example.com',
+            'password' => \Hash::make('password'),
+            'is_admin' => false,
+            'role' => 'member',
+            'email_verified_at' => now()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Test member user created',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'is_admin' => $user->is_admin
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+})->name('create.test.user');
+
+// Test admin user creation
+Route::get('/create-admin-test', function() {
+    try {
+        $user = \App\Models\User::create([
+            'name' => 'Test Admin User',
+            'email' => 'test-admin@example.com',
+            'password' => \Hash::make('admin123'),
+            'is_admin' => true,
+            'role' => 'administrator',
+            'email_verified_at' => now()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Test admin user created',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'is_admin' => $user->is_admin
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+})->name('create.admin.test');
+
+// Debug hasRole method
+Route::get('/debug-hasrole', function() {
+    try {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Not authenticated']);
+        }
+        
+        return response()->json([
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'has_method' => method_exists($user, 'hasRole'),
+            'reflection' => [
+                'method_params' => (new ReflectionMethod($user, 'hasRole'))->getNumberOfParameters(),
+                'method_required_params' => (new ReflectionMethod($user, 'hasRole'))->getNumberOfRequiredParameters()
+            ],
+            'test_calls' => [
+                'super_admin' => method_exists($user, 'hasRole') ? $user->hasRole('super_admin') : 'method not exists',
+                'administrator' => method_exists($user, 'hasRole') ? $user->hasRole('administrator') : 'method not exists'
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+})->middleware('auth')->name('debug.hasrole');
+
+// Publisher Dashboard Route
+Route::get('/publisher/dashboard', function() {
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+    }
+    
+    $user = Auth::user();
+    if ($user->role !== 'publisher') {
+        return redirect()->route('home')->with('error', 'Akses ditolak. Halaman ini khusus untuk publisher.');
+    }
+    
+    // Get user's publishers and journals with safe queries
+    $userPublishers = App\Models\Publisher::where('user_id', $user->id)->get();
+    $userJournals = App\Models\Journal::where('user_id', $user->id)->get();
+    $journalIds = $userJournals->pluck('id');
+    
+    // Statistics
+    $stats = [
+        'publishers' => $userPublishers->count(),
+        'journals' => $userJournals->count(),
+        'loa_requests' => [
+            'total' => App\Models\LoaRequest::whereIn('journal_id', $journalIds)->count(),
+            'pending' => App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'pending')->count(),
+            'approved' => App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'approved')->count(),
+            'rejected' => App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'rejected')->count(),
+        ],
+        'validated' => App\Models\LoaValidated::whereIn('journal_id', $journalIds)->count()
+    ];
+
+    // Recent LOA requests
+    $recentRequests = App\Models\LoaRequest::whereIn('journal_id', $journalIds)
+        ->with(['journal', 'journal.publisher'])
+        ->latest()
+        ->take(10)
+        ->get();
+    
+    return view('publisher.dashboard', compact('stats', 'recentRequests'));
+})->name('publisher.dashboard');
+
+// Publisher Routes (for publisher role)
+Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher'])->group(function () {
+    // Dashboard - Commented out to use quick test above
+    // Route::get('/dashboard', [App\Http\Controllers\PublisherController::class, 'dashboard'])->name('dashboard');
+    
+    // Simple publisher management routes
+    Route::get('/publishers', function() {
+        if (!Auth::check() || Auth::user()->role !== 'publisher') {
+            abort(403);
+        }
+        $publishers = App\Models\Publisher::where('user_id', Auth::id())->paginate(10);
+        return view('publisher.publishers.index', compact('publishers'));
+    })->name('publishers');
+    
+    Route::get('/journals', function() {
+        if (!Auth::check() || Auth::user()->role !== 'publisher') {
+            abort(403);
+        }
+        $journals = App\Models\Journal::where('user_id', Auth::id())->with('publisher')->paginate(10);
+        return view('publisher.journals.index', compact('journals'));
+    })->name('journals');
+    
+    Route::get('/loa-requests', function() {
+        if (!Auth::check() || Auth::user()->role !== 'publisher') {
+            abort(403);
+        }
+        $journalIds = App\Models\Journal::where('user_id', Auth::id())->pluck('id');
+        $loaRequests = App\Models\LoaRequest::whereIn('journal_id', $journalIds)
+            ->with(['journal', 'journal.publisher'])
+            ->latest()
+            ->paginate(15);
+        return view('publisher.loa-requests.index', compact('loaRequests'));
+    })->name('loa-requests');
+    
+    Route::get('/profile', function() {
+        if (!Auth::check() || Auth::user()->role !== 'publisher') {
+            abort(403);
+        }
+        return view('publisher.profile');
+    })->name('profile');
+    
+    // Profile Management
+    Route::get('/profile', [App\Http\Controllers\PublisherController::class, 'profile'])->name('profile');
+    Route::put('/profile', [App\Http\Controllers\PublisherController::class, 'updateProfile'])->name('profile.update');
+    
+    // Publisher Management
+    Route::get('/publishers', [App\Http\Controllers\PublisherController::class, 'publishers'])->name('publishers');
+    Route::get('/publishers/create', [App\Http\Controllers\PublisherController::class, 'createPublisher'])->name('publishers.create');
+    Route::post('/publishers', [App\Http\Controllers\PublisherController::class, 'storePublisher'])->name('publishers.store');
+    
+    // Journal Management
+    Route::get('/journals', [App\Http\Controllers\PublisherController::class, 'journals'])->name('journals');
+    Route::get('/journals/create', [App\Http\Controllers\PublisherController::class, 'createJournal'])->name('journals.create');
+    Route::post('/journals', [App\Http\Controllers\PublisherController::class, 'storeJournal'])->name('journals.store');
+    
+    // LOA Request Management
+    Route::get('/loa-requests', [App\Http\Controllers\PublisherController::class, 'loaRequests'])->name('loa-requests');
+    Route::get('/loa-requests/{loaRequest}', [App\Http\Controllers\PublisherController::class, 'showLoaRequest'])->name('loa-requests.show');
+    Route::post('/loa-requests/{loaRequest}/approve', [App\Http\Controllers\PublisherController::class, 'approveLoaRequest'])->name('loa-requests.approve');
+    Route::post('/loa-requests/{loaRequest}/reject', [App\Http\Controllers\PublisherController::class, 'rejectLoaRequest'])->name('loa-requests.reject');
+    
+    // LOA Template Management - Complete implementation
+    Route::get('/loa-templates', function() {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        $templates = \App\Models\LoaTemplate::where(function($query) use ($publisher) {
+            if ($publisher) {
+                $query->where('publisher_id', $publisher->id)
+                      ->orWhereNull('publisher_id');
+            } else {
+                $query->whereNull('publisher_id');
+            }
+        })->with('publisher')->orderBy('is_default', 'desc')->orderBy('name')->paginate(10);
+        
+        return view('publisher.loa-templates.index', compact('templates'));
+    })->name('loa-templates');
+    
+    Route::get('/loa-templates/create', function() {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        if (!$publisher) {
+            return redirect()->route('publisher.loa-templates.index')
+                ->with('error', 'Anda harus terdaftar sebagai publisher untuk membuat template LOA.');
+        }
+        
+        return view('publisher.loa-templates.create', compact('publisher'));
+    })->name('loa-templates.create');
+    
+    Route::post('/loa-templates', function(\Illuminate\Http\Request $request) {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        if (!$publisher) {
+            return redirect()->route('publisher.loa-templates.index')
+                ->with('error', 'Anda harus terdaftar sebagai publisher.');
+        }
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'language' => 'required|in:id,en,both',
+            'format' => 'required|in:html,pdf',
+            'header_template' => 'required|string',
+            'body_template' => 'required|string',
+            'footer_template' => 'required|string',
+            'variables' => 'nullable|string',
+            'css_styles' => 'nullable|string',
+            'is_active' => 'boolean'
+        ]);
+
+        \App\Models\LoaTemplate::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'language' => $request->language,
+            'format' => $request->format,
+            'header_template' => $request->header_template,
+            'body_template' => $request->body_template,
+            'footer_template' => $request->footer_template,
+            'variables' => $request->variables ? json_decode($request->variables, true) : null,
+            'css_styles' => $request->css_styles,
+            'is_active' => $request->has('is_active'),
+            'is_default' => false,
+            'publisher_id' => $publisher->id
+        ]);
+
+        return redirect()->route('publisher.loa-templates.index')
+            ->with('success', 'Template LOA berhasil dibuat.');
+    })->name('loa-templates.store');
+    
+    Route::get('/loa-templates/{id}', function($id) {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        $template = \App\Models\LoaTemplate::where('id', $id)
+            ->where(function($query) use ($publisher) {
+                if ($publisher) {
+                    $query->where('publisher_id', $publisher->id)
+                          ->orWhereNull('publisher_id');
+                } else {
+                    $query->whereNull('publisher_id');
+                }
+            })->firstOrFail();
+            
+        return view('publisher.loa-templates.show', compact('template'));
+    })->name('loa-templates.show');
+    
+    Route::get('/loa-templates/{id}/edit', function($id) {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        $template = \App\Models\LoaTemplate::where('id', $id)
+            ->where('publisher_id', $publisher->id)
+            ->firstOrFail();
+            
+        return view('publisher.loa-templates.edit', compact('template', 'publisher'));
+    })->name('loa-templates.edit');
+    
+    Route::put('/loa-templates/{id}', function(\Illuminate\Http\Request $request, $id) {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        $template = \App\Models\LoaTemplate::where('id', $id)
+            ->where('publisher_id', $publisher->id)
+            ->firstOrFail();
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'language' => 'required|in:id,en,both',
+            'format' => 'required|in:html,pdf',
+            'header_template' => 'required|string',
+            'body_template' => 'required|string',
+            'footer_template' => 'required|string',
+            'variables' => 'nullable|string',
+            'css_styles' => 'nullable|string',
+            'is_active' => 'boolean'
+        ]);
+
+        $template->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'language' => $request->language,
+            'format' => $request->format,
+            'header_template' => $request->header_template,
+            'body_template' => $request->body_template,
+            'footer_template' => $request->footer_template,
+            'variables' => $request->variables ? json_decode($request->variables, true) : null,
+            'css_styles' => $request->css_styles,
+            'is_active' => $request->has('is_active')
+        ]);
+
+        return redirect()->route('publisher.loa-templates.index')
+            ->with('success', 'Template LOA berhasil diperbarui.');
+    })->name('loa-templates.update');
+    
+    Route::delete('/loa-templates/{id}', function($id) {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        $template = \App\Models\LoaTemplate::where('id', $id)
+            ->where('publisher_id', $publisher->id)
+            ->firstOrFail();
+            
+        $template->delete();
+
+        return redirect()->route('publisher.loa-templates.index')
+            ->with('success', 'Template LOA berhasil dihapus.');
+    })->name('loa-templates.destroy');
+    
+    Route::get('/loa-templates/{id}/preview', function($id) {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        $template = \App\Models\LoaTemplate::where('id', $id)
+            ->where(function($query) use ($publisher) {
+                if ($publisher) {
+                    $query->where('publisher_id', $publisher->id)
+                          ->orWhereNull('publisher_id');
+                } else {
+                    $query->whereNull('publisher_id');
+                }
+            })->firstOrFail();
+            
+        return view('publisher.loa-templates.preview', compact('template'));
+    })->name('loa-templates.preview');
+    
+    Route::post('/loa-templates/{id}/toggle', function($id) {
+        $user = Auth::user();
+        $publisher = \App\Models\Publisher::where('user_id', $user->id)->first();
+        
+        $template = \App\Models\LoaTemplate::where('id', $id)
+            ->where('publisher_id', $publisher->id)
+            ->firstOrFail();
+            
+        $template->update([
+            'is_active' => !$template->is_active
+        ]);
+
+        $status = $template->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return redirect()->back()
+            ->with('success', "Template LOA berhasil {$status}.");
+    })->name('loa-templates.toggle');
+});

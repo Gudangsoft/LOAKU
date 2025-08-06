@@ -37,6 +37,11 @@ class LoaRequest extends Model
         return $this->belongsTo(Journal::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function loaValidated()
     {
         return $this->hasOne(LoaValidated::class);
