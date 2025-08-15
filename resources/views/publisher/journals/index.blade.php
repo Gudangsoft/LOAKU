@@ -86,7 +86,7 @@
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
                                         <li><a class="dropdown-item" href="#"><i class="fas fa-eye me-2"></i>View Details</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('publisher.loa-requests') }}?journal={{ $journal->id }}"><i class="fas fa-file-alt me-2"></i>LOA Requests</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('publisher.loa-requests.index') }}?journal={{ $journal->id }}"><i class="fas fa-file-alt me-2"></i>LOA Requests</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Delete</a></li>
                                     </ul>

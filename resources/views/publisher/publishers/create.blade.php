@@ -1,5 +1,6 @@
 @extends('publisher.layout')
 
+
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-plus me-2"></i>Add New Publisher</h2>
@@ -47,6 +48,24 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="whatsapp" class="form-label">WhatsApp <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('whatsapp') is-invalid @enderror" 
+                                   id="whatsapp" name="whatsapp" value="{{ old('whatsapp') }}" required>
+                            @error('whatsapp')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+
+
+
+
+
+
+                        
                         
                         <div class="col-md-6 mb-3">
                             <label for="website" class="form-label">Website URL</label>

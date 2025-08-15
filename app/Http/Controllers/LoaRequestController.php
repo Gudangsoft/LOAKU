@@ -11,7 +11,12 @@ class LoaRequestController extends Controller
 {
     public function create()
     {
-        $journals = Journal::with('publisher')->get();
+        // Jika user adalah publisher, hanya tampilkan jurnal miliknya
+        if (auth()->user() && auth()->user()->role === 'publisher') {
+            $journals = Journal::where('publisher_id', auth()->id())->with('publisher')->get();
+        } else {
+            $journals = Journal::with('publisher')->get();
+        }
         $months = [
             'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'

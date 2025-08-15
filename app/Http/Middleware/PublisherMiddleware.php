@@ -21,9 +21,12 @@ class PublisherMiddleware
         }
 
         $user = Auth::user();
-        
-        // Check if user has publisher role
-        if ($user->role !== 'publisher') {
+
+        // Check if user has publisher role OR owns a Publisher record.
+        // Some demo users may not have `role` set correctly; allow access when a Publisher is linked to the user.
+        $hasPublisherRecord = \App\Models\Publisher::where('user_id', $user->id)->exists();
+
+        if (($user->role ?? null) !== 'publisher' && !$hasPublisherRecord) {
             abort(403, 'Anda tidak memiliki akses ke halaman publisher. Akses ini khusus untuk pengelola jurnal.');
         }
 

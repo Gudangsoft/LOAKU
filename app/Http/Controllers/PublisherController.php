@@ -180,10 +180,11 @@ class PublisherController extends Controller
      */
     public function loaRequests()
     {
-        $journalIds = Auth::user()->journals()->pluck('id');
+        // Get journals owned by the current publisher user
+        $journalIds = Journal::where('user_id', Auth::id())->pluck('id');
         
         $requests = LoaRequest::whereIn('journal_id', $journalIds)
-            ->with(['journal.publisher'])
+            ->with(['journal.publisher', 'loaValidated'])
             ->latest()
             ->paginate(15);
 
@@ -195,12 +196,31 @@ class PublisherController extends Controller
      */
     public function showLoaRequest(LoaRequest $loaRequest)
     {
-        // Verify this request belongs to publisher's journal
-        if (!Auth::user()->journals()->where('id', $loaRequest->journal_id)->exists()) {
-            abort(403, 'Unauthorized access to this LOA request');
-        }
+        try {
+            \Log::info('showLoaRequest called', ['loa_request_id' => $loaRequest->id]);
+            
+            // Load relationships
+            $loaRequest->load(['journal.publisher', 'loaValidated']);
+            
+            \Log::info('Relationships loaded', [
+                'journal' => $loaRequest->journal ? $loaRequest->journal->name : 'No journal',
+                'publisher' => $loaRequest->journal && $loaRequest->journal->publisher ? $loaRequest->journal->publisher->name : 'No publisher'
+            ]);
 
-        return view('publisher.loa-requests.show', compact('loaRequest'));
+            \Log::info('Returning view', ['view' => 'publisher.loa-requests.show']);
+
+            return view('publisher.loa-requests.show', compact('loaRequest'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Error in showLoaRequest', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return redirect()->route('publisher.loa-requests.index')
+                ->with('error', 'Terjadi kesalahan saat memuat detail LOA request.');
+        }
     }
 
     /**
@@ -209,7 +229,8 @@ class PublisherController extends Controller
     public function approveLoaRequest(LoaRequest $loaRequest)
     {
         // Verify this request belongs to publisher's journal
-        if (!Auth::user()->journals()->where('id', $loaRequest->journal_id)->exists()) {
+        $journalIds = Journal::where('user_id', Auth::id())->pluck('id');
+        if (!$journalIds->contains($loaRequest->journal_id)) {
             abort(403, 'Unauthorized access to this LOA request');
         }
 

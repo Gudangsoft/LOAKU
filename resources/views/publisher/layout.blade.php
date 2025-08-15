@@ -87,7 +87,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('publisher.loa-requests*') ? 'active' : '' }}" href="{{ route('publisher.loa-requests') }}">
+                            <a class="nav-link {{ request()->routeIs('publisher.loa-requests*') ? 'active' : '' }}" href="{{ route('publisher.loa-requests.index') }}">
                                 <i class="fas fa-file-alt me-2"></i>LOA Requests
                                 @if(isset($stats['loa_requests']['pending']) && $stats['loa_requests']['pending'] > 0)
                                     <span class="badge bg-warning ms-2">{{ $stats['loa_requests']['pending'] }}</span>

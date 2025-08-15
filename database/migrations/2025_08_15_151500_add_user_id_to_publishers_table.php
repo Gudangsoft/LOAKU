@@ -4,16 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::table('publishers', function (Blueprint $table) {
-            if (!Schema::hasColumn('publishers', 'website')) {
-                $table->string('website')->nullable()->after('email');
+            if (!Schema::hasColumn('publishers', 'user_id')) {
+                $table->unsignedBigInteger('user_id')->nullable()->after('email');
             }
         });
     }
@@ -24,7 +23,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('publishers', function (Blueprint $table) {
-            $table->dropColumn('website');
+            if (Schema::hasColumn('publishers', 'user_id')) {
+                $table->dropColumn('user_id');
+            }
         });
     }
 };

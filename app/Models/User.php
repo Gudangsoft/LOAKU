@@ -412,3 +412,5 @@ class User extends Authenticatable
         return $this->isPublisher() || $this->isAdmin() || $this->is_admin;
     }
 }
+
+

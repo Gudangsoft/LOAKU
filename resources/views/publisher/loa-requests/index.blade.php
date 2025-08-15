@@ -94,64 +94,80 @@
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Request Info</th>
-                            <th>Article Details</th>
-                            <th>Journal</th>
-                            <th>Author</th>
+                            <th>No. Reg</th>
+                            <th>No. LOA</th>
+                            <th>Judul Artikel</th>
+                            <th>Penulis</th>
+                            <th>Edisi</th>
+                            <th>Jurnal</th>
                             <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
+                            <th>Tanggal</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($requests as $request)
                         <tr>
                             <td>
-                                <div>
-                                    <small class="text-muted">Reg: {{ $request->registration_number }}</small><br>
-                                    <small class="text-primary">ID: {{ $request->article_id ?? 'N/A' }}</small>
-                                </div>
+                                <span class="badge bg-secondary">{{ $request->no_reg }}</span>
                             </td>
                             <td>
-                                <div>
-                                    <strong class="text-truncate d-block" style="max-width: 250px;" title="{{ $request->article_title }}">
-                                        {{ $request->article_title }}
-                                    </strong>
-                                    <small class="text-muted">
-                                        Type: {{ ucfirst($request->article_type ?? 'N/A') }}
-                                    </small>
-                                </div>
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>{{ $request->journal->name ?? 'N/A' }}</strong><br>
-                                    <small class="text-muted">{{ $request->journal->publisher->name ?? 'N/A' }}</small>
-                                </div>
-                            </td>
-                            <td>
-                                <div>
-                                    {{ $request->authors }}<br>
-                                    <small class="text-muted">{{ $request->corresponding_email }}</small>
-                                </div>
-                            </td>
-                            <td>
-                                @if($request->status === 'pending')
-                                    <span class="badge bg-warning">Pending</span>
-                                @elseif($request->status === 'approved')
-                                    <span class="badge bg-success">Approved</span>
-                                @elseif($request->status === 'rejected')
-                                    <span class="badge bg-danger">Rejected</span>
+                                @if($request->status === 'approved')
+                                    @php
+                                        $validatedLoa = $request->loaValidated;
+                                    @endphp
+                                    @if($validatedLoa)
+                                        <span class="badge bg-success px-2 py-1" 
+                                              title="LOA Terverifikasi: {{ $validatedLoa->loa_code }}"
+                                              data-bs-toggle="tooltip">
+                                            <i class="fas fa-certificate me-1"></i>
+                                            {{ $validatedLoa->loa_code }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small" title="LOA belum dibuat">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Belum dibuat
+                                        </span>
+                                    @endif
+                                @else
+                                    <span class="text-muted small">-</span>
                                 @endif
                             </td>
                             <td>
-                                <div>
-                                    <small>Submitted: {{ $request->created_at->format('d/m/Y') }}</small><br>
-                                    @if($request->approved_at)
-                                        <small class="text-success">Approved: {{ $request->approved_at->format('d/m/Y') }}</small>
-                                    @elseif($request->rejected_at)
-                                        <small class="text-danger">Rejected: {{ $request->rejected_at->format('d/m/Y') }}</small>
-                                    @endif
+                                <div class="text-truncate" style="max-width: 250px;" title="{{ $request->article_title }}">
+                                    <strong>{{ $request->article_title }}</strong>
                                 </div>
+                                <small class="text-muted">ID: {{ $request->article_id }}</small>
+                            </td>
+                            <td>
+                                <div>{{ $request->author }}</div>
+                                <small class="text-muted">{{ $request->author_email }}</small>
+                            </td>
+                            <td>
+                                <small>{{ $request->edition }}</small>
+                            </td>
+                            <td>
+                                <div>{{ $request->journal->name }}</div>
+                                <small class="text-muted">{{ $request->journal->publisher->name }}</small>
+                            </td>
+                            <td>
+                                @if($request->status === 'pending')
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                @elseif($request->status === 'approved')
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Disetujui
+                                    </span>
+                                @else
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times me-1"></i>Ditolak
+                                    </span>
+                                @endif
+                            </td>
+                            <td>
+                                <div>{{ $request->created_at->format('d/m/Y') }}</div>
+                                <small class="text-muted">{{ $request->created_at->format('H:i') }}</small>
                             </td>
                             <td>
                                 <div class="btn-group" role="group">

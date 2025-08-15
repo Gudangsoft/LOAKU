@@ -89,6 +89,287 @@ Route::get('/publisher-test', [App\Http\Controllers\PublisherTestController::cla
 // Journal test route
 Route::get('/journal-test', [App\Http\Controllers\JournalTestController::class, 'testJournalData']);
 
+// Test login page
+Route::get('/test-login', function() {
+    return view('test-login');
+});
+
+// Beautiful login page
+Route::get('/login-beautiful', function() {
+    return view('login-beautiful');
+});
+
+// Universal login routes (for both admin and publisher)
+Route::get('/login', [App\Http\Controllers\Admin\AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [App\Http\Controllers\Admin\AuthController::class, 'login']);
+Route::post('/logout', [App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
+
+// Test publisher auth
+Route::get('/test-auth', function() {
+    $output = [];
+    $output[] = 'Auth check: ' . (Auth::check() ? 'Yes' : 'No');
+    if (Auth::check()) {
+        $user = Auth::user();
+        $output[] = 'User ID: ' . $user->id;
+        $output[] = 'User Email: ' . $user->email;
+        $output[] = 'User Role: ' . $user->role;
+        
+        $journalIds = \App\Models\Journal::where('user_id', $user->id)->pluck('id');
+        $output[] = 'Journal IDs: ' . $journalIds->implode(', ');
+        
+        $loaRequest = \App\Models\LoaRequest::find(2);
+        if ($loaRequest) {
+            $output[] = 'LOA Request 2 exists: Yes';
+            $output[] = 'LOA Request 2 journal_id: ' . $loaRequest->journal_id;
+            $output[] = 'User owns journal: ' . ($journalIds->contains($loaRequest->journal_id) ? 'Yes' : 'No');
+        } else {
+            $output[] = 'LOA Request 2 exists: No';
+        }
+    }
+    return '<pre>' . implode("\n", $output) . '</pre>';
+});
+
+// Debug route untuk publisher show
+Route::get('/debug-publisher-show', function() {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find(2);
+        if (!$loaRequest) {
+            return 'LOA Request 2 not found';
+        }
+        
+        $output = [];
+        $output[] = 'LOA Request Found: ' . $loaRequest->article_title;
+        $output[] = 'Journal: ' . $loaRequest->journal->name;
+        $output[] = 'Status: ' . $loaRequest->status;
+        $output[] = 'Author: ' . $loaRequest->author;
+        
+        return '<pre>' . implode("\n", $output) . '</pre>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
+// Debug view render
+Route::get('/debug-view', function() {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find(2);
+        return view('publisher.loa-requests.show', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'View Error: ' . $e->getMessage() . '<br><br>' . $e->getTraceAsString();
+    }
+});
+
+// Debug publisher show without auth
+Route::get('/debug-publisher-direct/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find($id);
+        if (!$loaRequest) {
+            return "LOA Request $id not found";
+        }
+        
+        return view('test-show-simple', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'Direct Show Error: ' . $e->getMessage() . '<br>Line: ' . $e->getLine() . '<br>File: ' . $e->getFile();
+    }
+});
+
+// Test current publisher show template
+Route::get('/debug-current-template/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find($id);
+        if (!$loaRequest) {
+            return "LOA Request $id not found";
+        }
+        
+        return view('publisher.loa-requests.show', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'Template Error: ' . $e->getMessage() . '<br>Line: ' . $e->getLine() . '<br>File: ' . $e->getFile();
+    }
+});
+
+// Test template without authentication to isolate auth issues
+Route::get('/test-template-noauth/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find($id);
+        if (!$loaRequest) {
+            return "LOA Request $id not found";
+        }
+        
+        return view('publisher.loa-requests.show', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'NoAuth Template Error: ' . $e->getMessage() . '<br>Line: ' . $e->getLine() . '<br>File: ' . $e->getFile();
+    }
+});
+
+// Bypass controller completely - direct to template
+Route::get('/direct-show/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find($id);
+        if (!$loaRequest) {
+            return response()->json(['error' => "LOA Request $id not found"]);
+        }
+        
+        return view('publisher.loa-requests.show', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Direct Template Error',
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+});
+
+// Test controller method directly
+Route::get('/test-controller/{id}', function($id) {
+    try {
+        $controller = new \App\Http\Controllers\PublisherController();
+        $loaRequest = \App\Models\LoaRequest::find($id);
+        
+        if (!$loaRequest) {
+            return response()->json(['error' => "LOA Request $id not found"]);
+        }
+        
+        return $controller->showLoaRequest($loaRequest);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Controller Test Error',
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+        ]);
+    }
+});
+
+// Test super simple template
+Route::get('/test-super-simple/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::find($id);
+        if (!$loaRequest) {
+            return "LOA Request $id not found";
+        }
+        
+        return view('test-super-simple', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'Super Simple Error: ' . $e->getMessage();
+    }
+});
+
+// Direct route without middleware untuk test
+Route::get('/publisher-direct/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find($id);
+        if (!$loaRequest) {
+            return "LOA Request $id not found";
+        }
+        
+        return view('publisher.loa-requests.show', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'Publisher Direct Error: ' . $e->getMessage() . '<br>Line: ' . $e->getLine() . '<br>File: ' . $e->getFile();
+    }
+});
+
+// Check authentication route
+Route::get('/check-auth', function() {
+    $user = Auth::user();
+    if (!$user) {
+        return response()->json(['status' => 'Not authenticated']);
+    }
+    
+    $journals = \App\Models\Journal::where('user_id', $user->id)->get();
+    $loaRequest = \App\Models\LoaRequest::find(2);
+    
+    return response()->json([
+        'user' => [
+            'id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name
+        ],
+        'journals' => $journals->map(function($journal) {
+            return [
+                'id' => $journal->id,
+                'name' => $journal->name,
+                'user_id' => $journal->user_id
+            ];
+        }),
+        'loa_request' => $loaRequest ? [
+            'id' => $loaRequest->id,
+            'journal_id' => $loaRequest->journal_id,
+            'journal_name' => $loaRequest->journal->name ?? 'Unknown'
+        ] : null,
+        'journal_ids' => $journals->pluck('id'),
+        'has_access' => $loaRequest && $journals->pluck('id')->contains($loaRequest->journal_id)
+    ]);
+})->middleware(['auth']);
+
+// Test minimal template
+Route::get('/test-minimal/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find($id);
+        if (!$loaRequest) {
+            return "LOA Request $id not found";
+        }
+        
+        return view('publisher.loa-requests.minimal-test', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'Minimal Template Error: ' . $e->getMessage() . '<br>Line: ' . $e->getLine() . '<br>File: ' . $e->getFile();
+    }
+});
+
+// Test simple working template with layout
+Route::get('/test-simple-working/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find($id);
+        if (!$loaRequest) {
+            return "LOA Request $id not found";
+        }
+        
+        return view('publisher.loa-requests.simple-working', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'Simple Working Template Error: ' . $e->getMessage() . '<br>Line: ' . $e->getLine() . '<br>File: ' . $e->getFile();
+    }
+});
+
+// Test simple view
+Route::get('/test-simple', function() {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find(2);
+        return view('test-simple-show', compact('loaRequest'));
+    } catch (\Exception $e) {
+        return 'Simple View Error: ' . $e->getMessage();
+    }
+});
+
+// Ultra simple test
+Route::get('/ultra-simple', function() {
+    return 'Hello World from Ultra Simple!';
+});
+
+// Direct controller test without middleware
+Route::get('/direct-show/{id}', function($id) {
+    try {
+        $loaRequest = \App\Models\LoaRequest::with(['journal.publisher', 'loaValidated'])->find($id);
+        if (!$loaRequest) {
+            return "LOA Request $id not found";
+        }
+        
+        // Return simple HTML directly
+        return "
+        <html>
+        <head><title>Direct Show</title></head>
+        <body>
+            <h1>LOA Request #$id</h1>
+            <p>Title: {$loaRequest->article_title}</p>
+            <p>Author: {$loaRequest->author}</p>
+            <p>Status: {$loaRequest->status}</p>
+        </body>
+        </html>";
+    } catch (\Exception $e) {
+        return 'Direct Show Error: ' . $e->getMessage();
+    }
+});
+
 // Test new LOA PDF format
 Route::get('/test-new-loa-pdf', function() {
     try {
@@ -834,7 +1115,7 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
     Route::post('/journals', [App\Http\Controllers\PublisherController::class, 'storeJournal'])->name('journals.store');
     
     // LOA Request Management
-    Route::get('/loa-requests', [App\Http\Controllers\PublisherController::class, 'loaRequests'])->name('loa-requests');
+    Route::get('/loa-requests', [App\Http\Controllers\PublisherController::class, 'loaRequests'])->name('loa-requests.index');
     Route::get('/loa-requests/{loaRequest}', [App\Http\Controllers\PublisherController::class, 'showLoaRequest'])->name('loa-requests.show');
     Route::post('/loa-requests/{loaRequest}/approve', [App\Http\Controllers\PublisherController::class, 'approveLoaRequest'])->name('loa-requests.approve');
     Route::post('/loa-requests/{loaRequest}/reject', [App\Http\Controllers\PublisherController::class, 'rejectLoaRequest'])->name('loa-requests.reject');
@@ -1023,3 +1304,19 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
             ->with('success', "Template LOA berhasil {$status}.");
     })->name('loa-templates.toggle');
 });
+
+// Simple test route for new view without middleware
+Route::get('/test-new-view/{id}', function ($id) {
+    $loaRequest = \App\Models\LoaRequest::findOrFail($id);
+    return view('publisher.loa-requests.show', compact('loaRequest'));
+});
+
+// Debug route untuk test apakah route berfungsi
+Route::get('/debug-simple/{id}', function ($id) {
+    return "Route berfungsi! ID: $id";
+});
+
+// Debug route dengan middleware publisher
+Route::get('/debug-publisher/{id}', function ($id) {
+    return "Publisher route berfungsi! ID: $id, User: " . Auth::user()->name;
+})->middleware(['auth', 'publisher']);

@@ -144,7 +144,7 @@
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <a href="{{ route('publisher.loa-requests') }}" class="btn btn-warning btn-lg w-100">
+                        <a href="{{ route('publisher.loa-requests.index') }}" class="btn btn-warning btn-lg w-100">
                             <i class="fas fa-file-alt me-2"></i>Review LOAs
                         </a>
                     </div>
@@ -170,7 +170,7 @@
         <div class="card recent-requests-card">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><i class="fas fa-clock me-2"></i>Recent LOA Requests</h5>
-                <a href="{{ route('publisher.loa-requests') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                <a href="{{ route('publisher.loa-requests.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
             <div class="card-body p-0">
                 @if($recentRequests->count() > 0)
