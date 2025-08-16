@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Dashboard') - LOA Management System SIPTENAN </title>
+    <title>@yield('title', 'Admin Dashboard') - LOA SIPTENAN System</title>
+    
+    <!-- Static favicon for now -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -108,6 +111,18 @@
         .card:hover {
             transform: translateY(-2px);
         }
+        
+        /* Debug CSS untuk menu settings */
+        .sidebar .nav-item {
+            display: block !important;
+            visibility: visible !important;
+        }
+        
+        .sidebar-heading {
+            display: block !important;
+            visibility: visible !important;
+            color: rgba(255,255,255,0.6) !important;
+        }
     </style>
     
     @stack('styles')
@@ -174,6 +189,41 @@
                             <a class="nav-link {{ request()->routeIs('admin.loa-templates.*') ? 'active' : '' }}" href="{{ route('admin.loa-templates.index') }}">
                                 <i class="fas fa-file-code"></i>
                                 <span>Template LOA</span>
+                            </a>
+                        </li>
+                        
+                        <hr class="sidebar-divider my-3" style="border-color: rgba(255,255,255,0.15);">
+                        
+                        <!-- Pengaturan Section -->
+                        <div style="color: rgba(255,255,255,0.6); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1rem; margin-bottom: 0.5rem; padding: 0 1rem; margin-top: 1rem;">
+                            🔧 PENGATURAN ADMIN
+                        </div>
+                        
+                        <li class="nav-item" style="display: block !important;">
+                            <a class="nav-link {{ request()->routeIs('admin.website-settings.*') ? 'active' : '' }}" href="{{ route('admin.website-settings.index') }}" style="color: rgba(255, 255, 255, 0.9) !important; padding: 1rem 1.5rem !important; display: block !important;">
+                                <i class="fas fa-cogs" style="margin-right: 0.75rem; color: #28a745;"></i>
+                                <span style="font-weight: 600;">Website Settings</span>
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item" style="display: block !important;">
+                            <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}" style="color: rgba(255, 255, 255, 0.9) !important; padding: 1rem 1.5rem !important; display: block !important;">
+                                <i class="fas fa-users" style="margin-right: 0.75rem; color: #007bff;"></i>
+                                <span style="font-weight: 600;">Kelola User</span>
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item" style="display: block !important;">
+                            <a class="nav-link {{ request()->routeIs('admin.system-logs.*') ? 'active' : '' }}" href="{{ route('admin.system-logs.index') }}" style="color: rgba(255, 255, 255, 0.9) !important; padding: 1rem 1.5rem !important; display: block !important;">
+                                <i class="fas fa-list-alt" style="margin-right: 0.75rem; color: #ffc107;"></i>
+                                <span style="font-weight: 600;">System Logs</span>
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item" style="display: block !important;">
+                            <a class="nav-link" href="{{ route('admin.dashboard') }}" style="color: rgba(255, 255, 255, 0.9) !important; padding: 1rem 1.5rem !important; display: block !important;">
+                                <i class="fas fa-chart-bar" style="margin-right: 0.75rem; color: #17a2b8;"></i>
+                                <span style="font-weight: 600;">System Status</span>
                             </a>
                         </li>
                         

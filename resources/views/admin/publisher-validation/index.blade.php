@@ -107,8 +107,13 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <strong>{{ $publisher->user->name }}</strong><br>
-                                            <small class="text-muted">{{ $publisher->user->email }}</small><br>
+                                            @if($publisher->user)
+                                                <strong>{{ $publisher->user->name }}</strong><br>
+                                                <small class="text-muted">{{ $publisher->user->email }}</small><br>
+                                            @else
+                                                <strong class="text-danger">User tidak ditemukan</strong><br>
+                                                <small class="text-muted">ID: {{ $publisher->user_id ?? 'N/A' }}</small><br>
+                                            @endif
                                             @if($publisher->contact_person)
                                                 <small class="text-muted">{{ $publisher->contact_person }}</small>
                                             @endif

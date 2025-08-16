@@ -450,6 +450,14 @@
                     <i class="fas fa-users"></i>
                     <span>User Management</span>
                 </a>
+                <a href="{{ route('admin.website-settings.index') }}" class="nav-link {{ request()->routeIs('admin.website-settings.*') ? 'active' : '' }}">
+                    <i class="fas fa-cogs"></i>
+                    <span>Website Settings</span>
+                </a>
+                <a href="{{ route('admin.system-logs.index') }}" class="nav-link {{ request()->routeIs('admin.system-logs.*') ? 'active' : '' }}">
+                    <i class="fas fa-list-alt"></i>
+                    <span>System Logs</span>
+                </a>
                 <a href="{{ route('admin.supports.index') }}" class="nav-link {{ request()->routeIs('admin.supports.*') ? 'active' : '' }}">
                     <i class="fas fa-handshake"></i>
                     <span>Support Management</span>

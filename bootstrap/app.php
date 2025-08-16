@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'publisher' => \App\Http\Middleware\PublisherMiddleware::class,
             'publisher.validated' => \App\Http\Middleware\CheckPublisherValidation::class,
         ]);
+
+        // Global middleware
+        $middleware->web([
+            \App\Http\Middleware\ShareWebsiteSettings::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

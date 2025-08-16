@@ -862,6 +862,24 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
         Route::post('/bulk-activate', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'bulkActivate'])->name('bulk-activate');
         Route::get('/api/statistics', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'statistics'])->name('statistics');
     });
+
+    // Website Settings Management
+    Route::prefix('website-settings')->name('website-settings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\WebsiteSettingController::class, 'index'])->name('index');
+        Route::put('/update', [\App\Http\Controllers\Admin\WebsiteSettingController::class, 'update'])->name('update');
+        Route::post('/delete-image', [\App\Http\Controllers\Admin\WebsiteSettingController::class, 'deleteImage'])->name('delete-image');
+    });
+
+    // User Management
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    Route::post('/users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
+
+    // System Logs
+    Route::prefix('system-logs')->name('system-logs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\SystemLogController::class, 'index'])->name('index');
+        Route::delete('/{filename}/clear', [\App\Http\Controllers\Admin\SystemLogController::class, 'clear'])->name('clear');
+        Route::get('/{filename}/download', [\App\Http\Controllers\Admin\SystemLogController::class, 'download'])->name('download');
+    });
 });
 
 // Test route for template system
