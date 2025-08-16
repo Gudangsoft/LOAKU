@@ -370,24 +370,42 @@
                     <small class="text-muted">{{ Auth::user()->role ?? 'Administrator' }}</small>
                 </div>
             </div>
+            
+            <!-- Dropdown Menu -->
             <div class="dropdown">
-                <button class="btn btn-link" data-bs-toggle="dropdown">
-                    <i class="fas fa-cog"></i>
+                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" 
+                        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                        style="border-color: rgba(255,255,255,0.3);">
+                    <i class="fas fa-user-circle me-1"></i>
+                    <span class="d-none d-sm-inline">Menu</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                    <li><h6 class="dropdown-header">{{ Auth::user()->name ?? 'Admin' }}</h6></li>
                     <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
                     <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form method="POST" action="{{ route('admin.logout') }}">
+                        <form method="POST" action="{{ route('admin.logout') }}" class="d-inline">
                             @csrf
-                            <button type="submit" class="dropdown-item text-danger">
+                            <button type="submit" class="dropdown-item text-danger" 
+                                    onclick="return confirm('Yakin ingin logout?')">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </button>
                         </form>
                     </li>
                 </ul>
             </div>
+            
+            <!-- Direct Logout Button (Alternative) -->
+            <form method="POST" action="{{ route('admin.logout') }}" class="d-inline ms-2">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger btn-sm" 
+                        onclick="return confirm('Yakin ingin logout?')"
+                        title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="d-none d-md-inline ms-1">Logout</span>
+                </button>
+            </form>
         </div>
     </header>
 
@@ -525,6 +543,24 @@
                     const bsAlert = new bootstrap.Alert(alert);
                     bsAlert.close();
                 }, 5000);
+            });
+            
+            // Initialize all Bootstrap dropdowns
+            const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+            const dropdownList = [...dropdownElementList].map(dropdownToggleEl => new bootstrap.Dropdown(dropdownToggleEl));
+            
+            // Logout confirmation
+            const logoutButtons = document.querySelectorAll('button[type="submit"]');
+            logoutButtons.forEach(button => {
+                const form = button.closest('form');
+                if (form && form.action.includes('logout')) {
+                    button.addEventListener('click', function(e) {
+                        if (!confirm('Yakin ingin logout?')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                }
             });
         });
 
