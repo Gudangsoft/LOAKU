@@ -208,7 +208,7 @@ class PublisherController extends Controller
             // Load relationships
             $loaRequest->load(['journal.publisher', 'loaValidated']);
 
-            return view('publisher.loa-requests.show', compact('loaRequest'));
+            return view('publisher.loa-requests.show-v2', compact('loaRequest'));
             
         } catch (\Exception $e) {
             \Log::error('Error in showLoaRequest', [
