@@ -480,6 +480,10 @@
                     <i class="fas fa-handshake"></i>
                     <span>Support Management</span>
                 </a>
+                <a href="{{ route('admin.backups.index') }}" class="nav-link {{ request()->routeIs('admin.backups.*') ? 'active' : '' }}">
+                    <i class="fas fa-archive"></i>
+                    <span>Backup Management</span>
+                </a>
             </div>
             @endif
         </div>

@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\FixDatabase::class,
+        Commands\BackupDatabase::class,
+        Commands\BackupFiles::class,
+        Commands\RestoreDatabase::class,
     ];
 
     /**
@@ -21,7 +24,39 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Daily database backup at 2:00 AM
+        $schedule->command('backup:database --type=full --compress')
+                 ->daily()
+                 ->at('02:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Weekly files backup on Sunday at 3:00 AM
+        $schedule->command('backup:files --include-uploads')
+                 ->weekly()
+                 ->sundays()
+                 ->at('03:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Monthly full backup (files + logs) on 1st of month at 4:00 AM
+        $schedule->command('backup:files --include-uploads --include-logs')
+                 ->monthly()
+                 ->at('04:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Log scheduled task executions
+        $schedule->command('backup:database --type=schema')
+                 ->hourly()
+                 ->between('8:00', '18:00') // Only during work hours
+                 ->weekdays()
+                 ->when(function () {
+                     // Only run if there were recent changes
+                     return \DB::table('loa_requests')
+                               ->where('updated_at', '>=', now()->subHour())
+                               ->exists();
+                 });
     }
 
     /**

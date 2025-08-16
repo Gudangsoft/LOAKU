@@ -706,9 +706,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         }
     })->name('fix-database');
 
-    // Route for creating admin user (development only)
-    Route::get('/create-admin', [AuthController::class, 'showCreateAdminForm'])->name('create-admin.form');
-    Route::get('/create-admin-api', [AuthController::class, 'createAdmin'])->name('create-admin');
+    // Route for creating admin user (development only) - DISABLED
+    // Route::get('/create-admin', [AuthController::class, 'showCreateAdminForm'])->name('create-admin.form');
+    // Route::get('/create-admin-api', [AuthController::class, 'createAdmin'])->name('create-admin');
     
     // Debug route to check users
     Route::get('/debug-users', function() {
@@ -840,6 +840,28 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     // Support Management
     Route::resource('supports', \App\Http\Controllers\Admin\SupportController::class);
     Route::patch('/supports/{support}/toggle', [\App\Http\Controllers\Admin\SupportController::class, 'toggle'])->name('supports.toggle');
+    
+    // Backup Management - TEST ROUTE (remove middleware temporarily)
+    Route::prefix('backups-test')->name('backups-test.')->group(function() {
+        Route::get('/', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('index');
+        Route::get('/stats', [\App\Http\Controllers\Admin\BackupController::class, 'stats'])->name('stats');
+        Route::post('/create-database', [\App\Http\Controllers\Admin\BackupController::class, 'createDatabase'])->name('create-database');
+        Route::post('/create-files', [\App\Http\Controllers\Admin\BackupController::class, 'createFiles'])->name('create-files');
+        Route::get('/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download'])->name('download');
+        Route::delete('/delete/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'delete'])->name('delete');
+        Route::post('/restore', [\App\Http\Controllers\Admin\BackupController::class, 'restore'])->name('restore');
+    });
+    
+    // Backup Management
+    Route::prefix('backups')->name('backups.')->group(function() {
+        Route::get('/', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('index');
+        Route::get('/stats', [\App\Http\Controllers\Admin\BackupController::class, 'stats'])->name('stats');
+        Route::post('/create-database', [\App\Http\Controllers\Admin\BackupController::class, 'createDatabase'])->name('create-database');
+        Route::post('/create-files', [\App\Http\Controllers\Admin\BackupController::class, 'createFiles'])->name('create-files');
+        Route::get('/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download'])->name('download');
+        Route::delete('/delete/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'delete'])->name('delete');
+        Route::post('/restore', [\App\Http\Controllers\Admin\BackupController::class, 'restore'])->name('restore');
+    });
     
     // User Management - dengan permission khusus
     Route::middleware(['permission:manage_users'])->group(function() {

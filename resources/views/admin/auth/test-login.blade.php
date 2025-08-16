@@ -72,7 +72,6 @@
                                     <div class="d-grid gap-2">
                                         <a href="{{ route('admin.debug-users') }}" class="btn btn-info btn-sm" target="_blank">Debug Users</a>
                                         <a href="{{ route('admin.test-auth') }}" class="btn btn-secondary btn-sm" target="_blank">Test Auth</a>
-                                        <a href="{{ route('admin.create-admin') }}" class="btn btn-warning btn-sm" target="_blank">Create/Verify Admin Users</a>
                                     </div>
                                 </div>
                             </div>

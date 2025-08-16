@@ -16,10 +16,6 @@
                         <i class="fas fa-plus me-1"></i>
                         Tambah User
                     </a>
-                    <a href="{{ route('admin.create-admin') }}" class="btn btn-success">
-                        <i class="fas fa-user-shield me-1"></i>
-                        Create Admin
-                    </a>
                 </div>
             </div>
 
