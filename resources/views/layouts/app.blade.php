@@ -243,6 +243,9 @@
                                 <li><a class="dropdown-item" href="{{ route('admin.login') }}">
                                     <i class="fas fa-sign-in-alt me-2"></i>Admin Login
                                 </a></li>
+                                <li><a class="dropdown-item" href="{{ route('publisher.register.form') }}">
+                                    <i class="fas fa-user-plus me-2"></i>Daftar Publisher
+                                </a></li>
                                 <li><a class="dropdown-item" href="/admin">
                                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                                 </a></li>

@@ -104,6 +104,11 @@ Route::get('/login', [App\Http\Controllers\Admin\AuthController::class, 'showLog
 Route::post('/login', [App\Http\Controllers\Admin\AuthController::class, 'login']);
 Route::post('/logout', [App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
 
+// Publisher Registration Routes
+Route::get('/publisher/register', [App\Http\Controllers\PublisherRegistrationController::class, 'showRegistrationForm'])->name('publisher.register.form');
+Route::post('/publisher/register', [App\Http\Controllers\PublisherRegistrationController::class, 'register'])->name('publisher.register');
+Route::get('/publisher/register/success', [App\Http\Controllers\PublisherRegistrationController::class, 'success'])->name('publisher.register.success');
+
 // Test publisher auth
 Route::get('/test-auth', function() {
     $output = [];
@@ -846,6 +851,17 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
         Route::post('/users/{user}/unverify-email', [\App\Http\Controllers\Admin\UserController::class, 'unverifyEmail'])->name('users.unverify-email');
         Route::post('/users/{user}/resend-verification', [\App\Http\Controllers\Admin\UserController::class, 'resendVerification'])->name('users.resend-verification');
     });
+    
+    // Publisher Validation Management
+    Route::prefix('publisher-validation')->name('publisher-validation.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'index'])->name('index');
+        Route::get('/{publisher}', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'show'])->name('show');
+        Route::post('/{publisher}/activate', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'activate'])->name('activate');
+        Route::post('/{publisher}/suspend', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'suspend'])->name('suspend');
+        Route::post('/{publisher}/regenerate-token', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'regenerateToken'])->name('regenerate-token');
+        Route::post('/bulk-activate', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'bulkActivate'])->name('bulk-activate');
+        Route::get('/api/statistics', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'statistics'])->name('statistics');
+    });
 });
 
 // Test route for template system
@@ -1035,6 +1051,12 @@ Route::get('/publisher/dashboard', function() {
         return redirect()->route('home')->with('error', 'Akses ditolak. Halaman ini khusus untuk publisher.');
     }
     
+    // Check if publisher is active and set session
+    $publisher = App\Models\Publisher::where('user_id', $user->id)->first();
+    if ($publisher && $publisher->isActive()) {
+        session(['publisher_validated' => true]);
+    }
+    
     // Get user's publishers and journals with safe queries
     $userPublishers = App\Models\Publisher::where('user_id', $user->id)->get();
     $userJournals = App\Models\Journal::where('user_id', $user->id)->get();
@@ -1065,63 +1087,59 @@ Route::get('/publisher/dashboard', function() {
 
 // Publisher Routes (for publisher role)
 Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher'])->group(function () {
-    // Dashboard - Commented out to use quick test above
-    // Route::get('/dashboard', [App\Http\Controllers\PublisherController::class, 'dashboard'])->name('dashboard');
+    // Publisher Validation Routes (no validation check needed)
+    Route::get('/validation/pending', [\App\Http\Controllers\Publisher\ValidationController::class, 'pending'])->name('validation.pending');
+    Route::get('/validation/token', [\App\Http\Controllers\Publisher\ValidationController::class, 'tokenForm'])->name('validation.token');
+    Route::post('/validation/token', [\App\Http\Controllers\Publisher\ValidationController::class, 'validateToken'])->name('validation.token.submit');
+    Route::get('/validation/suspended', [\App\Http\Controllers\Publisher\ValidationController::class, 'suspended'])->name('validation.suspended');
     
-    // Simple publisher management routes
-    Route::get('/publishers', function() {
-        if (!Auth::check() || Auth::user()->role !== 'publisher') {
-            abort(403);
-        }
-        $publishers = App\Models\Publisher::where('user_id', Auth::id())->paginate(10);
-        return view('publisher.publishers.index', compact('publishers'));
-    })->name('publishers');
-    
-    Route::get('/journals', function() {
-        if (!Auth::check() || Auth::user()->role !== 'publisher') {
-            abort(403);
-        }
-        $journals = App\Models\Journal::where('user_id', Auth::id())->with('publisher')->paginate(10);
-        return view('publisher.journals.index', compact('journals'));
-    })->name('journals');
-    
-    Route::get('/loa-requests', function() {
-        if (!Auth::check() || Auth::user()->role !== 'publisher') {
-            abort(403);
-        }
-        $journalIds = App\Models\Journal::where('user_id', Auth::id())->pluck('id');
-        $loaRequests = App\Models\LoaRequest::whereIn('journal_id', $journalIds)
-            ->with(['journal', 'journal.publisher'])
-            ->latest()
-            ->paginate(15);
-        return view('publisher.loa-requests.index', compact('loaRequests'));
-    })->name('loa-requests');
-    
-    Route::get('/profile', function() {
-        if (!Auth::check() || Auth::user()->role !== 'publisher') {
-            abort(403);
-        }
-        return view('publisher.profile');
-    })->name('profile');
-    
-    // Profile Management
-    Route::get('/profile', [App\Http\Controllers\PublisherController::class, 'profile'])->name('profile');
-    Route::put('/profile', [App\Http\Controllers\PublisherController::class, 'updateProfile'])->name('profile.update');
-    
-    // Publisher Management
-    Route::get('/publishers', [App\Http\Controllers\PublisherController::class, 'publishers'])->name('publishers');
-    Route::get('/publishers/create', [App\Http\Controllers\PublisherController::class, 'createPublisher'])->name('publishers.create');
-    Route::post('/publishers', [App\Http\Controllers\PublisherController::class, 'storePublisher'])->name('publishers.store');
-    
-    // Journal Management
-    Route::get('/journals', [App\Http\Controllers\PublisherController::class, 'journals'])->name('journals');
-    Route::get('/journals/create', [App\Http\Controllers\PublisherController::class, 'createJournal'])->name('journals.create');
-    Route::post('/journals', [App\Http\Controllers\PublisherController::class, 'storeJournal'])->name('journals.store');
-    
-    // LOA Request Management
-    Route::get('/loa-requests', [App\Http\Controllers\PublisherController::class, 'loaRequests'])->name('loa-requests.index');
-    Route::get('/loa-requests/{loaRequest}', [App\Http\Controllers\PublisherController::class, 'showLoaRequest'])->name('loa-requests.show');
-    Route::post('/loa-requests/{loaRequest}/approve', [App\Http\Controllers\PublisherController::class, 'approveLoaRequest'])->name('loa-requests.approve');
+    // Protected Publisher Routes (require validation)
+    Route::middleware(['publisher.validated'])->group(function () {
+        // Dashboard - Commented out to use quick test above
+        // Route::get('/dashboard', [App\Http\Controllers\PublisherController::class, 'dashboard'])->name('dashboard');
+        
+        // Simple publisher management routes
+        Route::get('/publishers', function() {
+            if (!Auth::check() || Auth::user()->role !== 'publisher') {
+                abort(403);
+            }
+            $publishers = App\Models\Publisher::where('user_id', Auth::id())->paginate(10);
+            return view('publisher.publishers.index', compact('publishers'));
+        })->name('publishers');
+        
+        Route::get('/journals', function() {
+            if (!Auth::check() || Auth::user()->role !== 'publisher') {
+                abort(403);
+            }
+            $journals = App\Models\Journal::where('user_id', Auth::id())->with('publisher')->paginate(10);
+            return view('publisher.journals.index', compact('journals'));
+        })->name('journals');
+        
+        Route::get('/profile', function() {
+            if (!Auth::check() || Auth::user()->role !== 'publisher') {
+                abort(403);
+            }
+            return view('publisher.profile');
+        })->name('profile');
+        
+        // Profile Management
+        Route::get('/profile', [App\Http\Controllers\PublisherController::class, 'profile'])->name('profile');
+        Route::put('/profile', [App\Http\Controllers\PublisherController::class, 'updateProfile'])->name('profile.update');
+        
+        // Publisher Management
+        Route::get('/publishers', [App\Http\Controllers\PublisherController::class, 'publishers'])->name('publishers');
+        Route::get('/publishers/create', [App\Http\Controllers\PublisherController::class, 'createPublisher'])->name('publishers.create');
+        Route::post('/publishers', [App\Http\Controllers\PublisherController::class, 'storePublisher'])->name('publishers.store');
+        
+        // Journal Management
+        Route::get('/journals', [App\Http\Controllers\PublisherController::class, 'journals'])->name('journals');
+        Route::get('/journals/create', [App\Http\Controllers\PublisherController::class, 'createJournal'])->name('journals.create');
+        Route::post('/journals', [App\Http\Controllers\PublisherController::class, 'storeJournal'])->name('journals.store');
+        
+        // LOA Request Management
+        Route::get('/loa-requests', [App\Http\Controllers\PublisherController::class, 'loaRequests'])->name('loa-requests.index');
+        Route::get('/loa-requests/{loaRequest}', [App\Http\Controllers\PublisherController::class, 'showLoaRequest'])->name('loa-requests.show');
+        Route::post('/loa-requests/{loaRequest}/approve', [App\Http\Controllers\PublisherController::class, 'approveLoaRequest'])->name('loa-requests.approve');
     Route::post('/loa-requests/{loaRequest}/reject', [App\Http\Controllers\PublisherController::class, 'rejectLoaRequest'])->name('loa-requests.reject');
     
     // LOA Template Management - Complete implementation
@@ -1307,7 +1325,9 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
         return redirect()->back()
             ->with('success', "Template LOA berhasil {$status}.");
     })->name('loa-templates.toggle');
-});
+    
+    }); // End of protected publisher routes (publisher.validated middleware)
+}); // End of publisher routes group
 
 // Simple test route for new view without middleware
 Route::get('/test-new-view/{id}', function ($id) {

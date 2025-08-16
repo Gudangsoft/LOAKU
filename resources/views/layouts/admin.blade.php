@@ -436,6 +436,16 @@
             @if(Auth::user() && (Auth::user()->hasRole('super_admin') || Auth::user()->is_admin))
             <div class="nav-section">
                 <div class="nav-section-title">System</div>
+                <a href="{{ route('admin.publisher-validation.index') }}" class="nav-link {{ request()->routeIs('admin.publisher-validation.*') ? 'active' : '' }}">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Publisher Validation</span>
+                    @php
+                        $pendingCount = \App\Models\Publisher::where('status', 'pending')->count();
+                    @endphp
+                    @if($pendingCount > 0)
+                        <span class="badge bg-warning text-dark ms-auto">{{ $pendingCount }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                     <i class="fas fa-users"></i>
                     <span>User Management</span>

@@ -197,17 +197,16 @@ class PublisherController extends Controller
     public function showLoaRequest(LoaRequest $loaRequest)
     {
         try {
-            \Log::info('showLoaRequest called', ['loa_request_id' => $loaRequest->id]);
+            // Check if user has access to this LOA request (via their journals)
+            $userJournalIds = Journal::where('user_id', Auth::id())->pluck('id');
+            
+            if (!$userJournalIds->contains($loaRequest->journal_id)) {
+                return redirect()->route('publisher.loa-requests.index')
+                    ->with('error', 'Anda tidak memiliki akses untuk melihat LOA request ini.');
+            }
             
             // Load relationships
             $loaRequest->load(['journal.publisher', 'loaValidated']);
-            
-            \Log::info('Relationships loaded', [
-                'journal' => $loaRequest->journal ? $loaRequest->journal->name : 'No journal',
-                'publisher' => $loaRequest->journal && $loaRequest->journal->publisher ? $loaRequest->journal->publisher->name : 'No publisher'
-            ]);
-
-            \Log::info('Returning view', ['view' => 'publisher.loa-requests.show']);
 
             return view('publisher.loa-requests.show', compact('loaRequest'));
             
@@ -234,29 +233,27 @@ class PublisherController extends Controller
             abort(403, 'Unauthorized access to this LOA request');
         }
 
+        if ($loaRequest->status !== 'pending') {
+            return redirect()->back()
+                ->with('error', 'LOA request sudah diproses sebelumnya.');
+        }
+
         $loaRequest->update([
             'status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now()
+            'approved_at' => now(),
         ]);
 
-        // Create validated LOA entry
+        // Generate LOA code based on article ID if available
+        $loaCode = LoaValidated::generateLoaCodeWithArticleId($loaRequest->article_id);
+        
         LoaValidated::create([
-            'registration_number' => $loaRequest->registration_number,
-            'user_id' => $loaRequest->user_id,
-            'journal_id' => $loaRequest->journal_id,
-            'article_title' => $loaRequest->article_title,
-            'authors' => $loaRequest->authors,
-            'corresponding_author' => $loaRequest->corresponding_author,
-            'corresponding_email' => $loaRequest->corresponding_email,
-            'article_type' => $loaRequest->article_type,
-            'submission_date' => $loaRequest->submission_date,
-            'approved_date' => now(),
-            'approved_by' => Auth::id()
+            'loa_request_id' => $loaRequest->id,
+            'loa_code' => $loaCode,
+            'verification_url' => route('loa.verify')
         ]);
 
-        return redirect()->route('publisher.loa-requests')
-            ->with('success', 'LOA request berhasil disetujui!');
+        return redirect()->route('publisher.loa-requests.index')
+            ->with('success', 'LOA request berhasil disetujui dengan kode: ' . $loaCode);
     }
 
     /**
@@ -265,12 +262,20 @@ class PublisherController extends Controller
     public function rejectLoaRequest(Request $request, LoaRequest $loaRequest)
     {
         // Verify this request belongs to publisher's journal
-        if (!Auth::user()->journals()->where('id', $loaRequest->journal_id)->exists()) {
+        $journalIds = Journal::where('user_id', Auth::id())->pluck('id');
+        if (!$journalIds->contains($loaRequest->journal_id)) {
             abort(403, 'Unauthorized access to this LOA request');
+        }
+
+        if ($loaRequest->status !== 'pending') {
+            return redirect()->back()
+                ->with('error', 'LOA request sudah diproses sebelumnya.');
         }
 
         $validator = Validator::make($request->all(), [
             'rejection_reason' => 'required|string|max:1000'
+        ], [
+            'rejection_reason.required' => 'Alasan penolakan wajib diisi.'
         ]);
 
         if ($validator->fails()) {
@@ -281,12 +286,10 @@ class PublisherController extends Controller
 
         $loaRequest->update([
             'status' => 'rejected',
-            'rejected_by' => Auth::id(),
-            'rejected_at' => now(),
-            'rejection_reason' => $request->rejection_reason
+            'admin_notes' => $request->rejection_reason
         ]);
 
-        return redirect()->route('publisher.loa-requests')
+        return redirect()->route('publisher.loa-requests.index')
             ->with('success', 'LOA request berhasil ditolak!');
     }
 

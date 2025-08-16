@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'publisher' => \App\Http\Middleware\PublisherMiddleware::class,
+            'publisher.validated' => \App\Http\Middleware\CheckPublisherValidation::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

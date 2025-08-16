@@ -165,6 +165,13 @@
                 </div>
 
                 <div class="text-center mt-3">
+                    <a href="{{ route('publisher.register.form') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-building me-1"></i>
+                        Daftar sebagai Publisher
+                    </a>
+                </div>
+
+                <div class="text-center mt-3">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
                         Demo: admin@loasiptenan.org / admin123
