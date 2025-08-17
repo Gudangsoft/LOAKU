@@ -6,10 +6,13 @@ use App\Models\Publisher;
 use App\Models\Journal;
 use App\Models\LoaRequest;
 use App\Models\LoaValidated;
+use App\Exports\JournalsExport;
+use App\Imports\JournalsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PublisherController extends Controller
 {
@@ -559,5 +562,81 @@ class PublisherController extends Controller
 
         return redirect()->route('publisher.profile')
             ->with('success', 'Profil berhasil diperbarui!');
+    }
+
+    /**
+     * Export journals to Excel
+     */
+    public function exportJournals()
+    {
+        $publisherId = Auth::id();
+        return Excel::download(new JournalsExport($publisherId), 'my_journals_' . date('Y-m-d_His') . '.xlsx');
+    }
+
+    /**
+     * Show import form
+     */
+    public function importJournalsForm()
+    {
+        return view('publisher.journals.import');
+    }
+
+    /**
+     * Import journals from Excel
+     */
+    public function importJournals(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:2048'
+        ]);
+
+        try {
+            $import = new JournalsImport(Auth::id());
+            Excel::import($import, $request->file('file'));
+
+            $message = "Import berhasil! {$import->getSuccessCount()} jurnal berhasil diproses.";
+            
+            if ($import->hasErrors()) {
+                $message .= " Namun ada beberapa error: " . implode('; ', array_slice($import->getErrors(), 0, 3));
+                if (count($import->getErrors()) > 3) {
+                    $message .= " dan " . (count($import->getErrors()) - 3) . " error lainnya.";
+                }
+                return redirect()->route('publisher.journals.index')
+                    ->with('warning', $message);
+            }
+
+            return redirect()->route('publisher.journals.index')
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            return redirect()->route('publisher.journals.index')
+                ->with('error', 'Gagal mengimport file: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Download template Excel
+     */
+    public function downloadJournalsTemplate()
+    {
+        $headers = [
+            ['nama_jurnal', 'deskripsi', 'issn', 'e_issn', 'website', 'email', 'alamat', 'status'],
+            ['Jurnal Teknologi Informasi', 'Jurnal yang membahas teknologi informasi terkini', '1234-5678', '8765-4321', 'https://jti.example.com', 'editor@jti.com', 'Jl. Teknologi No. 123', 'active'],
+            ['Jurnal Ilmu Komputer', 'Jurnal penelitian ilmu komputer dan informatika', '2345-6789', '9876-5432', 'https://jik.example.com', 'editor@jik.com', 'Jl. Komputer No. 456', 'active']
+        ];
+
+        $fileName = 'template_import_jurnal.xlsx';
+        
+        return Excel::download(new class($headers) implements \Maatwebsite\Excel\Concerns\FromArray {
+            private $data;
+            
+            public function __construct($data) {
+                $this->data = $data;
+            }
+            
+            public function array(): array {
+                return $this->data;
+            }
+        }, $fileName);
     }
 }

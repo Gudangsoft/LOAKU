@@ -3,9 +3,26 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-book me-2"></i>Journal Management</h2>
-    <a href="{{ route('publisher.journals.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus me-2"></i>Add New Journal
-    </a>
+    <div class="d-flex gap-2">
+        <!-- Export/Import Buttons -->
+        <div class="btn-group me-2" role="group">
+            <a href="{{ route('publisher.journals.export') }}" class="btn btn-success btn-sm">
+                <i class="fas fa-download me-1"></i>
+                Export Excel
+            </a>
+            <a href="{{ route('publisher.journals.import.form') }}" class="btn btn-info btn-sm">
+                <i class="fas fa-upload me-1"></i>
+                Import Excel
+            </a>
+            <a href="{{ route('publisher.journals.template') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-file-excel me-1"></i>
+                Template
+            </a>
+        </div>
+        <a href="{{ route('publisher.journals.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Journal
+        </a>
+    </div>
 </div>
 
 <div class="card">

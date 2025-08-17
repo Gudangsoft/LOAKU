@@ -829,6 +829,10 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     
     // Journals Management
     Route::resource('journals', JournalController::class);
+    Route::get('/journals-export', [JournalController::class, 'export'])->name('journals.export');
+    Route::get('/journals-import', [JournalController::class, 'importForm'])->name('journals.import.form');
+    Route::post('/journals-import', [JournalController::class, 'import'])->name('journals.import');
+    Route::get('/journals-template', [JournalController::class, 'downloadTemplate'])->name('journals.template');
     
     // Publishers Management
     Route::resource('publishers', PublisherController::class);
@@ -1183,6 +1187,12 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
         Route::get('/journals/{journal}/edit', [App\Http\Controllers\PublisherController::class, 'editJournal'])->name('journals.edit');
         Route::put('/journals/{journal}', [App\Http\Controllers\PublisherController::class, 'updateJournal'])->name('journals.update');
         Route::delete('/journals/{journal}', [App\Http\Controllers\PublisherController::class, 'destroyJournal'])->name('journals.destroy');
+        
+        // Journals Export/Import
+        Route::get('/journals-export', [App\Http\Controllers\PublisherController::class, 'exportJournals'])->name('journals.export');
+        Route::get('/journals-import', [App\Http\Controllers\PublisherController::class, 'importJournalsForm'])->name('journals.import.form');
+        Route::post('/journals-import', [App\Http\Controllers\PublisherController::class, 'importJournals'])->name('journals.import');
+        Route::get('/journals-template', [App\Http\Controllers\PublisherController::class, 'downloadJournalsTemplate'])->name('journals.template');
         
         // LOA Request Management
         Route::get('/loa-requests', [App\Http\Controllers\PublisherController::class, 'loaRequests'])->name('loa-requests.index');

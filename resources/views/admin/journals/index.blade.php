@@ -14,10 +14,27 @@
             </h1>
             <p class="mb-0 text-muted">Kelola data jurnal ilmiah dalam sistem</p>
         </div>
-        <a href="{{ route('admin.journals.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i>
-            Tambah Jurnal
-        </a>
+        <div class="d-flex gap-2">
+            <!-- Export/Import Buttons -->
+            <div class="btn-group me-2" role="group">
+                <a href="{{ route('admin.journals.export') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-download me-1"></i>
+                    Export Excel
+                </a>
+                <a href="{{ route('admin.journals.import.form') }}" class="btn btn-info btn-sm">
+                    <i class="fas fa-upload me-1"></i>
+                    Import Excel
+                </a>
+                <a href="{{ route('admin.journals.template') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-file-excel me-1"></i>
+                    Template
+                </a>
+            </div>
+            <a href="{{ route('admin.journals.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>
+                Tambah Jurnal
+            </a>
+        </div>
     </div>
 
     <!-- Journals Table -->
