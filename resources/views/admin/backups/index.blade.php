@@ -332,7 +332,7 @@ function deleteBackup(filename) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: `{{ route('admin.backups.delete', '') }}/${filename}`,
+                url: `{{ url('admin/backups/delete') }}/${filename}`,
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
