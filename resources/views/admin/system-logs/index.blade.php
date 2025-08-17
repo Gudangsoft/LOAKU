@@ -160,35 +160,4 @@
     z-index: 10;
 }
 </style>
-
-    </div>
-</div>
-@endsection
-
-@push('styles')
-<style>
-.log-level-error, .log-level-critical, .log-level-emergency, .log-level-alert {
-    background-color: #fee;
-}
-.log-level-warning {
-    background-color: #fff3cd;
-}
-.log-level-info, .log-level-notice {
-    background-color: #e7f3ff;
-}
-.log-level-debug {
-    background-color: #f8f9fa;
-}
-
-.list-group-item.active {
-    background-color: #007bff;
-    border-color: #007bff;
-}
-
-.sticky-top {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-</style>
 @endpush
