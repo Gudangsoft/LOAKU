@@ -17,8 +17,10 @@ class Journal extends Model
         'e_issn',
         'p_issn',
         'chief_editor',
+        'email',
+        'description',
         'logo',
-        'ttd_stample',
+        'signature_stamp',
         'website',
         'publisher_id',
     ];

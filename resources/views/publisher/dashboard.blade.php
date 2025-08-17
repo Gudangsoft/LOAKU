@@ -134,12 +134,12 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3 mb-3">
-                        <a href="{{ route('publisher.publishers') }}" class="btn btn-primary btn-lg w-100">
+                        <a href="{{ route('publisher.publishers.index') }}" class="btn btn-primary btn-lg w-100">
                             <i class="fas fa-building me-2"></i>Manage Publishers
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <a href="{{ route('publisher.journals') }}" class="btn btn-success btn-lg w-100">
+                        <a href="{{ route('publisher.journals.index') }}" class="btn btn-success btn-lg w-100">
                             <i class="fas fa-book me-2"></i>Manage Journals
                         </a>
                     </div>
@@ -149,7 +149,7 @@
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <a href="{{ route('publisher.loa-templates') }}" class="btn btn-info btn-lg w-100">
+                        <a href="{{ route('publisher.loa-templates.index') }}" class="btn btn-info btn-lg w-100">
                             <i class="fas fa-file-code me-2"></i>LOA Templates
                         </a>
                     </div>

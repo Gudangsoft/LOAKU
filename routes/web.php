@@ -1167,14 +1167,22 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
         Route::put('/profile', [App\Http\Controllers\PublisherController::class, 'updateProfile'])->name('profile.update');
         
         // Publisher Management
-        Route::get('/publishers', [App\Http\Controllers\PublisherController::class, 'publishers'])->name('publishers');
+        Route::get('/publishers', [App\Http\Controllers\PublisherController::class, 'publishers'])->name('publishers.index');
         Route::get('/publishers/create', [App\Http\Controllers\PublisherController::class, 'createPublisher'])->name('publishers.create');
         Route::post('/publishers', [App\Http\Controllers\PublisherController::class, 'storePublisher'])->name('publishers.store');
+        Route::get('/publishers/{publisher}', [App\Http\Controllers\PublisherController::class, 'showPublisher'])->name('publishers.show');
+        Route::get('/publishers/{publisher}/edit', [App\Http\Controllers\PublisherController::class, 'editPublisher'])->name('publishers.edit');
+        Route::put('/publishers/{publisher}', [App\Http\Controllers\PublisherController::class, 'updatePublisher'])->name('publishers.update');
+        Route::delete('/publishers/{publisher}', [App\Http\Controllers\PublisherController::class, 'destroyPublisher'])->name('publishers.destroy');
         
         // Journal Management
-        Route::get('/journals', [App\Http\Controllers\PublisherController::class, 'journals'])->name('journals');
+        Route::get('/journals', [App\Http\Controllers\PublisherController::class, 'journals'])->name('journals.index');
         Route::get('/journals/create', [App\Http\Controllers\PublisherController::class, 'createJournal'])->name('journals.create');
         Route::post('/journals', [App\Http\Controllers\PublisherController::class, 'storeJournal'])->name('journals.store');
+        Route::get('/journals/{journal}', [App\Http\Controllers\PublisherController::class, 'showJournal'])->name('journals.show');
+        Route::get('/journals/{journal}/edit', [App\Http\Controllers\PublisherController::class, 'editJournal'])->name('journals.edit');
+        Route::put('/journals/{journal}', [App\Http\Controllers\PublisherController::class, 'updateJournal'])->name('journals.update');
+        Route::delete('/journals/{journal}', [App\Http\Controllers\PublisherController::class, 'destroyJournal'])->name('journals.destroy');
         
         // LOA Request Management
         Route::get('/loa-requests', [App\Http\Controllers\PublisherController::class, 'loaRequests'])->name('loa-requests.index');
@@ -1197,7 +1205,7 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
         })->with('publisher')->orderBy('is_default', 'desc')->orderBy('name')->paginate(10);
         
         return view('publisher.loa-templates.index', compact('templates'));
-    })->name('loa-templates');
+    })->name('loa-templates.index');
     
     Route::get('/loa-templates/create', function() {
         $user = Auth::user();

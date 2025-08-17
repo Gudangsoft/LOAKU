@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-plus me-2"></i>Add New Publisher</h2>
-    <a href="{{ route('publisher.publishers') }}" class="btn btn-secondary">
+    <a href="{{ route('publisher.publishers.index') }}" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-2"></i>Back to Publishers
     </a>
 </div>
@@ -98,7 +98,7 @@
                     </div>
                     
                     <div class="d-flex justify-content-end gap-2">
-                        <a href="{{ route('publisher.publishers') }}" class="btn btn-secondary">
+                        <a href="{{ route('publisher.publishers.index') }}" class="btn btn-secondary">
                             <i class="fas fa-times me-2"></i>Cancel
                         </a>
                         <button type="submit" class="btn btn-primary">

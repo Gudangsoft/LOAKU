@@ -109,8 +109,102 @@ class PublisherController extends Controller
 
         Publisher::create($data);
 
-        return redirect()->route('publisher.publishers')
+        return redirect()->route('publisher.publishers.index')
             ->with('success', 'Publisher berhasil dibuat!');
+    }
+
+    /**
+     * Show publisher details
+     */
+    public function showPublisher(Publisher $publisher)
+    {
+        // Check if user owns this publisher
+        if ($publisher->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        return view('publisher.publishers.show', compact('publisher'));
+    }
+
+    /**
+     * Show edit publisher form
+     */
+    public function editPublisher(Publisher $publisher)
+    {
+        // Check if user owns this publisher
+        if ($publisher->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        return view('publisher.publishers.edit', compact('publisher'));
+    }
+
+    /**
+     * Update publisher
+     */
+    public function updatePublisher(Request $request, Publisher $publisher)
+    {
+        // Check if user owns this publisher
+        if ($publisher->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'address' => 'required|string',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|max:255',
+            'website' => 'nullable|url|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $data = $request->only(['name', 'address', 'phone', 'email', 'website']);
+
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($publisher->logo) {
+                Storage::disk('public')->delete($publisher->logo);
+            }
+            $data['logo'] = $request->file('logo')->store('publishers', 'public');
+        }
+
+        $publisher->update($data);
+
+        return redirect()->route('publisher.publishers.index')
+            ->with('success', 'Publisher berhasil diupdate!');
+    }
+
+    /**
+     * Delete publisher
+     */
+    public function destroyPublisher(Publisher $publisher)
+    {
+        // Check if user owns this publisher
+        if ($publisher->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Check if publisher has journals
+        if ($publisher->journals()->count() > 0) {
+            return redirect()->route('publisher.publishers.index')
+                ->with('error', 'Cannot delete publisher with active journals!');
+        }
+
+        // Delete logo if exists
+        if ($publisher->logo) {
+            Storage::disk('public')->delete($publisher->logo);
+        }
+
+        $publisher->delete();
+
+        return redirect()->route('publisher.publishers.index')
+            ->with('success', 'Publisher berhasil dihapus!');
     }
 
     /**
@@ -142,9 +236,11 @@ class PublisherController extends Controller
             'e_issn' => 'nullable|string|max:20',
             'p_issn' => 'nullable|string|max:20',
             'chief_editor' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'description' => 'nullable|string|max:1000',
             'website' => 'nullable|url|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'ttd_stample' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'signature_stamp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -158,21 +254,148 @@ class PublisherController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        $data = $request->only(['publisher_id', 'name', 'e_issn', 'p_issn', 'chief_editor', 'website']);
+        $data = $request->only(['publisher_id', 'name', 'e_issn', 'p_issn', 'chief_editor', 'email', 'description', 'website']);
         $data['user_id'] = Auth::id();
 
         if ($request->hasFile('logo')) {
             $data['logo'] = $request->file('logo')->store('journals', 'public');
         }
 
-        if ($request->hasFile('ttd_stample')) {
-            $data['ttd_stample'] = $request->file('ttd_stample')->store('signatures', 'public');
+        if ($request->hasFile('signature_stamp')) {
+            $data['signature_stamp'] = $request->file('signature_stamp')->store('signatures', 'public');
         }
 
         Journal::create($data);
 
-        return redirect()->route('publisher.journals')
+        return redirect()->route('publisher.journals.index')
             ->with('success', 'Jurnal berhasil dibuat!');
+    }
+
+    /**
+     * Show journal details
+     */
+    public function showJournal(Journal $journal)
+    {
+        // Check if user owns this journal
+        if ($journal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        return view('publisher.journals.show', compact('journal'));
+    }
+
+    /**
+     * Show edit journal form
+     */
+    public function editJournal(Journal $journal)
+    {
+        // Check if user owns this journal
+        if ($journal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $publishers = Auth::user()->publishers()->get();
+        return view('publisher.journals.edit', compact('journal', 'publishers'));
+    }
+
+    /**
+     * Update journal
+     */
+    public function updateJournal(Request $request, Journal $journal)
+    {
+        // Check if user owns this journal
+        if ($journal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'publisher_id' => 'required|exists:publishers,id',
+            'name' => 'required|string|max:255',
+            'e_issn' => 'nullable|string|max:20',
+            'p_issn' => 'nullable|string|max:20',
+            'chief_editor' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'description' => 'nullable|string|max:1000',
+            'website' => 'nullable|url|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'signature_stamp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Verify publisher belongs to current user
+        $publisher = Publisher::where('id', $request->publisher_id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $data = $request->only(['publisher_id', 'name', 'e_issn', 'p_issn', 'chief_editor', 'email', 'description', 'website']);
+
+        // Handle logo removal
+        if ($request->has('remove_logo') && $journal->logo) {
+            Storage::disk('public')->delete($journal->logo);
+            $data['logo'] = null;
+        }
+
+        // Handle signature removal
+        if ($request->has('remove_signature') && $journal->signature_stamp) {
+            Storage::disk('public')->delete($journal->signature_stamp);
+            $data['signature_stamp'] = null;
+        }
+
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($journal->logo) {
+                Storage::disk('public')->delete($journal->logo);
+            }
+            $data['logo'] = $request->file('logo')->store('journals', 'public');
+        }
+
+        if ($request->hasFile('signature_stamp')) {
+            // Delete old signature if exists
+            if ($journal->signature_stamp) {
+                Storage::disk('public')->delete($journal->signature_stamp);
+            }
+            $data['signature_stamp'] = $request->file('signature_stamp')->store('signatures', 'public');
+        }
+
+        $journal->update($data);
+
+        return redirect()->route('publisher.journals.index')
+            ->with('success', 'Jurnal berhasil diupdate!');
+    }
+
+    /**
+     * Delete journal
+     */
+    public function destroyJournal(Journal $journal)
+    {
+        // Check if user owns this journal
+        if ($journal->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Check if journal has LOA requests
+        if ($journal->loaRequests()->count() > 0) {
+            return redirect()->route('publisher.journals.index')
+                ->with('error', 'Cannot delete journal with existing LOA requests!');
+        }
+
+        // Delete associated files
+        if ($journal->logo) {
+            Storage::disk('public')->delete($journal->logo);
+        }
+        if ($journal->signature_stamp) {
+            Storage::disk('public')->delete($journal->signature_stamp);
+        }
+
+        $journal->delete();
+
+        return redirect()->route('publisher.journals.index')
+            ->with('success', 'Jurnal berhasil dihapus!');
     }
 
     /**

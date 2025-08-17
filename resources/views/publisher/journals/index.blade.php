@@ -84,11 +84,11 @@
                                         <i class="fas fa-cog"></i>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('publisher.journals.edit', $journal) }}"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('publisher.journals.show', $journal) }}"><i class="fas fa-eye me-2"></i>View Details</a></li>
                                         <li><a class="dropdown-item" href="{{ route('publisher.loa-requests.index') }}?journal={{ $journal->id }}"><i class="fas fa-file-alt me-2"></i>LOA Requests</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteJournal({{ $journal->id }})"><i class="fas fa-trash me-2"></i>Delete</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -113,4 +113,30 @@
         @endif
     </div>
 </div>
+
+<form id="deleteForm" action="" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+<script>
+function deleteJournal(journalId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This action cannot be undone! All related data will be deleted.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('deleteForm');
+            form.action = `/publisher/journals/${journalId}`;
+            form.submit();
+        }
+    });
+}
+</script>
 @endsection

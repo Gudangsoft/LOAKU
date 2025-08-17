@@ -77,12 +77,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('publisher.publishers*') ? 'active' : '' }}" href="{{ route('publisher.publishers') }}">
+                            <a class="nav-link {{ request()->routeIs('publisher.publishers*') ? 'active' : '' }}" href="{{ route('publisher.publishers.index') }}">
                                 <i class="fas fa-building me-2"></i>Publisher Management
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('publisher.journals*') ? 'active' : '' }}" href="{{ route('publisher.journals') }}">
+                            <a class="nav-link {{ request()->routeIs('publisher.journals*') ? 'active' : '' }}" href="{{ route('publisher.journals.index') }}">
                                 <i class="fas fa-book me-2"></i>Journal Management
                             </a>
                         </li>
@@ -95,7 +95,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('publisher.loa-templates*') ? 'active' : '' }}" href="{{ route('publisher.loa-templates') }}">
+                            <a class="nav-link {{ request()->routeIs('publisher.loa-templates*') ? 'active' : '' }}" href="{{ route('publisher.loa-templates.index') }}">
                                 <i class="fas fa-file-code me-2"></i>LOA Templates
                             </a>
                         </li>
@@ -177,5 +177,6 @@
     @endif
 
     @yield('scripts')
+    @stack('scripts')
 </body>
 </html>

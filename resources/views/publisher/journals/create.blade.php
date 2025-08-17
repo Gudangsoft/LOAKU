@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-plus me-2"></i>Add New Journal</h2>
-    <a href="{{ route('publisher.journals') }}" class="btn btn-secondary">
+    <a href="{{ route('publisher.journals.index') }}" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-2"></i>Back to Journals
     </a>
 </div>
@@ -82,6 +82,24 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label for="email" class="form-label">Contact Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                               id="email" name="email" value="{{ old('email') }}" required>
+                        @error('email')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control @error('description') is-invalid @enderror" 
+                                  id="description" name="description" rows="4">{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="mb-3">
                         <label for="website" class="form-label">Journal Website</label>
                         <input type="url" class="form-control @error('website') is-invalid @enderror" 
                                id="website" name="website" value="{{ old('website') }}" 
@@ -114,7 +132,7 @@
                     </div>
                     
                     <div class="d-flex justify-content-end gap-2">
-                        <a href="{{ route('publisher.journals') }}" class="btn btn-secondary">
+                        <a href="{{ route('publisher.journals.index') }}" class="btn btn-secondary">
                             <i class="fas fa-times me-2"></i>Cancel
                         </a>
                         <button type="submit" class="btn btn-primary" {{ $publishers->count() === 0 ? 'disabled' : '' }}>
