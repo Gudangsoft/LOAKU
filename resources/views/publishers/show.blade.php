@@ -532,17 +532,46 @@
                 <!-- Widget Embed -->
                 <div class="info-card">
                     <div class="info-card-title">
-                        <i class="fas fa-code"></i> Widget Verifikasi LOA
+                        <i class="fas fa-code"></i> Pasang Badge LOA di Website
                     </div>
-                    <p style="font-size:.78rem;color:#64748B;margin-bottom:10px">
-                        Pasang badge verifikasi LOA di website Anda dengan menyalin script berikut:
+
+                    @if(isset($issuedLoas) && $issuedLoas->count() > 0)
+                    <p style="font-size:.78rem;color:#64748B;margin-bottom:12px;line-height:1.5">
+                        Klik <strong>Salin</strong> di LOA yang ingin ditampilkan, lalu tempelkan kode tersebut di halaman artikel Anda.
                     </p>
-                    <div style="background:#1E293B;border-radius:8px;padding:10px 12px;font-family:monospace;font-size:.72rem;color:#94A3B8;word-break:break-all;user-select:all">
-                        &lt;script src="{{ rtrim(config('app.url'),'/') }}/widget/KODE-LOA.js"&gt;&lt;/script&gt;
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        @foreach($issuedLoas as $loa)
+                        @php
+                            $scriptTag = '<script src="' . rtrim(config('app.url'),'/') . '/widget/' . $loa->loa_code . '.js"></script>';
+                        @endphp
+                        <div style="border:1px solid #E2E8F0;border-radius:10px;overflow:hidden">
+                            {{-- LOA info --}}
+                            <div style="padding:8px 12px;background:#F8FAFC;border-bottom:1px solid #E2E8F0">
+                                <div style="font-size:.8rem;font-weight:700;color:#166534;font-family:monospace">{{ $loa->loa_code }}</div>
+                                <div style="font-size:.73rem;color:#64748B;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                    {{ \Illuminate\Support\Str::limit($loa->loaRequest?->article_title ?? '-', 45) }}
+                                </div>
+                            </div>
+                            {{-- Script tag + copy button --}}
+                            <div style="padding:8px 10px;display:flex;align-items:center;gap:8px;background:white">
+                                <code style="font-size:.65rem;color:#475569;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $scriptTag }}</code>
+                                <button onclick="copyWidget('widget-{{ $loa->loa_code }}', this)"
+                                        data-code="{{ htmlspecialchars($scriptTag, ENT_QUOTES) }}"
+                                        id="widget-{{ $loa->loa_code }}"
+                                        style="background:#4F46E5;color:white;border:none;border-radius:6px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">
+                                    <i class="fas fa-copy me-1"></i>Salin
+                                </button>
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
-                    <p style="font-size:.73rem;color:#94A3B8;margin-top:6px;margin-bottom:0">
-                        Ganti <code style="background:#F1F5F9;padding:1px 5px;border-radius:4px">KODE-LOA</code> dengan kode LOA yang diterbitkan.
-                    </p>
+
+                    @else
+                    <div style="text-align:center;padding:20px 0;color:#94A3B8">
+                        <i class="fas fa-certificate" style="font-size:1.8rem;margin-bottom:8px;display:block;color:#CBD5E1"></i>
+                        <p style="font-size:.8rem;margin:0">Belum ada LOA diterbitkan.<br>Badge akan muncul setelah LOA pertama disetujui.</p>
+                    </div>
+                    @endif
                 </div>
 
                 <!-- Quick action -->
@@ -586,4 +615,36 @@
 
     </div>
 </div>
+@push('scripts')
+<script>
+function copyWidget(btnId, btn) {
+    var code = btn.getAttribute('data-code');
+    navigator.clipboard.writeText(code).then(function () {
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Tersalin!';
+        btn.style.background = '#16A34A';
+        setTimeout(function () {
+            btn.innerHTML = orig;
+            btn.style.background = '#4F46E5';
+        }, 2000);
+    }).catch(function () {
+        // fallback for older browsers
+        var el = document.createElement('textarea');
+        el.value = code;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Tersalin!';
+        btn.style.background = '#16A34A';
+        setTimeout(function () {
+            btn.innerHTML = orig;
+            btn.style.background = '#4F46E5';
+        }, 2000);
+    });
+}
+</script>
+@endpush
+
 @endsection
