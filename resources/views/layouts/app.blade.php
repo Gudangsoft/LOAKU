@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'LOA SIPTENAN')</title>
+    <title>@yield('title', site_name())</title>
+
+    @if(site_favicon())
+    <link rel="icon" type="image/x-icon" href="{{ site_favicon() }}">
+    <link rel="shortcut icon" href="{{ site_favicon() }}">
+    @endif
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -279,11 +284,16 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
-                <div class="brand-icon">
-                    <i class="fas fa-certificate"></i>
-                </div>
+                @if(site_logo())
+                    <img src="{{ site_logo() }}" alt="{{ site_name() }}"
+                         style="height:36px;width:auto;object-fit:contain;border-radius:6px;">
+                @else
+                    <div class="brand-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                @endif
                 <div class="brand-text">
-                    LOA SIPTENAN
+                    {{ site_name() }}
                     <span>Sistem Manajemen LOA</span>
                 </div>
             </a>
@@ -418,11 +428,16 @@
         <div class="container">
             <div class="row g-5">
                 <div class="col-lg-4">
-                    <div class="footer-brand-icon">
-                        <i class="fas fa-certificate"></i>
-                    </div>
-                    <h5>LOA SIPTENAN</h5>
-                    <p>Sistem Pengelolaan Letter of Acceptance (LOA) untuk publikasi artikel jurnal ilmiah. Mudah, cepat, dan terpercaya.</p>
+                    @if(site_logo())
+                        <img src="{{ site_logo() }}" alt="{{ site_name() }}"
+                             style="height:44px;width:auto;object-fit:contain;border-radius:8px;margin-bottom:1rem;display:block;filter:brightness(0) invert(1) opacity(.9)">
+                    @else
+                        <div class="footer-brand-icon">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                    @endif
+                    <h5>{{ site_name() }}</h5>
+                    <p>{{ setting('site_description') ?: 'Sistem Pengelolaan Letter of Acceptance (LOA) untuk publikasi artikel jurnal ilmiah. Mudah, cepat, dan terpercaya.' }}</p>
                     <div class="social-icons d-flex gap-2 mt-3">
                         <a href="#" title="Email"><i class="fas fa-envelope"></i></a>
                         <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
@@ -460,7 +475,7 @@
 
             <div class="footer-divider d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="footer-bottom">
-                    &copy; {{ date('Y') }} LOA SIPTENAN. Seluruh hak cipta dilindungi.
+                    &copy; {{ date('Y') }} {{ site_name() }}. Seluruh hak cipta dilindungi.
                 </div>
                 <div class="footer-bottom">
                     Dibangun dengan <i class="fas fa-heart" style="color:#EF4444;font-size:.75rem"></i> untuk kemajuan publikasi ilmiah Indonesia
