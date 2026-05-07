@@ -44,13 +44,12 @@ class QrCodeController extends Controller
             if (empty($qrImage)) {
                 return $this->generateErrorQr('Failed to generate QR Code');
             }
-            
-            // Check if we got SVG (fallback) or PNG (from service)
-            if (strpos($qrImage, '<?xml') === 0) {
-                // SVG response
+
+            // Detect SVG (starts with <?xml or <svg) vs PNG
+            $isSvg = str_starts_with(ltrim($qrImage), '<?xml') || str_starts_with(ltrim($qrImage), '<svg');
+            if ($isSvg) {
                 return response($qrImage)->header('Content-Type', 'image/svg+xml');
             } else {
-                // PNG response from service
                 return response($qrImage)->header('Content-Type', 'image/png');
             }
             
@@ -143,20 +142,14 @@ class QrCodeController extends Controller
         // Generate QR Code with appropriate size
         $qrImage = $this->qrService->generateQrFromService($verificationUrl, 512, null);
         
-        // Handle different formats
-        if ($format === 'svg' || strpos($qrImage, '<?xml') === 0) {
-            // SVG format
-            if (strpos($qrImage, '<?xml') !== 0) {
-                // If service returned PNG but SVG requested, we'll still return PNG
-                $format = 'png';
-            } else {
-                return response($qrImage)
-                    ->header('Content-Type', 'image/svg+xml')
-                    ->header('Content-Disposition', 'attachment; filename="QR_' . $loaCode . '.svg"');
-            }
+        $isSvg = str_starts_with(ltrim($qrImage), '<?xml') || str_starts_with(ltrim($qrImage), '<svg');
+
+        if ($isSvg) {
+            return response($qrImage)
+                ->header('Content-Type', 'image/svg+xml')
+                ->header('Content-Disposition', 'attachment; filename="QR_' . $loaCode . '.svg"');
         }
-        
-        // Default PNG response
+
         return response($qrImage)
             ->header('Content-Type', 'image/png')
             ->header('Content-Disposition', 'attachment; filename="QR_' . $loaCode . '.png"');
@@ -188,11 +181,10 @@ class QrCodeController extends Controller
             }
             
             // Return as base64 for JavaScript download
-            if (strpos($qrImage, '<?xml') === 0) {
-                // SVG to base64
+            $isSvg = str_starts_with(ltrim($qrImage), '<?xml') || str_starts_with(ltrim($qrImage), '<svg');
+            if ($isSvg) {
                 $base64 = 'data:image/svg+xml;base64,' . base64_encode($qrImage);
             } else {
-                // PNG to base64
                 $base64 = 'data:image/png;base64,' . base64_encode($qrImage);
             }
             
