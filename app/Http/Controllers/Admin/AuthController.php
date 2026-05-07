@@ -84,18 +84,25 @@ class AuthController extends Controller
     }
 
     /**
-     * Show admin register form
+     * Show admin register form (requires existing admin session)
      */
     public function showRegisterForm()
     {
+        if (!Auth::check() || !Auth::user()->is_admin) {
+            abort(403);
+        }
         return view('admin.auth.register');
     }
 
     /**
-     * Handle admin registration
+     * Handle admin registration (requires existing admin session)
      */
     public function register(Request $request)
     {
+        if (!Auth::check() || !Auth::user()->is_admin) {
+            abort(403);
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -104,60 +111,26 @@ class AuthController extends Controller
         ]);
 
         try {
-            // Check if users table has required columns
-            if (!\Schema::hasColumn('users', 'is_admin')) {
-                \Schema::table('users', function ($table) {
-                    $table->boolean('is_admin')->default(false)->after('email');
-                });
-            }
-
-            if (!\Schema::hasColumn('users', 'role')) {
-                \Schema::table('users', function ($table) {
-                    $table->string('role')->default('member')->after('is_admin');
-                });
-            }
-
-            // Create user
-            $user = User::create([
+            $user = new User([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'is_admin' => true, // All registered users get admin access
-                'role' => $request->role, // Keep for backward compatibility
-                'email_verified_at' => now()
             ]);
+            $user->is_admin = true;
+            $user->role = $request->role;
+            $user->email_verified_at = now();
+            $user->save();
 
-            // Assign role using new role system
-            $user->assignRole($request->role);
-
-            // Response for different request types
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'message' => 'Akun admin berhasil dibuat! Selamat datang, ' . $user->name . ' (' . $user->getRoleDisplayNameAttribute() . ')',
-                    'user' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'role' => $request->role
-                    ],
-                    'redirect' => route('admin.dashboard')
-                ], 201);
+            try {
+                $user->assignRole($request->role);
+            } catch (\Exception $e) {
+                // Role system optional
             }
 
-            // Automatically login the newly registered admin
-            Auth::login($user);
-
-            return redirect()->route('admin.dashboard')
-                ->with('success', 'Akun admin berhasil dibuat! Selamat datang, ' . $user->name . ' (' . $user->getRoleDisplayNameAttribute() . ')');
+            return redirect()->route('admin.users.index')
+                ->with('success', 'Akun admin berhasil dibuat untuk ' . $user->name . '.');
 
         } catch (\Exception $e) {
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'message' => 'Terjadi kesalahan saat membuat akun: ' . $e->getMessage(),
-                    'errors' => ['email' => ['Terjadi kesalahan saat membuat akun: ' . $e->getMessage()]]
-                ], 422);
-            }
-            
             return back()->withErrors([
                 'email' => 'Terjadi kesalahan saat membuat akun: ' . $e->getMessage()
             ])->withInput($request->except('password', 'password_confirmation'));

@@ -20,11 +20,10 @@ class Publisher extends Model
         'email',
         'website',
         'logo',
-        'status',
-        'validation_token',
-        'validated_at',
-        'validated_by',
-        'validation_notes',
+    ];
+
+    protected $attributes = [
+        'status' => 'pending',
     ];
 
     protected $casts = [

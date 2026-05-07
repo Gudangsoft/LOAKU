@@ -54,14 +54,15 @@ class UserController extends Controller
             'role' => 'required|in:administrator,publisher,member'
         ]);
 
-        User::create([
+        $user = new User([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'is_admin' => $request->role === 'administrator',
-            'email_verified_at' => now()
         ]);
+        $user->role = $request->role;
+        $user->is_admin = ($request->role === 'administrator');
+        $user->email_verified_at = now();
+        $user->save();
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil ditambahkan.');
@@ -86,18 +87,16 @@ class UserController extends Controller
             'password' => 'nullable|string|min:8|confirmed'
         ]);
 
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-            'is_admin' => $request->role === 'administrator'
-        ];
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->role = $request->role;
+        $user->is_admin = ($request->role === 'administrator');
 
         if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+            $user->password = Hash::make($request->password);
         }
 
-        $user->update($data);
+        $user->save();
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil diupdate.');

@@ -23,9 +23,6 @@ class LoaRequest extends Model
         'author',
         'author_email',
         'journal_id',
-        'status',
-        'admin_notes',
-        'approved_at',
     ];
 
     protected $casts = [

@@ -67,25 +67,27 @@ class PublisherRegistrationController extends Controller
 
         try {
             // Create user account
-            $user = User::create([
+            $user = new User([
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'password' => Hash::make($request->password),
-                'role' => 'publisher',
-                'email_verified_at' => null, // Will be verified via email
             ]);
+            $user->role = 'publisher';
+            $user->email_verified_at = null;
+            $user->save();
 
             // Create publisher company
-            $publisher = Publisher::create([
+            $publisher = new Publisher([
                 'user_id' => $user->id,
                 'name' => $request->company_name,
                 'address' => $request->company_address,
                 'phone' => $request->company_phone,
                 'email' => $request->company_email,
                 'website' => $request->company_website,
-                'status' => 'pending', // Set as pending by default
             ]);
+            $publisher->status = 'pending';
+            $publisher->save();
 
             // Generate validation token
             $validationToken = $publisher->generateValidationToken();

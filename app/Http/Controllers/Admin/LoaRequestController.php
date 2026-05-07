@@ -34,10 +34,9 @@ class LoaRequestController extends Controller
                 ->with('error', 'LOA request sudah diproses sebelumnya.');
         }
 
-        $loaRequest->update([
-            'status' => 'approved',
-            'approved_at' => now(),
-        ]);
+        $loaRequest->status = 'approved';
+        $loaRequest->approved_at = now();
+        $loaRequest->save();
 
         // Generate LOA code based on article ID if available
         $loaCode = LoaValidated::generateLoaCodeWithArticleId($loaRequest->article_id);
@@ -75,10 +74,9 @@ class LoaRequestController extends Controller
                 ->with('error', 'LOA request sudah diproses sebelumnya.');
         }
 
-        $loaRequest->update([
-            'status' => 'rejected',
-            'admin_notes' => $request->admin_notes,
-        ]);
+        $loaRequest->status = 'rejected';
+        $loaRequest->admin_notes = $request->admin_notes;
+        $loaRequest->save();
 
         try {
             Notification::route('mail', $loaRequest->author_email)
