@@ -714,7 +714,7 @@
         <div class="row g-4">
             @foreach($publishers as $publisher)
             <div class="col-md-6 col-lg-4">
-                <div class="publisher-card">
+                <a href="{{ route('publishers.detail', $publisher->id) }}" class="publisher-card" style="text-decoration:none;color:inherit;display:flex;flex-direction:column">
                     <div class="publisher-logo-wrap">
                         @if($publisher->logo)
                             <img src="{{ asset('storage/' . $publisher->logo) }}"
@@ -726,7 +726,7 @@
                             </div>
                         @endif
                     </div>
-                    <div class="publisher-body">
+                    <div class="publisher-body" style="flex:1">
                         <h5>{{ $publisher->name }}</h5>
                         @if($publisher->address)
                         <div class="publisher-meta">
@@ -752,33 +752,33 @@
                             <i class="fas fa-book"></i>
                             {{ $publisher->journals->count() }} Jurnal
                         </div>
-                        <div class="publisher-links">
-                            @if($publisher->whatsapp)
-                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $publisher->whatsapp) }}"
-                               target="_blank" class="publisher-link-btn wa" title="WhatsApp">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
-                            @endif
-                            @if($publisher->website)
-                            <a href="{{ $publisher->website }}" target="_blank" class="publisher-link-btn web" title="Website">
-                                <i class="fas fa-globe"></i>
-                            </a>
-                            @endif
-                            @if($publisher->email)
-                            <a href="mailto:{{ $publisher->email }}" class="publisher-link-btn email" title="Email">
-                                <i class="fas fa-envelope"></i>
-                            </a>
-                            @endif
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="publisher-links" onclick="event.preventDefault()">
+                                @if($publisher->whatsapp)
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $publisher->whatsapp) }}"
+                                   target="_blank" class="publisher-link-btn wa" title="WhatsApp">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                                @endif
+                                @if($publisher->website)
+                                <a href="{{ $publisher->website }}" target="_blank" class="publisher-link-btn web" title="Website">
+                                    <i class="fas fa-globe"></i>
+                                </a>
+                                @endif
+                            </div>
+                            <span style="font-size:.78rem;font-weight:600;color:#4F46E5;display:inline-flex;align-items:center;gap:4px">
+                                Detail <i class="fas fa-arrow-right" style="font-size:.65rem"></i>
+                            </span>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             @endforeach
         </div>
 
         @if($totalPublishers > 6)
         <div class="text-center mt-5">
-            <a href="/publishers" class="btn btn-outline-primary px-5 py-3">
+            <a href="{{ route('publishers.index') }}" class="btn btn-outline-primary px-5 py-3">
                 <i class="fas fa-building me-2"></i>Lihat Semua Publisher ({{ $totalPublishers }})
             </a>
         </div>
@@ -796,6 +796,13 @@
             </a>
         </div>
         @endif
+
+        <div class="text-center mt-4">
+            <a href="{{ route('publishers.index') }}" style="font-size:.875rem;color:#4F46E5;text-decoration:none;font-weight:600">
+                <i class="fas fa-building me-1"></i>Lihat semua publisher
+                <i class="fas fa-arrow-right ms-1" style="font-size:.75rem"></i>
+            </a>
+        </div>
     </div>
 </section>
 

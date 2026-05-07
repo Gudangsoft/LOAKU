@@ -71,6 +71,8 @@ Route::get('/test-simple-loa-templates', function() {
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/publishers', [HomeController::class, 'publishers'])->name('publishers.index');
+Route::get('/publishers/{id}', [HomeController::class, 'publisherDetail'])->name('publishers.detail');
 
 // Test route for publisher form
 Route::get('/test-publisher-form', function() {
