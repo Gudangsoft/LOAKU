@@ -390,12 +390,31 @@
         overflow: hidden;
         height: 100%;
         transition: all .3s;
+        display: flex;
+        flex-direction: column;
+        position: relative;
     }
 
     .publisher-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 40px rgba(0,0,0,.1);
         border-color: #C7D2FE;
+    }
+
+    .publisher-card .stretched-link::after {
+        z-index: 1;
+    }
+
+    .publisher-footer {
+        position: relative;
+        z-index: 2;
+        margin-top: auto;
+    }
+
+    .publisher-body {
+        flex: 1;
+        padding: 20px;
+        position: relative;
     }
 
     .publisher-logo-wrap {
@@ -419,8 +438,6 @@
         font-size: 1.5rem;
         font-weight: 800;
     }
-
-    .publisher-body { padding: 20px; }
 
     .publisher-body h5 {
         font-size: 0.95rem;
@@ -713,8 +730,8 @@
         @if($publishers->count() > 0)
         <div class="row g-4">
             @foreach($publishers as $publisher)
-            <div class="col-md-6 col-lg-4">
-                <a href="{{ route('publishers.detail', $publisher->id) }}" class="publisher-card" style="text-decoration:none;color:inherit;display:flex;flex-direction:column">
+            <div class="col-md-6 col-lg-4 d-flex">
+                <div class="publisher-card w-100">
                     <div class="publisher-logo-wrap">
                         @if($publisher->logo)
                             <img src="{{ asset('storage/' . $publisher->logo) }}"
@@ -726,8 +743,12 @@
                             </div>
                         @endif
                     </div>
-                    <div class="publisher-body" style="flex:1">
-                        <h5>{{ $publisher->name }}</h5>
+                    <div class="publisher-body">
+                        <h5>
+                            <a href="{{ route('publishers.detail', $publisher->id) }}"
+                               class="stretched-link text-decoration-none"
+                               style="color:#1E293B">{{ $publisher->name }}</a>
+                        </h5>
                         @if($publisher->address)
                         <div class="publisher-meta">
                             <i class="fas fa-map-marker-alt" style="color:#4F46E5"></i>
@@ -752,26 +773,26 @@
                             <i class="fas fa-book"></i>
                             {{ $publisher->journals->count() }} Jurnal
                         </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="publisher-links" onclick="event.preventDefault()">
-                                @if($publisher->whatsapp)
-                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $publisher->whatsapp) }}"
-                                   target="_blank" class="publisher-link-btn wa" title="WhatsApp">
-                                    <i class="fab fa-whatsapp"></i>
-                                </a>
-                                @endif
-                                @if($publisher->website)
-                                <a href="{{ $publisher->website }}" target="_blank" class="publisher-link-btn web" title="Website">
-                                    <i class="fas fa-globe"></i>
-                                </a>
-                                @endif
-                            </div>
-                            <span style="font-size:.78rem;font-weight:600;color:#4F46E5;display:inline-flex;align-items:center;gap:4px">
-                                Detail <i class="fas fa-arrow-right" style="font-size:.65rem"></i>
-                            </span>
+                        <div class="publisher-links">
+                            @if($publisher->whatsapp)
+                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $publisher->whatsapp) }}"
+                               target="_blank" class="publisher-link-btn wa" title="WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            @endif
+                            @if($publisher->website)
+                            <a href="{{ $publisher->website }}" target="_blank" class="publisher-link-btn web" title="Website">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                            @endif
+                            @if($publisher->email)
+                            <a href="mailto:{{ $publisher->email }}" class="publisher-link-btn email" title="Email">
+                                <i class="fas fa-envelope"></i>
+                            </a>
+                            @endif
                         </div>
                     </div>
-                </a>
+                </div>
             </div>
             @endforeach
         </div>

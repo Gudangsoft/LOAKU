@@ -29,7 +29,7 @@ class WebsiteSettingController extends Controller
             'site_name' => 'required|string|max:255',
             'site_description' => 'nullable|string|max:500',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
-            'favicon' => 'nullable|image|mimes:png,ico,jpg,jpeg|max:1024',
+            'favicon' => 'nullable|mimes:png,ico,jpg,jpeg|max:1024',
             'admin_email' => 'nullable|email',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
@@ -51,10 +51,9 @@ class WebsiteSettingController extends Controller
 
             // Handle logo upload
             if ($request->hasFile('logo')) {
-                // Delete old logo if exists
-                $oldLogo = WebsiteSetting::get('logo');
-                if ($oldLogo && Storage::exists($oldLogo)) {
-                    Storage::delete($oldLogo);
+                $oldLogo = WebsiteSetting::getValue('logo');
+                if ($oldLogo && Storage::disk('public')->exists($oldLogo)) {
+                    Storage::disk('public')->delete($oldLogo);
                 }
 
                 $logoPath = $request->file('logo')->store('website', 'public');
@@ -63,10 +62,9 @@ class WebsiteSettingController extends Controller
 
             // Handle favicon upload
             if ($request->hasFile('favicon')) {
-                // Delete old favicon if exists
-                $oldFavicon = WebsiteSetting::get('favicon');
-                if ($oldFavicon && Storage::exists($oldFavicon)) {
-                    Storage::delete($oldFavicon);
+                $oldFavicon = WebsiteSetting::getValue('favicon');
+                if ($oldFavicon && Storage::disk('public')->exists($oldFavicon)) {
+                    Storage::disk('public')->delete($oldFavicon);
                 }
 
                 $faviconPath = $request->file('favicon')->store('website', 'public');
@@ -101,9 +99,8 @@ class WebsiteSettingController extends Controller
             $setting = WebsiteSetting::where('key', $type)->first();
             
             if ($setting && $setting->value) {
-                // Delete file from storage
-                if (Storage::exists($setting->value)) {
-                    Storage::delete($setting->value);
+                if (Storage::disk('public')->exists($setting->value)) {
+                    Storage::disk('public')->delete($setting->value);
                 }
                 
                 // Update setting
