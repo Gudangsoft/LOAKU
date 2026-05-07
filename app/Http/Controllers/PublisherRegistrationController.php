@@ -28,6 +28,11 @@ class PublisherRegistrationController extends Controller
      */
     public function register(Request $request)
     {
+        // Honeypot: jika field ini diisi berarti bot
+        if ($request->filled('website_url')) {
+            return redirect()->back()->withInput();
+        }
+
         // Validation rules
         $validator = Validator::make($request->all(), [
             // Personal Information

@@ -153,9 +153,14 @@
 
                     <button type="submit" class="btn btn-primary btn-admin">
                         <i class="fas fa-sign-in-alt me-2"></i>
-                        Login sebagai Admin
+                        Masuk
                     </button>
                 </form>
+
+                <div class="text-center mt-3" style="font-size:.82rem;color:#94a3b8">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Login untuk Admin, Publisher, maupun Member
+                </div>
 
                 <div class="text-center mt-4">
                     <a href="{{ route('home') }}" class="back-link">
@@ -165,17 +170,11 @@
                 </div>
 
                 <div class="text-center mt-3">
-                    <a href="{{ route('publisher.register.form') }}" class="btn btn-outline-primary btn-sm">
+                    <span style="font-size:.82rem;color:#94a3b8">Belum punya akun publisher?</span><br>
+                    <a href="{{ route('publisher.register.form') }}" class="btn btn-outline-primary btn-sm mt-1">
                         <i class="fas fa-building me-1"></i>
                         Daftar sebagai Publisher
                     </a>
-                </div>
-
-                <div class="text-center mt-3">
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Demo: admin@loasiptenan.org / admin123
-                    </small>
                 </div>
             </div>
         </div>

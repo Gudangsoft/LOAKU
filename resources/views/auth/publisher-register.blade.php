@@ -1,9 +1,12 @@
+@if(auth()->check())
+    <script>window.location="{{ auth()->user()->role === 'publisher' ? route('publisher.dashboard') : route('member.dashboard') }}";</script>
+@endif
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publisher Registration - LOA SIPTENAN</title>
+    <title>Daftar Publisher - LOA SIPTENAN</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -145,8 +148,12 @@
                     </div>
                 @endif
 
-                <form action="{{ route('publisher.register') }}" method="POST">
+                <form action="{{ route('publisher.register') }}" method="POST" autocomplete="off">
                     @csrf
+                    {{-- Honeypot: bot akan mengisi field ini, manusia tidak --}}
+                    <div style="display:none" aria-hidden="true">
+                        <input type="text" name="website_url" tabindex="-1" autocomplete="off">
+                    </div>
 
                     <!-- Personal Information Section -->
                     <div class="form-section">
@@ -188,19 +195,27 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="password" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control @error('password') is-invalid @enderror" 
-                                       id="password" name="password" required
-                                       placeholder="Minimal 8 karakter">
+                                <div class="input-group">
+                                    <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                           id="password" name="password" required autocomplete="new-password"
+                                           placeholder="Minimal 8 karakter">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePass('password',this)"><i class="fas fa-eye"></i></button>
+                                </div>
                                 @error('password')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
+                                <div id="pass-strength" class="mt-1" style="font-size:.8rem"></div>
                             </div>
-                            
+
                             <div class="col-md-6 mb-3">
                                 <label for="password_confirmation" class="form-label fw-bold">Konfirmasi Password <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control" 
-                                       id="password_confirmation" name="password_confirmation" required
-                                       placeholder="Ulangi password">
+                                <div class="input-group">
+                                    <input type="password" class="form-control"
+                                           id="password_confirmation" name="password_confirmation" required autocomplete="new-password"
+                                           placeholder="Ulangi password">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePass('password_confirmation',this)"><i class="fas fa-eye"></i></button>
+                                </div>
+                                <div id="pass-match" class="mt-1" style="font-size:.8rem"></div>
                             </div>
                         </div>
                     </div>
@@ -302,38 +317,62 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Form validation enhancement
-        document.getElementById('password_confirmation').addEventListener('input', function() {
-            const password = document.getElementById('password').value;
-            const confirmPassword = this.value;
-            
-            if (password !== confirmPassword) {
-                this.setCustomValidity('Password tidak cocok');
+        // Toggle password visibility
+        function togglePass(id, btn) {
+            const input = document.getElementById(id);
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.innerHTML = isHidden ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        }
+
+        // Password strength
+        document.getElementById('password').addEventListener('input', function() {
+            const v = this.value;
+            const el = document.getElementById('pass-strength');
+            let score = 0;
+            if (v.length >= 8) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            const labels = ['', '<span style="color:#ef4444">Sangat lemah</span>', '<span style="color:#f59e0b">Lemah</span>', '<span style="color:#3b82f6">Cukup</span>', '<span style="color:#22c55e">Kuat ✓</span>'];
+            el.innerHTML = v.length ? labels[score] || labels[1] : '';
+            checkMatch();
+        });
+
+        // Password match check
+        document.getElementById('password_confirmation').addEventListener('input', checkMatch);
+        function checkMatch() {
+            const p = document.getElementById('password').value;
+            const c = document.getElementById('password_confirmation').value;
+            const el = document.getElementById('pass-match');
+            if (!c) { el.innerHTML = ''; return; }
+            if (p === c) {
+                el.innerHTML = '<span style="color:#22c55e"><i class="fas fa-check me-1"></i>Password cocok</span>';
+                document.getElementById('password_confirmation').setCustomValidity('');
             } else {
-                this.setCustomValidity('');
+                el.innerHTML = '<span style="color:#ef4444"><i class="fas fa-times me-1"></i>Password tidak cocok</span>';
+                document.getElementById('password_confirmation').setCustomValidity('Password tidak cocok');
             }
-        });
+        }
 
-        // Auto-format phone numbers
-        document.getElementById('phone').addEventListener('input', function() {
-            let value = this.value.replace(/\D/g, '');
-            if (value.startsWith('0')) {
-                value = '+62' + value.substring(1);
-            } else if (!value.startsWith('+62')) {
-                value = '+62' + value;
-            }
-            this.value = value;
-        });
-
-        document.getElementById('company_phone').addEventListener('input', function() {
-            let value = this.value.replace(/\D/g, '');
-            if (value.startsWith('0')) {
-                value = '+62' + value.substring(1);
-            } else if (!value.startsWith('+62')) {
-                value = '+62' + value;
-            }
-            this.value = value;
-        });
+        // Auto-format phone — hanya format saat blur (bukan setiap keystroke)
+        function formatPhone(input) {
+            input.addEventListener('blur', function() {
+                let v = this.value.trim().replace(/\s+/g, '');
+                if (!v) return;
+                // Hapus semua karakter selain angka dan +
+                let digits = v.replace(/[^\d]/g, '');
+                if (digits.startsWith('0')) {
+                    this.value = '+62' + digits.substring(1);
+                } else if (digits.startsWith('62')) {
+                    this.value = '+' + digits;
+                } else if (!v.startsWith('+')) {
+                    this.value = '+62' + digits;
+                }
+            });
+        }
+        formatPhone(document.getElementById('phone'));
+        formatPhone(document.getElementById('company_phone'));
     </script>
 </body>
 </html>

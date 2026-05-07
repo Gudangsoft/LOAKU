@@ -383,8 +383,8 @@
                                 <i class="fas fa-user-circle me-1"></i> Masuk
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ route('admin.login') }}">
-                                    <i class="fas fa-user-shield me-2 text-primary"></i>Login Admin
+                                <li><a class="dropdown-item" href="{{ route('login') }}">
+                                    <i class="fas fa-sign-in-alt me-2 text-primary"></i>Masuk / Login
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('publisher.register.form') }}">
