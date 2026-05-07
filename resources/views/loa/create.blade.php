@@ -100,13 +100,16 @@
 
     .required-star { color: #EF4444; }
 
+    .sidebar-sticky {
+        position: sticky;
+        top: 80px;
+    }
+
     .info-card {
         background: #F0F9FF;
         border: 1px solid #BAE6FD;
         border-radius: 16px;
         padding: 24px;
-        position: sticky;
-        top: 80px;
     }
 
     .info-card h6 {
@@ -450,6 +453,7 @@
 
         <!-- Sidebar Info -->
         <div class="col-lg-4">
+            <div class="sidebar-sticky">
             <div class="info-card">
                 <h6><i class="fas fa-info-circle"></i> Panduan Pengisian</h6>
                 <div class="info-item">
@@ -519,6 +523,7 @@
                     Scan QR Code LOA
                 </a>
             </div>
+            </div>{{-- /sidebar-sticky --}}
         </div>
     </div>
 </div>
