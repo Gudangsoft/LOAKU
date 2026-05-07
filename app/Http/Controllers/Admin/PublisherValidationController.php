@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Publisher;
 use App\Models\User;
+use App\Notifications\PublisherActivatedNotification;
+use App\Notifications\PublisherSuspendedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -171,8 +173,12 @@ class PublisherValidationController extends Controller
     private function notifyPublisherActivation($publisher)
     {
         try {
-            // TODO: Implement email notification
-            \Log::info("Publisher activated: {$publisher->name} (Token: {$publisher->validation_token})");
+            if ($publisher->user) {
+                $publisher->user->notify(new PublisherActivatedNotification(
+                    $publisher,
+                    $publisher->validation_notes
+                ));
+            }
         } catch (\Exception $e) {
             \Log::error('Failed to send activation notification: ' . $e->getMessage());
         }
@@ -184,8 +190,12 @@ class PublisherValidationController extends Controller
     private function notifyPublisherSuspension($publisher)
     {
         try {
-            // TODO: Implement email notification
-            \Log::info("Publisher suspended: {$publisher->name}");
+            if ($publisher->user) {
+                $publisher->user->notify(new PublisherSuspendedNotification(
+                    $publisher,
+                    $publisher->validation_notes
+                ));
+            }
         } catch (\Exception $e) {
             \Log::error('Failed to send suspension notification: ' . $e->getMessage());
         }

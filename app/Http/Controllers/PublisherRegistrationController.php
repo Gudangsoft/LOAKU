@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Publisher;
+use App\Notifications\AdminNewPublisherNotification;
+use App\Notifications\PublisherWelcomeNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -122,11 +124,9 @@ class PublisherRegistrationController extends Controller
     private function sendWelcomeEmail($user, $publisher)
     {
         try {
-            // TODO: Create welcome email template
-            // Mail::to($user->email)->send(new PublisherWelcomeMail($user, $publisher));
-            \Log::info("Welcome email should be sent to: {$user->email}");
+            $user->notify(new PublisherWelcomeNotification($user, $publisher));
         } catch (\Exception $e) {
-            \Log::error('Failed to send welcome email: ' . $e->getMessage());
+            \Log::error('Failed to send publisher welcome email: ' . $e->getMessage());
         }
     }
 
@@ -136,15 +136,12 @@ class PublisherRegistrationController extends Controller
     private function notifyAdminNewPublisher($user, $publisher)
     {
         try {
-            // Get admin users
-            $adminUsers = User::where('is_admin', true)
-                             ->orWhere('role', 'administrator')
-                             ->get();
+            $adminUsers = User::where(function ($q) {
+                $q->where('is_admin', true)->orWhere('role', 'admin');
+            })->get();
 
             foreach ($adminUsers as $admin) {
-                // TODO: Create admin notification email
-                // Mail::to($admin->email)->send(new NewPublisherNotificationMail($user, $publisher));
-                \Log::info("Admin notification should be sent to: {$admin->email}");
+                $admin->notify(new AdminNewPublisherNotification($user, $publisher));
             }
         } catch (\Exception $e) {
             \Log::error('Failed to send admin notification: ' . $e->getMessage());

@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\WelcomeVerifyNotification;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use App\Models\User;
 use App\Models\Account;
 
@@ -44,11 +47,23 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Log the user in
-        Auth::login($user);
+        // Fire registered event & send email verification
+        event(new Registered($user));
 
-        // Redirect with success message
-        return redirect()->route('home')->with('success', 'Pendaftaran berhasil! Selamat datang di LOA SIPTENAN.');
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addHours(24),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        try {
+            $user->notify(new WelcomeVerifyNotification($user, $verificationUrl));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send verification email: ' . $e->getMessage());
+        }
+
+        return redirect()->route('verification.notice')
+            ->with('success', 'Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi akun.');
     }
 
     /**

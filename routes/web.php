@@ -111,6 +111,21 @@ Route::get('/publisher/register', [App\Http\Controllers\PublisherRegistrationCon
 Route::post('/publisher/register', [App\Http\Controllers\PublisherRegistrationController::class, 'register'])->name('publisher.register');
 Route::get('/publisher/register/success', [App\Http\Controllers\PublisherRegistrationController::class, 'success'])->name('publisher.register.success');
 
+// Email Verification Routes
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect('/')->with('success', 'Email Anda berhasil diverifikasi! Selamat datang di LOA SIPTENAN.');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return back()->with('resent', true);
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
 // Test publisher auth
 Route::get('/test-auth', function() {
     $output = [];

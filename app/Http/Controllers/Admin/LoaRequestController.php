@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\LoaRequest;
 use App\Models\LoaValidated;
+use App\Notifications\LoaApprovedNotification;
+use App\Notifications\LoaRejectedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class LoaRequestController extends Controller
 {
@@ -39,11 +42,21 @@ class LoaRequestController extends Controller
         // Generate LOA code based on article ID if available
         $loaCode = LoaValidated::generateLoaCodeWithArticleId($loaRequest->article_id);
         
-        LoaValidated::create([
+        $loaValidated = LoaValidated::create([
             'loa_request_id' => $loaRequest->id,
             'loa_code' => $loaCode,
             'verification_url' => route('loa.verify')
         ]);
+
+        // Reload to get loa_code on loaRequest
+        $loaRequest->loa_code = $loaCode;
+
+        try {
+            Notification::route('mail', $loaRequest->author_email)
+                ->notify(new LoaApprovedNotification($loaRequest));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send LOA approval email: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.loa-requests.index')
             ->with('success', 'LOA request berhasil disetujui dengan kode: ' . $loaCode);
@@ -66,6 +79,13 @@ class LoaRequestController extends Controller
             'status' => 'rejected',
             'admin_notes' => $request->admin_notes,
         ]);
+
+        try {
+            Notification::route('mail', $loaRequest->author_email)
+                ->notify(new LoaRejectedNotification($loaRequest));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send LOA rejection email: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.loa-requests.index')
             ->with('success', 'LOA request berhasil ditolak.');
