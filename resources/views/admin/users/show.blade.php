@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Detail User')
 
@@ -300,7 +300,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -457,4 +457,4 @@ function unverifyEmail(userId) {
 }
 </script>
 </script>
-@endsection
+@endpush

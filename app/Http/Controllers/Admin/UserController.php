@@ -9,10 +9,35 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::orderBy('created_at', 'desc')->paginate(10);
-        return view('admin.users.index', compact('users'));
+        $query = User::query();
+
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        $validRoles = ['admin', 'publisher', 'member'];
+        if ($request->filled('role') && in_array($request->role, $validRoles)) {
+            $query->where('role', $request->role);
+        }
+
+        $users = $query->orderBy('created_at', 'desc')
+                       ->paginate(15)
+                       ->withQueryString();
+
+        $stats = [
+            'total'     => User::count(),
+            'admin'     => User::where('role', 'admin')->count(),
+            'publisher' => User::where('role', 'publisher')->count(),
+            'member'    => User::where('role', 'member')->count(),
+        ];
+
+        return view('admin.users.index', compact('users', 'stats'));
     }
 
     public function create()

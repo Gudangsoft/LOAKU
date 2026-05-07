@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Journal;
 use App\Models\LoaRequest;
 use App\Models\Publisher;
+use App\Models\Support;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -17,6 +18,7 @@ class HomeController extends Controller
         $totalJournals = Journal::count();
         $publishers = Publisher::where('status', 'active')->orderBy('name')->limit(6)->get();
         $totalPublishers = Publisher::where('status', 'active')->count();
+        $supports = Support::active()->ordered()->get();
 
         return view('home', compact(
             'totalRequests',
@@ -24,7 +26,8 @@ class HomeController extends Controller
             'pendingRequests',
             'totalJournals',
             'publishers',
-            'totalPublishers'
+            'totalPublishers',
+            'supports'
         ));
     }
 

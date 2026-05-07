@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Edit User')
 
@@ -214,7 +214,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
 function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
@@ -231,4 +231,4 @@ function togglePassword(fieldId) {
     }
 }
 </script>
-@endsection
+@endpush

@@ -1,4 +1,4 @@
-@extends('admin.layouts.modern-app')
+﻿@extends('admin.layouts.modern-app')
 
 @section('title', 'Data LOA Requests')
 
@@ -589,7 +589,7 @@
 </style>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
     // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -709,4 +709,4 @@
         }
     }
 </script>
-@endsection
+@endpush

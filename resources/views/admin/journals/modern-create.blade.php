@@ -1,4 +1,4 @@
-@extends('admin.layouts.modern-app')
+﻿@extends('admin.layouts.modern-app')
 
 @section('title', 'Tambah Jurnal Baru')
 
@@ -642,7 +642,7 @@
 </style>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
     // Logo upload functionality
     const logoUpload = document.getElementById('logoUpload');
@@ -765,4 +765,4 @@
         });
     });
 </script>
-@endsection
+@endpush

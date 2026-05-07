@@ -528,6 +528,92 @@
 
     /* Animate counter */
     .stat-number[data-target] { transition: all .5s; }
+
+    /* ── Supported By ── */
+    .support-section {
+        padding: 56px 0;
+        background: white;
+        border-top: 1px solid #F1F5F9;
+    }
+
+    .support-label {
+        text-align: center;
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94A3B8;
+        margin-bottom: 32px;
+    }
+
+    .support-track {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 12px 24px;
+    }
+
+    .support-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        padding: 18px 24px;
+        border-radius: 14px;
+        border: 1px solid #F1F5F9;
+        background: #FAFAFA;
+        min-width: 130px;
+        transition: all .25s;
+    }
+
+    .support-item:hover {
+        border-color: #C7D2FE;
+        background: #F5F3FF;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(79,70,229,.1);
+    }
+
+    .support-logo-wrap {
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .support-logo-wrap img {
+        max-height: 52px;
+        max-width: 110px;
+        object-fit: contain;
+        filter: grayscale(30%);
+        transition: filter .25s;
+    }
+
+    .support-item:hover .support-logo-wrap img { filter: grayscale(0%); }
+
+    .support-logo-placeholder {
+        width: 52px; height: 52px;
+        background: linear-gradient(135deg, #EEF2FF, #E0E7FF);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #4F46E5;
+    }
+
+    .support-name {
+        font-size: .75rem;
+        font-weight: 600;
+        color: #64748B;
+        text-align: center;
+        line-height: 1.3;
+        max-width: 110px;
+    }
+
+    .support-item:hover .support-name { color: #4F46E5; }
 </style>
 @endpush
 
@@ -826,6 +912,41 @@
         </div>
     </div>
 </section>
+
+<!-- ── SUPPORTED BY ── -->
+@if($supports->count() > 0)
+<section class="support-section">
+    <div class="container">
+        <div class="support-label">
+            <i class="fas fa-handshake me-2"></i>Didukung Oleh
+        </div>
+        <div class="support-track">
+            @foreach($supports as $support)
+            @if($support->website)
+            <a href="{{ $support->website }}" target="_blank" rel="noopener" class="support-item" title="{{ $support->name }}">
+            @else
+            <div class="support-item">
+            @endif
+                <div class="support-logo-wrap">
+                    @if($support->logo)
+                        <img src="{{ $support->logo_url }}" alt="{{ $support->name }}">
+                    @else
+                        <div class="support-logo-placeholder">
+                            {{ strtoupper(substr($support->name, 0, 1)) }}
+                        </div>
+                    @endif
+                </div>
+                <div class="support-name">{{ $support->name }}</div>
+            @if($support->website)
+            </a>
+            @else
+            </div>
+            @endif
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
 
 <!-- ── CTA SECTION ── -->
 <section class="cta-section">

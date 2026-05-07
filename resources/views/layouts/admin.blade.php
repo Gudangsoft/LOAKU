@@ -344,6 +344,50 @@
             background: linear-gradient(135deg, #fef3c7, #fde68a);
             color: #92400e;
         }
+
+        /* ── Pagination (global admin) ── */
+        .pagination {
+            gap: 4px;
+            margin-bottom: 0;
+        }
+        .pagination .page-item .page-link {
+            border: 1.5px solid #E5E7EB;
+            border-radius: 8px !important;
+            color: #374151;
+            font-size: .825rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            min-width: 36px;
+            text-align: center;
+            line-height: 1.5;
+            transition: all .15s;
+            background: white;
+        }
+        .pagination .page-item .page-link:hover {
+            background: #EEF2FF;
+            border-color: #6366F1;
+            color: #4F46E5;
+        }
+        .pagination .page-item.active .page-link {
+            background: #6366F1;
+            border-color: #6366F1;
+            color: white;
+            box-shadow: 0 2px 8px rgba(99,102,241,.35);
+        }
+        .pagination .page-item.disabled .page-link {
+            background: #F9FAFB;
+            border-color: #E5E7EB;
+            color: #D1D5DB;
+        }
+        .pagination .page-item:first-child .page-link,
+        .pagination .page-item:last-child .page-link {
+            border-radius: 8px !important;
+        }
+        /* Pagination info row */
+        .pagination-info {
+            font-size: .8rem;
+            color: #6B7280;
+        }
     </style>
 
     @stack('styles')

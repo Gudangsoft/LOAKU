@@ -1,4 +1,4 @@
-@extends('admin.layouts.modern-app')
+﻿@extends('admin.layouts.modern-app')
 
 @section('title', 'Dashboard')
 
@@ -522,7 +522,7 @@
 </style>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Requests Chart
@@ -600,4 +600,4 @@
         }
     });
 </script>
-@endsection
+@endpush
