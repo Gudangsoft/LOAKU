@@ -69,17 +69,23 @@
                                 <small class="text-muted">{{ $publisher->created_at->format('d/m/Y') }}</small>
                             </td>
                             <td>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" 
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-cog"></i>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <a href="{{ route('publisher.publishers.show', $publisher) }}"
+                                       class="btn btn-sm" title="Detail"
+                                       style="background:#EEF2FF;color:#4F46E5;border:none;width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px">
+                                        <i class="fas fa-eye" style="font-size:.75rem"></i>
+                                    </a>
+                                    <a href="{{ route('publisher.publishers.edit', $publisher) }}"
+                                       class="btn btn-sm" title="Edit"
+                                       style="background:#FEF3C7;color:#D97706;border:none;width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px">
+                                        <i class="fas fa-edit" style="font-size:.75rem"></i>
+                                    </a>
+                                    <button type="button"
+                                            onclick="deletePublisher({{ $publisher->id }})"
+                                            class="btn btn-sm" title="Hapus"
+                                            style="background:#FEE2E2;color:#DC2626;border:none;width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px">
+                                        <i class="fas fa-trash" style="font-size:.75rem"></i>
                                     </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="{{ route('publisher.publishers.edit', $publisher) }}"><i class="fas fa-edit me-2"></i>Edit</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('publisher.publishers.show', $publisher) }}"><i class="fas fa-eye me-2"></i>View Details</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="deletePublisher({{ $publisher->id }})"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                    </ul>
                                 </div>
                             </td>
                         </tr>
@@ -108,40 +114,14 @@
 @push('scripts')
 <script>
 function deletePublisher(publisherId) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This action cannot be undone! All related data will be deleted.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Create a form and submit it
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/publisher/publishers/${publisherId}`;
-            
-            // Add CSRF token
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-            form.appendChild(csrfToken);
-            
-            // Add method override for DELETE
-            const methodField = document.createElement('input');
-            methodField.type = 'hidden';
-            methodField.name = '_method';
-            methodField.value = 'DELETE';
-            form.appendChild(methodField);
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-    });
+    if (!confirm('Hapus publisher ini? Tindakan tidak dapat dibatalkan.')) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/publisher/publishers/${publisherId}`;
+    form.innerHTML = `<input type="hidden" name="_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="_method" value="DELETE">`;
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 @endpush

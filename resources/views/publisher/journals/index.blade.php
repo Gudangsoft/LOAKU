@@ -95,18 +95,28 @@
                                 <small class="text-muted">{{ $journal->created_at->format('d/m/Y') }}</small>
                             </td>
                             <td>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" 
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-cog"></i>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <a href="{{ route('publisher.journals.show', $journal) }}"
+                                       class="btn btn-sm" title="Detail"
+                                       style="background:#EEF2FF;color:#4F46E5;border:none;width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px">
+                                        <i class="fas fa-eye" style="font-size:.75rem"></i>
+                                    </a>
+                                    <a href="{{ route('publisher.journals.edit', $journal) }}"
+                                       class="btn btn-sm" title="Edit"
+                                       style="background:#FEF3C7;color:#D97706;border:none;width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px">
+                                        <i class="fas fa-edit" style="font-size:.75rem"></i>
+                                    </a>
+                                    <a href="{{ route('publisher.loa-requests.index') }}?journal={{ $journal->id }}"
+                                       class="btn btn-sm" title="Lihat LOA Requests"
+                                       style="background:#ECFDF5;color:#059669;border:none;width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px">
+                                        <i class="fas fa-file-alt" style="font-size:.75rem"></i>
+                                    </a>
+                                    <button type="button"
+                                            onclick="deleteJournal({{ $journal->id }})"
+                                            class="btn btn-sm" title="Hapus"
+                                            style="background:#FEE2E2;color:#DC2626;border:none;width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px">
+                                        <i class="fas fa-trash" style="font-size:.75rem"></i>
                                     </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="{{ route('publisher.journals.edit', $journal) }}"><i class="fas fa-edit me-2"></i>Edit</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('publisher.journals.show', $journal) }}"><i class="fas fa-eye me-2"></i>View Details</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('publisher.loa-requests.index') }}?journal={{ $journal->id }}"><i class="fas fa-file-alt me-2"></i>LOA Requests</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteJournal({{ $journal->id }})"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                    </ul>
                                 </div>
                             </td>
                         </tr>
@@ -138,22 +148,10 @@
 
 <script>
 function deleteJournal(journalId) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This action cannot be undone! All related data will be deleted.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const form = document.getElementById('deleteForm');
-            form.action = `/publisher/journals/${journalId}`;
-            form.submit();
-        }
-    });
+    if (!confirm('Hapus jurnal ini? Semua data terkait akan ikut terhapus.')) return;
+    const form = document.getElementById('deleteForm');
+    form.action = `/publisher/journals/${journalId}`;
+    form.submit();
 }
 </script>
 @endsection
