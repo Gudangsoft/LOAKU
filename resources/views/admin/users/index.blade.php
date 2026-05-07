@@ -130,9 +130,21 @@
             </h1>
             <p class="mb-0 text-muted" style="font-size:.875rem">Kelola user dan pengaturan role dalam sistem</p>
         </div>
-        <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm px-3" style="border-radius:10px;font-weight:600">
-            <i class="fas fa-plus me-1"></i> Tambah User
-        </a>
+        <div class="d-flex gap-2">
+            @if($stats['total'] > 0)
+            <form action="{{ route('admin.users.verify-all') }}" method="POST"
+                  onsubmit="return confirm('Verifikasi email semua user yang belum terverifikasi?')">
+                @csrf
+                <button type="submit" class="btn btn-sm px-3"
+                        style="border-radius:10px;font-weight:600;background:#ECFDF5;color:#059669;border:1.5px solid #A7F3D0">
+                    <i class="fas fa-check-double me-1"></i> Verifikasi Semua
+                </button>
+            </form>
+            @endif
+            <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm px-3" style="border-radius:10px;font-weight:600">
+                <i class="fas fa-plus me-1"></i> Tambah User
+            </a>
+        </div>
     </div>
 
     {{-- Stats --}}
@@ -276,13 +288,32 @@
                             </td>
                             <td style="vertical-align:middle;padding:14px 8px">
                                 @if($user->email_verified_at)
-                                    <span class="verified-badge verified-yes">
-                                        <i class="fas fa-check-circle"></i> Terverifikasi
-                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="verified-badge verified-yes">
+                                            <i class="fas fa-check-circle"></i> Terverifikasi
+                                        </span>
+                                        <form action="{{ route('admin.users.unverify-email', $user) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="action-btn" title="Batalkan verifikasi"
+                                                    style="background:#F3F4F6;color:#6B7280;width:22px;height:22px;font-size:.65rem"
+                                                    onclick="return confirm('Batalkan verifikasi email {{ addslashes($user->name) }}?')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 @else
-                                    <span class="verified-badge verified-no">
-                                        <i class="fas fa-clock"></i> Belum
-                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="verified-badge verified-no">
+                                            <i class="fas fa-clock"></i> Belum
+                                        </span>
+                                        <form action="{{ route('admin.users.verify-email', $user) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="action-btn activate" title="Verifikasi email sekarang"
+                                                    style="width:22px;height:22px;font-size:.65rem">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 @endif
                             </td>
                             <td style="vertical-align:middle;padding:14px 8px">

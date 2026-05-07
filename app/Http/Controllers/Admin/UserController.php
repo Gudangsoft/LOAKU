@@ -206,48 +206,25 @@ class UserController extends Controller
         }
     }
 
+    public function verifyAll()
+    {
+        $count = User::whereNull('email_verified_at')->count();
+        User::whereNull('email_verified_at')->update(['email_verified_at' => now()]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', "{$count} user berhasil diverifikasi emailnya.");
+    }
+
     public function verifyEmail(User $user)
     {
-        \Log::info('UserController@verifyEmail called', [
-            'user_id' => $user->id,
-            'current_verified_at' => $user->email_verified_at
-        ]);
+        $user->email_verified_at = now();
+        $user->save();
 
-        try {
-            if ($user->email_verified_at) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Email user sudah terverifikasi.'
-                ], 400);
-            }
-
-            $user->email_verified_at = now();
-            $user->save();
-            
-            \Log::info('User email verified successfully', [
-                'user_id' => $user->id,
-                'verified_at' => $user->email_verified_at,
-                'verified_by' => auth()->user()->name
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => "Email {$user->email} berhasil diverifikasi.",
-                'verified_at' => $user->email_verified_at->format('d/m/Y H:i')
-            ]);
-            
-        } catch (\Exception $e) {
-            \Log::error('Error verifying user email', [
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'error' => 'Terjadi kesalahan saat memverifikasi email: ' . $e->getMessage()
-            ], 500);
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => "Email {$user->email} berhasil diverifikasi."]);
         }
+
+        return redirect()->back()->with('success', "Email {$user->name} berhasil diverifikasi.");
     }
 
     public function resendVerification(User $user)
@@ -295,43 +272,13 @@ class UserController extends Controller
 
     public function unverifyEmail(User $user)
     {
-        \Log::info('UserController@unverifyEmail called', [
-            'user_id' => $user->id,
-            'current_verified_at' => $user->email_verified_at
-        ]);
+        $user->email_verified_at = null;
+        $user->save();
 
-        try {
-            if (!$user->email_verified_at) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Email user belum terverifikasi.'
-                ], 400);
-            }
-
-            $user->email_verified_at = null;
-            $user->save();
-            
-            \Log::info('User email unverified successfully', [
-                'user_id' => $user->id,
-                'unverified_by' => auth()->user()->name
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => "Email {$user->email} berhasil di-set sebagai belum terverifikasi."
-            ]);
-            
-        } catch (\Exception $e) {
-            \Log::error('Error unverifying user email', [
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'error' => 'Terjadi kesalahan saat menghapus verifikasi email: ' . $e->getMessage()
-            ], 500);
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => "Verifikasi email {$user->email} dibatalkan."]);
         }
+
+        return redirect()->back()->with('success', "Verifikasi email {$user->name} berhasil dibatalkan.");
     }
 }
