@@ -100,4 +100,53 @@ class LoaRequestController extends Controller
         return redirect()->route('admin.loa-requests.index')
             ->with('success', 'LOA request berhasil ditolak.');
     }
+
+    public function export(Request $request)
+    {
+        $query = LoaRequest::with(['journal.publisher', 'loaValidated'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $rows = $query->get();
+
+        $filename = 'loa-requests-' . now()->format('Ymd-His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+            fputcsv($out, ['No. Reg', 'Kode LOA', 'Judul Artikel', 'Penulis', 'Email Penulis',
+                           'Jurnal', 'Publisher', 'Vol', 'No', 'Bulan', 'Tahun',
+                           'Status', 'Tanggal Pengajuan', 'Tanggal Disetujui', 'Catatan Admin']);
+            foreach ($rows as $r) {
+                fputcsv($out, [
+                    $r->no_reg,
+                    $r->loaValidated?->loa_code ?? '-',
+                    $r->article_title,
+                    $r->author,
+                    $r->author_email,
+                    $r->journal?->name ?? '-',
+                    $r->journal?->publisher?->name ?? '-',
+                    $r->volume,
+                    $r->number,
+                    $r->month,
+                    $r->year,
+                    $r->status,
+                    $r->created_at->format('d/m/Y H:i'),
+                    $r->approved_at ? $r->approved_at->format('d/m/Y H:i') : '-',
+                    $r->admin_notes ?? '-',
+                ]);
+            }
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

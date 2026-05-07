@@ -152,4 +152,40 @@ class PublisherController extends Controller
         return redirect()->route('admin.publishers.index')
             ->with('success', 'Penerbit berhasil dihapus.');
     }
+
+    public function export()
+    {
+        $publishers = Publisher::withCount('journals')->orderBy('name')->get();
+
+        $filename = 'publishers-' . now()->format('Ymd-His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($publishers) {
+            $out = fopen('php://output', 'w');
+            fputs($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['ID', 'Nama Publisher', 'Status', 'Email', 'Telepon',
+                           'WhatsApp', 'Website', 'Alamat', 'Jumlah Jurnal', 'Tanggal Daftar']);
+            foreach ($publishers as $p) {
+                fputcsv($out, [
+                    $p->id,
+                    $p->name,
+                    $p->status,
+                    $p->email,
+                    $p->phone,
+                    $p->whatsapp,
+                    $p->website,
+                    $p->address,
+                    $p->journals_count,
+                    $p->created_at->format('d/m/Y'),
+                ]);
+            }
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

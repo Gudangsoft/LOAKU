@@ -136,7 +136,7 @@
             </div>
         </div>
 
-        <!-- System Info -->
+        <!-- System Info + Charts -->
         <div class="col-lg-4">
             <div class="admin-card">
                 <div class="card-header">
@@ -189,6 +189,70 @@
             </div>
         </div>
     </div>
+
+    {{-- Analytics Section --}}
+    <div class="row g-4 mt-2">
+        {{-- Monthly Requests Chart --}}
+        <div class="col-lg-8">
+            <div class="admin-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Tren Pengajuan LOA (6 Bulan)</h3>
+                    <span style="font-size:.78rem;color:#64748B">Pengajuan masuk vs disetujui</span>
+                </div>
+                <div style="padding:16px 20px 20px">
+                    <canvas id="monthlyChart" height="110"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- Approval Rate Doughnut --}}
+        <div class="col-lg-4">
+            <div class="admin-card h-100">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Distribusi Status</h3>
+                </div>
+                <div style="padding:16px 20px 20px;display:flex;flex-direction:column;align-items:center">
+                    <canvas id="statusChart" width="200" height="200" style="max-width:200px"></canvas>
+                    <div style="margin-top:16px;width:100%">
+                        @php
+                            $statusColors = ['pending'=>'#EAB308','approved'=>'#22C55E','rejected'=>'#EF4444'];
+                            $statusLabels = ['pending'=>'Menunggu','approved'=>'Disetujui','rejected'=>'Ditolak'];
+                        @endphp
+                        @foreach($statusStats as $key => $stat)
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F1F5F9;font-size:.82rem">
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <div style="width:10px;height:10px;border-radius:3px;background:{{ $statusColors[$key] ?? '#94A3B8' }};flex-shrink:0"></div>
+                                <span style="color:#374151">{{ $statusLabels[$key] ?? $key }}</span>
+                            </div>
+                            <div style="font-weight:700;color:#1E293B">{{ $stat['count'] }} <span style="font-weight:400;color:#94A3B8">({{ $stat['percentage'] }}%)</span></div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Top Journals --}}
+        <div class="col-12">
+            <div class="admin-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Top 5 Jurnal by Pengajuan LOA</h3>
+                    <a href="{{ route('admin.journals.index') }}" class="btn btn-sm btn-outline-primary">
+                        Semua Jurnal <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div style="padding:16px 20px 20px">
+                    @if(isset($topJournals) && $topJournals->count() > 0)
+                    <canvas id="topJournalsChart" height="80"></canvas>
+                    @else
+                    <div class="text-center py-4 text-muted" style="font-size:.875rem">Belum ada data jurnal</div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
 @endsection
 
 @push('styles')
@@ -235,4 +299,101 @@
         color: #64748b;
     }
 </style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // --- Monthly Chart ---
+    @php
+        $mLabels  = collect($monthlyStats)->pluck('month')->toArray();
+        $mReq     = collect($monthlyStats)->pluck('requests')->toArray();
+        $mApproved= collect($monthlyStats)->pluck('approved')->toArray();
+    @endphp
+    new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($mLabels) !!},
+            datasets: [
+                {
+                    label: 'Pengajuan Masuk',
+                    data: {!! json_encode($mReq) !!},
+                    backgroundColor: 'rgba(99,102,241,.75)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                },
+                {
+                    label: 'Disetujui',
+                    data: {!! json_encode($mApproved) !!},
+                    backgroundColor: 'rgba(34,197,94,.75)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F1F5F9' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // --- Status Doughnut ---
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Menunggu', 'Disetujui', 'Ditolak'],
+            datasets: [{
+                data: [{{ $statusStats['pending']['count'] }}, {{ $statusStats['approved']['count'] }}, {{ $statusStats['rejected']['count'] }}],
+                backgroundColor: ['#EAB308', '#22C55E', '#EF4444'],
+                borderWidth: 2,
+                borderColor: '#fff',
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            cutout: '68%',
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // --- Top Journals Horizontal Bar ---
+    @if(isset($topJournals) && $topJournals->count() > 0)
+    @php
+        $jLabels = $topJournals->map(fn($j) => \Illuminate\Support\Str::limit($j->name, 30))->toArray();
+        $jCounts = $topJournals->pluck('loa_requests_count')->toArray();
+    @endphp
+    new Chart(document.getElementById('topJournalsChart'), {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($jLabels) !!},
+            datasets: [{
+                label: 'Jumlah Pengajuan',
+                data: {!! json_encode($jCounts) !!},
+                backgroundColor: [
+                    'rgba(99,102,241,.8)','rgba(6,182,212,.8)','rgba(34,197,94,.8)',
+                    'rgba(234,179,8,.8)','rgba(239,68,68,.8)'
+                ],
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F1F5F9' } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+    @endif
+});
+</script>
 @endpush

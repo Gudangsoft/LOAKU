@@ -50,13 +50,17 @@ class HomeController extends Controller
         return view('publishers.index', compact('publishers', 'totalPublishers', 'search'));
     }
 
-    public function publisherDetail($id)
+    public function publisherDetail($slug)
     {
-        $publisher = Publisher::where('status', 'active')
+        $query = Publisher::where('status', 'active')
             ->with(['journals' => function ($q) {
                 $q->orderBy('name')->withCount('loaRequests');
-            }, 'journals.loaRequests'])
-            ->findOrFail($id);
+            }, 'journals.loaRequests']);
+
+        // Accept both slug and numeric ID (backward compat)
+        $publisher = is_numeric($slug)
+            ? $query->findOrFail($slug)
+            : $query->where('slug', $slug)->firstOrFail();
 
         return view('publishers.show', compact('publisher'));
     }

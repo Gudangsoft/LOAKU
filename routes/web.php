@@ -17,7 +17,7 @@ use App\Http\Controllers\Admin\AuthController;
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/publishers', [HomeController::class, 'publishers'])->name('publishers.index');
-Route::get('/publishers/{id}', [HomeController::class, 'publisherDetail'])->name('publishers.detail');
+Route::get('/publishers/{slug}', [HomeController::class, 'publisherDetail'])->name('publishers.detail');
 
 
 // Universal login routes (for both admin and publisher)
@@ -97,9 +97,10 @@ Route::get('/test-qr/{code}', function($code) {
 Route::get('/validated-loas', [LoaController::class, 'validatedLoas'])->name('loa.validated');
 
 
-// LOA Print & View Routes
+// LOA Print, View & Widget Routes
 Route::get('/loa/print/{loaCode}/{lang?}', [LoaController::class, 'print'])->name('loa.print');
 Route::get('/loa/view/{loaCode}/{lang?}', [LoaController::class, 'view'])->name('loa.view');
+Route::get('/widget/{loaCode}.js', [LoaController::class, 'widget'])->name('loa.widget');
 
 
 // Admin Authentication Routes
@@ -129,6 +130,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     
     // LOA Requests Management
     Route::get('/loa-requests', [AdminLoaRequestController::class, 'index'])->name('loa-requests.index');
+    Route::get('/loa-requests/export', [AdminLoaRequestController::class, 'export'])->name('loa-requests.export');
     Route::get('/loa-requests/{loaRequest}', [AdminLoaRequestController::class, 'show'])->name('loa-requests.show');
     Route::post('/loa-requests/{loaRequest}/approve', [AdminLoaRequestController::class, 'approve'])->name('loa-requests.approve');
     Route::post('/loa-requests/{loaRequest}/reject', [AdminLoaRequestController::class, 'reject'])->name('loa-requests.reject');
@@ -148,6 +150,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     // Publishers Management
     Route::resource('publishers', PublisherController::class);
     Route::patch('/publishers/{publisher}/toggle-status', [PublisherController::class, 'toggleStatus'])->name('publishers.toggle-status');
+    Route::get('/publishers-export', [PublisherController::class, 'export'])->name('publishers.export');
     
     // LOA Templates Management
     Route::resource('loa-templates', LoaTemplateController::class);

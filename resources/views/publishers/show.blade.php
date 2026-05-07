@@ -453,6 +453,37 @@
                 </div>
                 @endif
             </div>
+            <!-- Issued LOAs -->
+            @php
+                $journalIds = $publisher->journals->pluck('id');
+                $issuedLoas = \App\Models\LoaValidated::whereHas('loaRequest', fn($q) => $q->whereIn('journal_id', $journalIds))
+                    ->with(['loaRequest'])
+                    ->orderByDesc('created_at')
+                    ->take(10)
+                    ->get();
+            @endphp
+            @if($issuedLoas->count() > 0)
+            <div class="info-card">
+                <div class="info-card-title">
+                    <i class="fas fa-certificate"></i> LOA Terbaru yang Diterbitkan ({{ $issuedLoas->count() }} terakhir)
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                    @foreach($issuedLoas as $loa)
+                    <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                        <div style="min-width:0;flex:1">
+                            <div style="font-size:.8rem;font-weight:700;color:#166534;font-family:monospace;margin-bottom:3px">{{ $loa->loa_code }}</div>
+                            <div style="font-size:.82rem;color:#374151;line-height:1.4;margin-bottom:3px">{{ \Illuminate\Support\Str::limit($loa->loaRequest?->article_title ?? '-', 70) }}</div>
+                            <div style="font-size:.75rem;color:#64748B">{{ $loa->loaRequest?->author ?? '-' }} · {{ $loa->created_at->format('d M Y') }}</div>
+                        </div>
+                        <a href="{{ route('loa.view', $loa->loa_code) }}" target="_blank"
+                           style="background:#16A34A;color:white;padding:5px 12px;border-radius:7px;font-size:.75rem;font-weight:600;text-decoration:none;white-space:nowrap;flex-shrink:0">
+                            <i class="fas fa-eye me-1"></i>Lihat
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Sidebar -->
@@ -496,6 +527,22 @@
                             <div class="stat-pill-label">LOA Disetujui</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Widget Embed -->
+                <div class="info-card">
+                    <div class="info-card-title">
+                        <i class="fas fa-code"></i> Widget Verifikasi LOA
+                    </div>
+                    <p style="font-size:.78rem;color:#64748B;margin-bottom:10px">
+                        Pasang badge verifikasi LOA di website Anda dengan menyalin script berikut:
+                    </p>
+                    <div style="background:#1E293B;border-radius:8px;padding:10px 12px;font-family:monospace;font-size:.72rem;color:#94A3B8;word-break:break-all;user-select:all">
+                        &lt;script src="{{ rtrim(config('app.url'),'/') }}/widget/KODE-LOA.js"&gt;&lt;/script&gt;
+                    </div>
+                    <p style="font-size:.73rem;color:#94A3B8;margin-top:6px;margin-bottom:0">
+                        Ganti <code style="background:#F1F5F9;padding:1px 5px;border-radius:4px">KODE-LOA</code> dengan kode LOA yang diterbitkan.
+                    </p>
                 </div>
 
                 <!-- Quick action -->

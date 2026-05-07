@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Publisher extends Model
 {
@@ -21,6 +22,32 @@ class Publisher extends Model
         'website',
         'logo',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Publisher $publisher) {
+            if (empty($publisher->slug)) {
+                $publisher->slug = static::generateUniqueSlug($publisher->name, $publisher->id);
+            }
+        });
+
+        static::updating(function (Publisher $publisher) {
+            if ($publisher->isDirty('name') && empty($publisher->slug)) {
+                $publisher->slug = static::generateUniqueSlug($publisher->name, $publisher->id);
+            }
+        });
+    }
+
+    public static function generateUniqueSlug(string $name, ?int $excludeId = null): string
+    {
+        $base = Str::slug($name) ?: 'publisher';
+        $slug = $base;
+        $i = 1;
+        while (static::where('slug', $slug)->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))->exists()) {
+            $slug = $base . '-' . $i++;
+        }
+        return $slug;
+    }
 
     protected $attributes = [
         'status' => 'pending',

@@ -14,6 +14,16 @@
             </h1>
             <p class="mb-0 text-muted">Kelola dan review semua permintaan LOA dari pengguna</p>
         </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.loa-requests.export') }}"
+               class="btn btn-success btn-sm px-3" style="border-radius:8px;font-weight:600">
+                <i class="fas fa-file-csv me-1"></i> Export CSV
+            </a>
+            <a href="{{ route('admin.loa-requests.export', ['status'=>'approved']) }}"
+               class="btn btn-outline-success btn-sm px-3" style="border-radius:8px;font-weight:600">
+                <i class="fas fa-download me-1"></i> Export Disetujui
+            </a>
+        </div>
     </div>
 
     <!-- Filter Cards -->

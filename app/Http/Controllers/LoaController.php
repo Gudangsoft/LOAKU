@@ -330,6 +330,55 @@ class LoaController extends Controller
         return response($content)->header('Content-Type', 'text/html');
     }
 
+    public function widget($loaCode)
+    {
+        $loa = LoaValidated::where('loa_code', $loaCode)
+            ->with(['loaRequest.journal.publisher'])
+            ->first();
+
+        $appUrl = rtrim(config('app.url'), '/');
+
+        if (!$loa) {
+            $js = <<<JS
+(function(){
+  var d=document.createElement('div');
+  d.style.cssText='display:inline-flex;align-items:center;gap:8px;background:#FEE2E2;border:1px solid #FECACA;border-radius:8px;padding:8px 14px;font-family:sans-serif;font-size:13px;color:#991B1B';
+  d.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> LOA tidak ditemukan: {$loaCode}';
+  document.currentScript.parentNode.insertBefore(d,document.currentScript);
+})();
+JS;
+            return response($js, 404)->header('Content-Type', 'application/javascript');
+        }
+
+        $req        = $loa->loaRequest;
+        $journal    = $req?->journal;
+        $publisher  = $journal?->publisher;
+
+        $loaCodeSafe    = addslashes($loa->loa_code);
+        $articleSafe    = addslashes(\Illuminate\Support\Str::limit($req?->article_title ?? '', 60));
+        $authorSafe     = addslashes($req?->author ?? '');
+        $journalSafe    = addslashes($journal?->name ?? '');
+        $publisherSafe  = addslashes($publisher?->name ?? '');
+        $approvedDate   = $req?->approved_at ? $req->approved_at->format('d M Y') : $loa->created_at->format('d M Y');
+        $verifyUrl      = $appUrl . '/loa/view/' . $loaCode;
+
+        $js = <<<JS
+(function(){
+  var s=document.createElement('style');
+  s.textContent='.loa-badge{display:inline-block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-decoration:none;border-radius:10px;border:1.5px solid #BBF7D0;background:#F0FDF4;padding:12px 16px;max-width:360px;color:inherit}.loa-badge:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-1px);transition:all .2s}.loa-badge-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}.loa-badge-seal{width:32px;height:32px;background:linear-gradient(135deg,#16A34A,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}.loa-badge-seal svg{width:16px;height:16px;color:white;stroke:white}.loa-badge-title{font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.5px}.loa-badge-code{font-size:13px;font-weight:800;color:#15803D;font-family:monospace;margin-bottom:4px}.loa-badge-article{font-size:12px;color:#374151;margin-bottom:4px;line-height:1.4}.loa-badge-meta{font-size:11px;color:#6B7280;margin-bottom:2px}.loa-badge-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid #BBF7D0}.loa-badge-date{font-size:10px;color:#6B7280}.loa-badge-verify{font-size:10px;font-weight:600;color:#16A34A;text-decoration:none}';
+  document.head.appendChild(s);
+  var a=document.createElement('a');
+  a.href='{$verifyUrl}';
+  a.target='_blank';
+  a.className='loa-badge';
+  a.innerHTML='<div class="loa-badge-head"><div class="loa-badge-seal"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="loa-badge-title">Letter of Acceptance</div></div></div><div class="loa-badge-code">{$loaCodeSafe}</div><div class="loa-badge-article">{$articleSafe}</div><div class="loa-badge-meta"><strong>Penulis:</strong> {$authorSafe}</div><div class="loa-badge-meta"><strong>Jurnal:</strong> {$journalSafe}</div><div class="loa-badge-meta"><strong>Publisher:</strong> {$publisherSafe}</div><div class="loa-badge-footer"><span class="loa-badge-date">Disetujui: {$approvedDate}</span><span class="loa-badge-verify">✓ Terverifikasi</span></div>';
+  document.currentScript.parentNode.insertBefore(a,document.currentScript);
+})();
+JS;
+
+        return response($js)->header('Content-Type', 'application/javascript');
+    }
+
     private function processConditionals($content, $lang)
     {
         // Process @if($lang == "id") ... @else ... @endif

@@ -53,8 +53,11 @@ class DashboardController extends Controller
                 ->take(10)
                 ->get();
 
-            // Jurnal dengan permohonan terbanyak (tanpa withCount dulu)
-            $topJournals = Journal::take(5)->get();
+            // Jurnal dengan permohonan terbanyak
+            $topJournals = Journal::withCount('loaRequests')
+                ->orderByDesc('loa_requests_count')
+                ->take(5)
+                ->get();
 
             // Statistik per status
             $statusStats = [

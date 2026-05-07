@@ -161,9 +161,14 @@
             <h1 class="h4 mb-1 fw-bold" style="color:#111827"><i class="fas fa-building me-2" style="color:#6366F1"></i>Data Publisher</h1>
             <p class="mb-0 text-muted" style="font-size:.875rem">Kelola data penerbit/institusi dalam sistem</p>
         </div>
-        <a href="{{ route('admin.publishers.create') }}" class="btn btn-primary btn-sm px-3" style="border-radius:10px;font-weight:600">
-            <i class="fas fa-plus me-1"></i> Tambah Publisher
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.publishers.export') }}" class="btn btn-success btn-sm px-3" style="border-radius:10px;font-weight:600">
+                <i class="fas fa-file-csv me-1"></i> Export CSV
+            </a>
+            <a href="{{ route('admin.publishers.create') }}" class="btn btn-primary btn-sm px-3" style="border-radius:10px;font-weight:600">
+                <i class="fas fa-plus me-1"></i> Tambah Publisher
+            </a>
+        </div>
     </div>
 
     {{-- Stats Bar --}}

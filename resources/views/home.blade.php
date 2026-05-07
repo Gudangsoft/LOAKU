@@ -831,7 +831,7 @@
                     </div>
                     <div class="publisher-body">
                         <h5>
-                            <a href="{{ route('publishers.detail', $publisher->id) }}"
+                            <a href="{{ route('publishers.detail', $publisher->slug ?? $publisher->id) }}"
                                class="stretched-link text-decoration-none"
                                style="color:#1E293B">{{ $publisher->name }}</a>
                         </h5>
