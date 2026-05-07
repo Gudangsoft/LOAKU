@@ -6,7 +6,7 @@
         <h2><i class="fas fa-plus me-2"></i>Buat Template LOA Baru</h2>
         <p class="text-muted mb-0">Buat template surat penerimaan artikel (LOA) baru</p>
     </div>
-    <a href="{{ route('publisher.loa-templates') }}" class="btn btn-secondary">
+    <a href="{{ route('publisher.loa-templates.index') }}" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-2"></i>Kembali
     </a>
 </div>
@@ -213,7 +213,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save me-2"></i>Simpan Template
                         </button>
-                        <a href="{{ route('publisher.loa-templates') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('publisher.loa-templates.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-times me-2"></i>Batal
                         </a>
                     </div>

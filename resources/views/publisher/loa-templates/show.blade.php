@@ -17,7 +17,7 @@
                 <i class="fas fa-edit me-2"></i>Edit
             </a>
         @endif
-        <a href="{{ route('publisher.loa-templates') }}" class="btn btn-secondary">
+        <a href="{{ route('publisher.loa-templates.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-2"></i>Kembali
         </a>
     </div>
