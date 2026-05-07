@@ -356,9 +356,15 @@
                                         </form>
                                     </li>
                                 @else
-                                    <li><a class="dropdown-item" href="#">
+                                    @if(auth()->user()->role === 'publisher')
+                                    <li><a class="dropdown-item" href="{{ route('publisher.profile') }}">
                                         <i class="fas fa-user me-2 text-primary"></i>Profil Saya
                                     </a></li>
+                                    @else
+                                    <li><a class="dropdown-item" href="{{ route('member.profile') }}">
+                                        <i class="fas fa-user me-2 text-primary"></i>Profil Saya
+                                    </a></li>
+                                    @endif
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form method="POST" action="{{ route('logout') }}">
