@@ -516,6 +516,10 @@
                     <i class="fas fa-cogs"></i>
                     <span>Website Settings</span>
                 </a>
+                <a href="{{ route('admin.activity-logs.index') }}" class="nav-link {{ request()->routeIs('admin.activity-logs.*') ? 'active' : '' }}">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Audit Log</span>
+                </a>
                 <a href="{{ route('admin.system-logs.index') }}" class="nav-link {{ request()->routeIs('admin.system-logs.*') ? 'active' : '' }}">
                     <i class="fas fa-list-alt"></i>
                     <span>System Logs</span>

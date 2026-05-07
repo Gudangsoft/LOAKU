@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -64,6 +65,8 @@ class UserController extends Controller
         $user->email_verified_at = now();
         $user->save();
 
+        ActivityLog::record('create_user', "Membuat user baru "{$user->name}" (role: {$user->role})", $user);
+
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil ditambahkan.');
     }
@@ -98,6 +101,8 @@ class UserController extends Controller
 
         $user->save();
 
+        ActivityLog::record('update_user', "Mengupdate user "{$user->name}" (role: {$user->role})", $user);
+
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil diupdate.');
     }
@@ -121,8 +126,11 @@ class UserController extends Controller
 
         try {
             $userName = $user->name;
+            $userEmail = $user->email;
             $user->delete();
-            
+
+            ActivityLog::record('delete_user', "Menghapus user "{$userName}" ({$userEmail})");
+
             \Log::info('User deleted successfully', [
                 'deleted_user' => $userName,
                 'deleted_by' => auth()->user()->name
@@ -177,7 +185,9 @@ class UserController extends Controller
             }
             
             $user->save();
-            
+
+            ActivityLog::record('change_role', "Mengubah role "{$user->name}" dari {$oldRole} menjadi {$user->role}", $user);
+
             \Log::info('User role toggled successfully', [
                 'user_id' => $user->id,
                 'old_role' => $oldRole,

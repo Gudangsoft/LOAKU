@@ -213,6 +213,9 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
     Route::post('/users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
 
+    // Audit / Activity Logs
+    Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
+
     // System Logs
     Route::prefix('system-logs')->name('system-logs.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\SystemLogController::class, 'index'])->name('index');

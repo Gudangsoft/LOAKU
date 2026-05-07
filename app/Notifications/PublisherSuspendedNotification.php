@@ -2,11 +2,16 @@
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Queue\SerializesModels;
 
-class PublisherSuspendedNotification extends Notification
+class PublisherSuspendedNotification extends Notification implements ShouldQueue
 {
+    use Queueable, SerializesModels;
+
     /**
      * Create a new notification instance.
      */

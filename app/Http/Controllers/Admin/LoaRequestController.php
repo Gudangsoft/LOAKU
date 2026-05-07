@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\LoaRequest;
 use App\Models\LoaValidated;
 use App\Notifications\LoaApprovedNotification;
@@ -47,8 +48,13 @@ class LoaRequestController extends Controller
             'verification_url' => route('loa.verify')
         ]);
 
-        // Reload to get loa_code on loaRequest
         $loaRequest->loa_code = $loaCode;
+
+        ActivityLog::record('approve_loa', "Menyetujui LOA "{$loaRequest->article_title}" (kode: {$loaCode})", $loaRequest, [
+            'author'      => $loaRequest->author,
+            'author_email'=> $loaRequest->author_email,
+            'loa_code'    => $loaCode,
+        ]);
 
         try {
             Notification::route('mail', $loaRequest->author_email)
@@ -77,6 +83,12 @@ class LoaRequestController extends Controller
         $loaRequest->status = 'rejected';
         $loaRequest->admin_notes = $request->admin_notes;
         $loaRequest->save();
+
+        ActivityLog::record('reject_loa', "Menolak LOA "{$loaRequest->article_title}"", $loaRequest, [
+            'author'      => $loaRequest->author,
+            'author_email'=> $loaRequest->author_email,
+            'reason'      => $request->admin_notes,
+        ]);
 
         try {
             Notification::route('mail', $loaRequest->author_email)

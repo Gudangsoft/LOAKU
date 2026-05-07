@@ -137,24 +137,47 @@ class MemberController extends Controller
     /**
      * Show member requests page
      */
-    public function requests()
+    public function requests(\Illuminate\Http\Request $request)
     {
         $user = Auth::user();
-        
-        // Check if user has member role or is admin
-        if (!$user->hasRole('member') && !$user->hasRole('admin')) {
-            return redirect()->route('home')->with('error', 'Akses ditolak. Anda bukan member.');
+
+        $query = \App\Models\LoaRequest::where(function ($q) use ($user) {
+            $q->where('author_email', $user->email);
+            if ($user->id) {
+                $q->orWhere('user_id', $user->id);
+            }
+        })->with(['journal.publisher', 'loaValidated']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
-        // Get all requests for journals owned by this member
-        $journalIds = $user->journals->pluck('id');
-        
-        $requests = \App\Models\LoaRequest::whereIn('journal_id', $journalIds)
-            ->with(['journal', 'journal.publisher', 'loaValidated'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function ($sub) use ($q) {
+                $sub->where('article_title', 'like', "%{$q}%")
+                    ->orWhere('author', 'like', "%{$q}%");
+            });
+        }
 
-        return view('member.requests', compact('requests'));
+        $requests = $query->orderByDesc('created_at')->paginate(15)->withQueryString();
+
+        $stats = [
+            'total'    => \App\Models\LoaRequest::where(function ($q) use ($user) {
+                $q->where('author_email', $user->email)->orWhere('user_id', $user->id);
+            })->count(),
+            'pending'  => \App\Models\LoaRequest::where(function ($q) use ($user) {
+                $q->where('author_email', $user->email)->orWhere('user_id', $user->id);
+            })->where('status', 'pending')->count(),
+            'approved' => \App\Models\LoaRequest::where(function ($q) use ($user) {
+                $q->where('author_email', $user->email)->orWhere('user_id', $user->id);
+            })->where('status', 'approved')->count(),
+            'rejected' => \App\Models\LoaRequest::where(function ($q) use ($user) {
+                $q->where('author_email', $user->email)->orWhere('user_id', $user->id);
+            })->where('status', 'rejected')->count(),
+        ];
+
+        return view('member.requests', compact('requests', 'stats'));
     }
 
     /**

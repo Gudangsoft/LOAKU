@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Publisher;
 use App\Models\User;
 use App\Notifications\PublisherActivatedNotification;
@@ -65,10 +66,13 @@ class PublisherValidationController extends Controller
             $publisher->generateValidationToken();
         }
 
-        // Activate publisher
         $publisher->activate(Auth::id(), $request->validation_notes);
 
-        // Send notification to publisher (placeholder)
+        ActivityLog::record('activate_publisher', "Mengaktifkan publisher "{$publisher->name}"", $publisher, [
+            'notes' => $request->validation_notes,
+            'token' => $publisher->validation_token,
+        ]);
+
         $this->notifyPublisherActivation($publisher);
 
         return redirect()->route('admin.publisher-validation.index')
@@ -92,10 +96,12 @@ class PublisherValidationController extends Controller
                 ->withInput();
         }
 
-        // Suspend publisher
         $publisher->suspend(Auth::id(), $request->validation_notes);
 
-        // Send notification to publisher (placeholder)
+        ActivityLog::record('suspend_publisher', "Mensuspend publisher "{$publisher->name}"", $publisher, [
+            'reason' => $request->validation_notes,
+        ]);
+
         $this->notifyPublisherSuspension($publisher);
 
         return redirect()->route('admin.publisher-validation.index')
