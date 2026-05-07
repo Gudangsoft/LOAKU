@@ -65,7 +65,7 @@ class UserController extends Controller
         $user->email_verified_at = now();
         $user->save();
 
-        ActivityLog::record('create_user', "Membuat user baru "{$user->name}" (role: {$user->role})", $user);
+        ActivityLog::record('create_user', "Membuat user baru \"{$user->name}\" (role: {$user->role})", $user);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil ditambahkan.');
@@ -101,7 +101,7 @@ class UserController extends Controller
 
         $user->save();
 
-        ActivityLog::record('update_user', "Mengupdate user "{$user->name}" (role: {$user->role})", $user);
+        ActivityLog::record('update_user', "Mengupdate user \"{$user->name}\" (role: {$user->role})", $user);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil diupdate.');
@@ -129,7 +129,7 @@ class UserController extends Controller
             $userEmail = $user->email;
             $user->delete();
 
-            ActivityLog::record('delete_user', "Menghapus user "{$userName}" ({$userEmail})");
+            ActivityLog::record('delete_user', "Menghapus user \"{$userName}\" ({$userEmail})");
 
             \Log::info('User deleted successfully', [
                 'deleted_user' => $userName,
@@ -186,7 +186,7 @@ class UserController extends Controller
             
             $user->save();
 
-            ActivityLog::record('change_role', "Mengubah role "{$user->name}" dari {$oldRole} menjadi {$user->role}", $user);
+            ActivityLog::record('change_role', "Mengubah role \"{$user->name}\" dari {$oldRole} menjadi {$user->role}", $user);
 
             \Log::info('User role toggled successfully', [
                 'user_id' => $user->id,

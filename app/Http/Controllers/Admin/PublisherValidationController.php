@@ -68,7 +68,7 @@ class PublisherValidationController extends Controller
 
         $publisher->activate(Auth::id(), $request->validation_notes);
 
-        ActivityLog::record('activate_publisher', "Mengaktifkan publisher "{$publisher->name}"", $publisher, [
+        ActivityLog::record('activate_publisher', "Mengaktifkan publisher \"{$publisher->name}\"", $publisher, [
             'notes' => $request->validation_notes,
             'token' => $publisher->validation_token,
         ]);
@@ -98,7 +98,7 @@ class PublisherValidationController extends Controller
 
         $publisher->suspend(Auth::id(), $request->validation_notes);
 
-        ActivityLog::record('suspend_publisher', "Mensuspend publisher "{$publisher->name}"", $publisher, [
+        ActivityLog::record('suspend_publisher', "Mensuspend publisher \"{$publisher->name}\"", $publisher, [
             'reason' => $request->validation_notes,
         ]);
 

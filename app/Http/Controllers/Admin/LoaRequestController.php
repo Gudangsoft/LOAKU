@@ -50,7 +50,7 @@ class LoaRequestController extends Controller
 
         $loaRequest->loa_code = $loaCode;
 
-        ActivityLog::record('approve_loa', "Menyetujui LOA "{$loaRequest->article_title}" (kode: {$loaCode})", $loaRequest, [
+        ActivityLog::record('approve_loa', "Menyetujui LOA \"{$loaRequest->article_title}\" (kode: {$loaCode})", $loaRequest, [
             'author'      => $loaRequest->author,
             'author_email'=> $loaRequest->author_email,
             'loa_code'    => $loaCode,
@@ -84,7 +84,7 @@ class LoaRequestController extends Controller
         $loaRequest->admin_notes = $request->admin_notes;
         $loaRequest->save();
 
-        ActivityLog::record('reject_loa', "Menolak LOA "{$loaRequest->article_title}"", $loaRequest, [
+        ActivityLog::record('reject_loa', "Menolak LOA \"{$loaRequest->article_title}\"", $loaRequest, [
             'author'      => $loaRequest->author,
             'author_email'=> $loaRequest->author_email,
             'reason'      => $request->admin_notes,
