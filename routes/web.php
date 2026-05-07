@@ -838,6 +838,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     
     // Publishers Management
     Route::resource('publishers', PublisherController::class);
+    Route::patch('/publishers/{publisher}/toggle-status', [PublisherController::class, 'toggleStatus'])->name('publishers.toggle-status');
     
     // LOA Templates Management
     Route::resource('loa-templates', LoaTemplateController::class);

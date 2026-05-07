@@ -9,10 +9,57 @@ use Illuminate\Support\Facades\Storage;
 
 class PublisherController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $publishers = Publisher::withCount('journals')->paginate(15);
-        return view('admin.publishers.index', compact('publishers'));
+        $query = Publisher::withCount('journals');
+
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%")
+                    ->orWhere('address', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->filled('status') && in_array($request->status, ['active', 'pending', 'suspended'])) {
+            $query->where('status', $request->status);
+        }
+
+        $publishers = $query->orderByRaw("FIELD(status,'pending','active','suspended')")
+                            ->orderBy('created_at', 'desc')
+                            ->paginate(15)
+                            ->withQueryString();
+
+        $stats = [
+            'total'     => Publisher::count(),
+            'active'    => Publisher::where('status', 'active')->count(),
+            'pending'   => Publisher::where('status', 'pending')->count(),
+            'suspended' => Publisher::where('status', 'suspended')->count(),
+        ];
+
+        return view('admin.publishers.index', compact('publishers', 'stats'));
+    }
+
+    public function toggleStatus(Request $request, Publisher $publisher)
+    {
+        $request->validate([
+            'action' => 'required|in:activate,suspend',
+            'notes'  => 'nullable|string|max:500',
+        ]);
+
+        if ($request->action === 'activate') {
+            if (!$publisher->validation_token) {
+                $publisher->generateValidationToken();
+            }
+            $publisher->activate(auth()->id(), $request->notes);
+            $message = "Publisher {$publisher->name} berhasil diaktifkan.";
+        } else {
+            $publisher->suspend(auth()->id(), $request->notes ?? 'Disuspend oleh admin.');
+            $message = "Publisher {$publisher->name} berhasil disuspend.";
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function create()
