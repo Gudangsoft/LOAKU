@@ -30,10 +30,13 @@ class SubscriptionPlanController extends Controller
             'duration_months'    => 'required|integer|min:1',
             'sort_order'         => 'nullable|integer|min:0',
             'is_active'          => 'nullable|boolean',
+            'features'           => 'nullable|array',
+            'features.*'         => 'string|in:' . implode(',', array_keys(SubscriptionPlan::FEATURES)),
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active', true);
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['is_active']   = $request->boolean('is_active', true);
+        $validated['sort_order']  = $validated['sort_order'] ?? 0;
+        $validated['features']    = $request->input('features', []);
 
         SubscriptionPlan::create($validated);
 
@@ -57,10 +60,13 @@ class SubscriptionPlanController extends Controller
             'duration_months'    => 'required|integer|min:1',
             'sort_order'         => 'nullable|integer|min:0',
             'is_active'          => 'nullable|boolean',
+            'features'           => 'nullable|array',
+            'features.*'         => 'string|in:' . implode(',', array_keys(SubscriptionPlan::FEATURES)),
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_active']  = $request->boolean('is_active');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['features']   = $request->input('features', []);
 
         $subscriptionPlan->update($validated);
 
@@ -70,8 +76,8 @@ class SubscriptionPlanController extends Controller
 
     public function destroy(SubscriptionPlan $subscriptionPlan)
     {
-        if ($subscriptionPlan->subscriptions()->exists()) {
-            return back()->with('error', 'Paket tidak dapat dihapus karena masih digunakan oleh publisher.');
+        if ($subscriptionPlan->subscriptions()->where('status', 'active')->exists()) {
+            return back()->with('error', 'Paket tidak dapat dihapus karena masih ada publisher dengan langganan aktif.');
         }
 
         $name = $subscriptionPlan->name;
