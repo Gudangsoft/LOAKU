@@ -494,6 +494,19 @@
                 </a>
             </div>
 
+            <!-- Langganan -->
+            <div class="nav-section">
+                <div class="nav-section-title">Langganan</div>
+                <a href="{{ route('admin.subscription-plans.index') }}" class="nav-link {{ request()->routeIs('admin.subscription-plans.*') ? 'active' : '' }}">
+                    <i class="fas fa-box-open"></i>
+                    <span>Paket Langganan</span>
+                </a>
+                <a href="{{ route('admin.publisher-subscriptions.index') }}" class="nav-link {{ request()->routeIs('admin.publisher-subscriptions.*') ? 'active' : '' }}">
+                    <i class="fas fa-id-card"></i>
+                    <span>Langganan Publisher</span>
+                </a>
+            </div>
+
             <!-- System Management (Super Admin Only) -->
             @if(Auth::user() && (Auth::user()->hasRole('super_admin') || Auth::user()->is_admin))
             <div class="nav-section">
