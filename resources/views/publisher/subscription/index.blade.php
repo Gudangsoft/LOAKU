@@ -29,11 +29,30 @@
     </div>
     <div class="card-body">
         @php
-            $bankName   = \App\Models\WebsiteSetting::getValue('payment_bank_name', '-');
-            $bankAccNum = \App\Models\WebsiteSetting::getValue('payment_bank_account_number', '-');
-            $bankAcc    = \App\Models\WebsiteSetting::getValue('payment_bank_account_name', '-');
-            $bankLogo   = \App\Models\WebsiteSetting::getValue('payment_bank_logo');
+            // Load multi-bank accounts
+            $accountsJson = \App\Models\WebsiteSetting::getValue('payment_bank_accounts', '');
+            $bankAccounts = $accountsJson ? (json_decode($accountsJson, true) ?? []) : [];
+            // Fallback legacy
+            if (empty($bankAccounts)) {
+                $legacyBank = \App\Models\WebsiteSetting::getValue('payment_bank_name', '');
+                $legacyNum  = \App\Models\WebsiteSetting::getValue('payment_bank_account_number', '');
+                $legacyName = \App\Models\WebsiteSetting::getValue('payment_bank_account_name', '');
+                $legacyLogo = \App\Models\WebsiteSetting::getValue('payment_bank_logo', '');
+                if ($legacyBank || $legacyNum) {
+                    $bankAccounts = [['bank_name'=>$legacyBank,'account_number'=>$legacyNum,'account_name'=>$legacyName,'logo'=>$legacyLogo]];
+                }
+            }
+            $whatsapp    = \App\Models\WebsiteSetting::getValue('payment_whatsapp', '');
+            $waTemplate  = \App\Models\WebsiteSetting::getValue('payment_whatsapp_message',
+                'Halo Admin, saya ingin konfirmasi pembayaran. No. Invoice: {invoice}');
             $instructions = \App\Models\WebsiteSetting::getValue('payment_instructions');
+            // Build WA URL
+            $waMsg = str_replace(
+                ['{invoice}', '{plan}', '{amount}', '{name}'],
+                [$latestPayment->invoice_number, $latestPayment->plan->name,
+                 'Rp '.number_format($latestPayment->amount,0,',','.'), auth()->user()->name],
+                $waTemplate
+            );
         @endphp
 
         <div class="row">
@@ -51,34 +70,49 @@
                     <strong>Alasan ditolak:</strong> {{ $latestPayment->admin_notes }}
                 </div>
                 @endif
+
+                {{-- Tombol WhatsApp --}}
+                @if($whatsapp)
+                <a href="https://wa.me/{{ $whatsapp }}?text={{ urlencode($waMsg) }}"
+                   target="_blank" class="btn btn-success w-100 mt-2">
+                    <i class="fab fa-whatsapp me-2"></i>Konfirmasi via WhatsApp
+                </a>
+                @endif
             </div>
 
             <div class="col-md-6">
-                <h6 class="fw-bold mb-3">Informasi Pembayaran</h6>
-                @if($bankLogo)
-                    <img src="{{ Storage::url($bankLogo) }}" alt="Bank" style="max-height:40px;" class="mb-2 d-block">
-                @endif
-                <div class="bg-light rounded p-3 mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-muted small">Bank</span>
-                        <strong>{{ $bankName }}</strong>
+                <h6 class="fw-bold mb-3">Informasi Rekening</h6>
+
+                @forelse($bankAccounts as $acc)
+                @if(empty($acc['bank_name']) && empty($acc['account_number'])) @continue @endif
+                <div class="bg-light rounded p-3 mb-2">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        @if(!empty($acc['logo']))
+                            <img src="{{ Storage::url($acc['logo']) }}" style="max-height:28px;max-width:60px;" alt="">
+                        @endif
+                        <strong class="text-primary">{{ $acc['bank_name'] ?? '' }}</strong>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted small">No. Rekening</span>
                         <div class="d-flex align-items-center gap-2">
-                            <strong id="accNum">{{ $bankAccNum }}</strong>
-                            <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="copyText('{{ $bankAccNum }}')" title="Salin">
+                            <strong>{{ $acc['account_number'] ?? '' }}</strong>
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-1"
+                                    onclick="copyText('{{ $acc['account_number'] ?? '' }}')" title="Salin">
                                 <i class="fas fa-copy fa-xs"></i>
                             </button>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="text-muted small">Atas Nama</span>
-                        <strong>{{ $bankAcc }}</strong>
+                        <span>{{ $acc['account_name'] ?? '' }}</span>
                     </div>
                 </div>
+                @empty
+                <p class="text-muted small">Informasi rekening belum diatur oleh admin.</p>
+                @endforelse
+
                 @if($instructions)
-                    <p class="text-muted small">{{ $instructions }}</p>
+                    <p class="text-muted small mt-2">{{ $instructions }}</p>
                 @endif
             </div>
         </div>

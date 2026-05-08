@@ -23,14 +23,26 @@ class SubscriptionInvoiceNotification extends Notification implements ShouldQueu
 
     public function toMail(object $notifiable): MailMessage
     {
-        $payment = $this->payment;
-        $plan    = $payment->plan;
-        $bank    = WebsiteSetting::getValue('payment_bank_name', '-');
-        $accNum  = WebsiteSetting::getValue('payment_bank_account_number', '-');
-        $accName = WebsiteSetting::getValue('payment_bank_account_name', '-');
+        $payment      = $this->payment;
+        $plan         = $payment->plan;
         $instructions = WebsiteSetting::getValue('payment_instructions', '');
+        $whatsapp     = WebsiteSetting::getValue('payment_whatsapp', '');
 
-        return (new MailMessage)
+        // Load multi-bank accounts
+        $accountsJson = WebsiteSetting::getValue('payment_bank_accounts', '');
+        $accounts     = $accountsJson ? (json_decode($accountsJson, true) ?? []) : [];
+
+        // Fallback to legacy single-bank fields
+        if (empty($accounts)) {
+            $bank = WebsiteSetting::getValue('payment_bank_name', '');
+            $num  = WebsiteSetting::getValue('payment_bank_account_number', '');
+            $name = WebsiteSetting::getValue('payment_bank_account_name', '');
+            if ($bank || $num) {
+                $accounts = [['bank_name' => $bank, 'account_number' => $num, 'account_name' => $name]];
+            }
+        }
+
+        $mail = (new MailMessage)
             ->subject("Invoice Langganan #{$payment->invoice_number} – LOA SIPTENAN")
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Terima kasih telah memilih paket **{$plan->name}**.")
@@ -41,11 +53,25 @@ class SubscriptionInvoiceNotification extends Notification implements ShouldQueu
             ->line("- Durasi      : {$plan->duration_months} bulan")
             ->line("- Total Bayar : **Rp " . number_format($payment->amount, 0, ',', '.') . "**")
             ->line('---')
-            ->line('**Informasi Pembayaran:**')
-            ->line("- Bank  : {$bank}")
-            ->line("- No. Rekening : {$accNum}")
-            ->line("- Atas Nama    : {$accName}")
-            ->when($instructions, fn($m) => $m->line($instructions))
+            ->line('**Informasi Pembayaran:**');
+
+        foreach ($accounts as $acc) {
+            if (empty($acc['bank_name']) && empty($acc['account_number'])) continue;
+            $mail->line("🏦 **{$acc['bank_name']}**")
+                 ->line("  No. Rekening : {$acc['account_number']}")
+                 ->line("  Atas Nama    : {$acc['account_name']}");
+        }
+
+        if ($instructions) {
+            $mail->line('---')->line($instructions);
+        }
+
+        if ($whatsapp) {
+            $waMsg = urlencode("Halo Admin, saya ingin konfirmasi pembayaran. No. Invoice: {$payment->invoice_number}");
+            $mail->line("💬 Konfirmasi via WhatsApp: https://wa.me/{$whatsapp}?text={$waMsg}");
+        }
+
+        return $mail
             ->line('Setelah melakukan pembayaran, harap upload bukti transfer melalui dashboard publisher Anda.')
             ->action('Upload Bukti Bayar', url('/publisher/subscription'))
             ->salutation("Salam,\nTim LOA SIPTENAN");
