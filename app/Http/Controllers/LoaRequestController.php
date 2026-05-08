@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Journal;
 use App\Models\LoaRequest;
+use App\Models\Publisher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -51,6 +52,29 @@ class LoaRequestController extends Controller
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
+        }
+
+        // Cek kuota LOA bulanan berdasarkan paket langganan publisher
+        $journal = Journal::find($request->journal_id);
+        if ($journal && $journal->publisher_id) {
+            $publisher = Publisher::find($journal->publisher_id);
+            if ($publisher) {
+                $sub = $publisher->activeSubscription;
+                if ($sub) {
+                    $maxLoa = $sub->plan->max_loa_per_month;
+                    if ($maxLoa !== null) {
+                        $usedThisMonth = LoaRequest::where('journal_id', $request->journal_id)
+                            ->whereYear('created_at', now()->year)
+                            ->whereMonth('created_at', now()->month)
+                            ->count();
+                        if ($usedThisMonth >= $maxLoa) {
+                            return redirect()->back()
+                                ->with('error', "Kuota pengajuan LOA untuk jurnal ini sudah penuh bulan ini. Silakan coba lagi bulan depan.")
+                                ->withInput();
+                        }
+                    }
+                }
+            }
         }
 
         $noReg = LoaRequest::generateNoReg($request->article_id);

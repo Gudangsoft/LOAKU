@@ -67,6 +67,55 @@ class Publisher extends Model
         return $this->hasMany(Journal::class);
     }
 
+    public function subscriptions()
+    {
+        return $this->hasMany(PublisherSubscription::class);
+    }
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(PublisherSubscription::class)
+            ->where('status', 'active')
+            ->where('end_date', '>=', now()->toDateString())
+            ->orderByDesc('end_date');
+    }
+
+    public function currentPlan(): ?SubscriptionPlan
+    {
+        return $this->activeSubscription?->plan;
+    }
+
+    public function canAddJournal(): bool
+    {
+        $sub = $this->activeSubscription;
+        if (!$sub) {
+            return false;
+        }
+        $max = $sub->plan->max_journals;
+        if ($max === null) {
+            return true;
+        }
+        return $this->journals()->count() < $max;
+    }
+
+    public function canSubmitLoa(): bool
+    {
+        $sub = $this->activeSubscription;
+        if (!$sub) {
+            return false;
+        }
+        $max = $sub->plan->max_loa_per_month;
+        if ($max === null) {
+            return true;
+        }
+        $journalIds = $this->journals()->pluck('id');
+        $usedThisMonth = LoaRequest::whereIn('journal_id', $journalIds)
+            ->whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->count();
+        return $usedThisMonth < $max;
+    }
+
     /**
      * Validator relationship
      */

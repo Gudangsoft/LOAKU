@@ -194,6 +194,13 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
         Route::post('/users/{user}/resend-verification', [\App\Http\Controllers\Admin\UserController::class, 'resendVerification'])->name('users.resend-verification');
     });
     
+    // Subscription Plans Management
+    Route::resource('subscription-plans', \App\Http\Controllers\Admin\SubscriptionPlanController::class);
+
+    // Publisher Subscriptions Management
+    Route::resource('publisher-subscriptions', \App\Http\Controllers\Admin\PublisherSubscriptionController::class);
+    Route::post('/publisher-subscriptions/{publisherSubscription}/cancel', [\App\Http\Controllers\Admin\PublisherSubscriptionController::class, 'cancel'])->name('publisher-subscriptions.cancel');
+
     // Publisher Validation Management
     Route::prefix('publisher-validation')->name('publisher-validation.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'index'])->name('index');
@@ -528,6 +535,9 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
             ->with('success', "Template LOA berhasil {$status}.");
     })->name('loa-templates.toggle');
     
+        // Subscription Status
+        Route::get('/subscription', [\App\Http\Controllers\Publisher\SubscriptionController::class, 'index'])->name('subscription.index');
+
     }); // End of protected publisher routes (publisher.validated middleware)
 }); // End of publisher routes group
 

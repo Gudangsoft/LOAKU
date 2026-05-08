@@ -257,6 +257,16 @@ class PublisherController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
+        // Cek batas jurnal berdasarkan paket langganan
+        if (!$publisher->canAddJournal()) {
+            $sub = $publisher->activeSubscription;
+            if (!$sub) {
+                return redirect()->back()->with('error', 'Publisher ini belum memiliki paket langganan aktif. Hubungi admin.');
+            }
+            $max = $sub->plan->max_journals;
+            return redirect()->back()->with('error', "Batas maksimal jurnal untuk paket '{$sub->plan->name}' adalah {$max} jurnal. Upgrade paket untuk menambah lebih banyak.");
+        }
+
         $data = $request->only(['publisher_id', 'name', 'e_issn', 'p_issn', 'chief_editor', 'email', 'description', 'website']);
         $data['user_id'] = Auth::id();
 

@@ -191,7 +191,27 @@
                                 <span>Template LOA</span>
                             </a>
                         </li>
-                        
+
+                        <hr class="sidebar-divider my-3" style="border-color: rgba(255,255,255,0.15);">
+
+                        <div class="sidebar-heading" style="color: rgba(255,255,255,0.6); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1rem; margin-bottom: 0.5rem; padding: 0 1rem;">
+                            Langganan
+                        </div>
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.subscription-plans.*') ? 'active' : '' }}" href="{{ route('admin.subscription-plans.index') }}">
+                                <i class="fas fa-box-open"></i>
+                                <span>Paket Langganan</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.publisher-subscriptions.*') ? 'active' : '' }}" href="{{ route('admin.publisher-subscriptions.index') }}">
+                                <i class="fas fa-id-card"></i>
+                                <span>Langganan Publisher</span>
+                            </a>
+                        </li>
+
                         <hr class="sidebar-divider my-3" style="border-color: rgba(255,255,255,0.15);">
                         
                         <!-- Pengaturan Section -->

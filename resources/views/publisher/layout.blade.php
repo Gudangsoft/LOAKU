@@ -100,6 +100,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('publisher.subscription*') ? 'active' : '' }}" href="{{ route('publisher.subscription.index') }}">
+                                <i class="fas fa-box-open me-2"></i>Paket Langganan
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('publisher.profile*') ? 'active' : '' }}" href="{{ route('publisher.profile') }}">
                                 <i class="fas fa-user me-2"></i>Profile
                             </a>
