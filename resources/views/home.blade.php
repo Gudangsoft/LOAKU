@@ -913,40 +913,6 @@
     </div>
 </section>
 
-<!-- ── SUPPORTED BY ── -->
-@if($supports->count() > 0)
-<section class="support-section">
-    <div class="container">
-        <div class="support-label">
-            <i class="fas fa-handshake me-2"></i>Didukung Oleh
-        </div>
-        <div class="support-track">
-            @foreach($supports as $support)
-            @if($support->website)
-            <a href="{{ $support->website }}" target="_blank" rel="noopener" class="support-item" title="{{ $support->name }}">
-            @else
-            <div class="support-item">
-            @endif
-                <div class="support-logo-wrap">
-                    @if($support->logo)
-                        <img src="{{ $support->logo_url }}" alt="{{ $support->name }}">
-                    @else
-                        <div class="support-logo-placeholder">
-                            {{ strtoupper(substr($support->name, 0, 1)) }}
-                        </div>
-                    @endif
-                </div>
-                <div class="support-name">{{ $support->name }}</div>
-            @if($support->website)
-            </a>
-            @else
-            </div>
-            @endif
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
 
 <!-- ── PAKET LANGGANAN ── -->
 @php $homePlans = \App\Models\SubscriptionPlan::active()->orderBy('sort_order')->get(); @endphp
@@ -1020,20 +986,67 @@
     <div class="container position-relative" style="z-index:1">
         <div class="row justify-content-center">
             <div class="col-lg-7">
-                <h2>Siap Mengajukan LOA Anda?</h2>
-                <p>Proses cepat, mudah, dan terpercaya. Ribuan penulis telah menggunakan SIPTENAN untuk jurnal ilmiah mereka.</p>
+                <h2>{{ setting('cta_title', 'Siap Mengajukan LOA Anda?') }}</h2>
+                <p>{{ setting('cta_subtitle', 'Proses cepat, mudah, dan terpercaya. Ribuan penulis telah menggunakan SIPTENAN untuk jurnal ilmiah mereka.') }}</p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    @if(setting('cta_btn1_text'))
+                    <a href="{{ setting('cta_btn1_url', route('loa.create')) }}" class="btn-hero-primary">
+                        <i class="fas fa-paper-plane"></i> {{ setting('cta_btn1_text') }}
+                    </a>
+                    @else
                     <a href="{{ route('loa.create') }}" class="btn-hero-primary">
                         <i class="fas fa-paper-plane"></i> Request LOA Gratis
                     </a>
+                    @endif
+                    @if(setting('cta_btn2_text'))
+                    <a href="{{ setting('cta_btn2_url', route('loa.search')) }}" class="btn-hero-outline">
+                        <i class="fas fa-search"></i> {{ setting('cta_btn2_text') }}
+                    </a>
+                    @else
                     <a href="{{ route('loa.search') }}" class="btn-hero-outline">
                         <i class="fas fa-search"></i> Cari LOA Saya
                     </a>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- ── SUPPORTED BY ── -->
+@if($supports->count() > 0)
+<section class="support-section">
+    <div class="container">
+        <div class="support-label">
+            <i class="fas fa-handshake me-2"></i>Didukung Oleh
+        </div>
+        <div class="support-track">
+            @foreach($supports as $support)
+            @if($support->website)
+            <a href="{{ $support->website }}" target="_blank" rel="noopener" class="support-item" title="{{ $support->name }}">
+            @else
+            <div class="support-item">
+            @endif
+                <div class="support-logo-wrap">
+                    @if($support->logo)
+                        <img src="{{ $support->logo_url }}" alt="{{ $support->name }}">
+                    @else
+                        <div class="support-logo-placeholder">
+                            {{ strtoupper(substr($support->name, 0, 1)) }}
+                        </div>
+                    @endif
+                </div>
+                <div class="support-name">{{ $support->name }}</div>
+            @if($support->website)
+            </a>
+            @else
+            </div>
+            @endif
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
 
 @endsection
 

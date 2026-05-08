@@ -135,25 +135,27 @@ class Publisher extends Model
 
     public function canAddJournal(): bool
     {
-        $sub = $this->activeSubscription;
-        if (!$sub) {
+        $sub  = $this->activeSubscription;
+        $plan = $sub?->plan ?? $this->freePlanFallback();
+
+        if (!$plan) {
             return false;
         }
-        $max = $sub->plan->max_journals;
-        if ($max === null) {
+        if ($plan->max_journals === null) {
             return true;
         }
-        return $this->journals()->count() < $max;
+        return $this->journals()->count() < $plan->max_journals;
     }
 
     public function canSubmitLoa(): bool
     {
-        $sub = $this->activeSubscription;
-        if (!$sub) {
+        $sub  = $this->activeSubscription;
+        $plan = $sub?->plan ?? $this->freePlanFallback();
+
+        if (!$plan) {
             return false;
         }
-        $max = $sub->plan->max_loa_per_month;
-        if ($max === null) {
+        if ($plan->max_loa_per_month === null) {
             return true;
         }
         $journalIds = $this->journals()->pluck('id');
@@ -161,7 +163,12 @@ class Publisher extends Model
             ->whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->count();
-        return $usedThisMonth < $max;
+        return $usedThisMonth < $plan->max_loa_per_month;
+    }
+
+    private function freePlanFallback(): ?SubscriptionPlan
+    {
+        return SubscriptionPlan::where('price', 0)->where('is_active', true)->orderBy('sort_order')->first();
     }
 
     /**

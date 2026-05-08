@@ -121,6 +121,73 @@
                     </form>
                 </div>
             </div>
+
+            <!-- CTA Section Settings -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bullhorn me-2"></i>Pengaturan Seksi CTA (Homepage)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Bagian "Siap Mengajukan LOA Anda?" di bawah halaman utama.</p>
+                    <form action="{{ route('admin.website-settings.update') }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        {{-- Kirim ulang field wajib dengan nilai tersimpan agar tidak di-reset --}}
+                        <input type="hidden" name="site_name" value="{{ setting('site_name', 'LOA Management System') }}">
+                        <input type="hidden" name="site_description" value="{{ setting('site_description') }}">
+                        <input type="hidden" name="admin_email" value="{{ setting('admin_email') }}">
+                        <input type="hidden" name="phone" value="{{ setting('phone') }}">
+                        <input type="hidden" name="address" value="{{ setting('address') }}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Judul CTA</label>
+                            <input type="text" name="cta_title" class="form-control"
+                                   value="{{ old('cta_title', setting('cta_title', 'Siap Mengajukan LOA Anda?')) }}"
+                                   placeholder="Siap Mengajukan LOA Anda?">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Subjudul CTA</label>
+                            <textarea name="cta_subtitle" rows="2" class="form-control"
+                                      placeholder="Deskripsi singkat...">{{ old('cta_subtitle', setting('cta_subtitle', 'Proses cepat, mudah, dan terpercaya. Ribuan penulis telah menggunakan SIPTENAN untuk jurnal ilmiah mereka.')) }}</textarea>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-5">
+                                <label class="form-label fw-semibold small">Tombol 1 — Teks</label>
+                                <input type="text" name="cta_btn1_text" class="form-control form-control-sm"
+                                       value="{{ old('cta_btn1_text', setting('cta_btn1_text', 'Request LOA Gratis')) }}"
+                                       placeholder="Request LOA Gratis">
+                            </div>
+                            <div class="col-7">
+                                <label class="form-label fw-semibold small">Tombol 1 — URL</label>
+                                <input type="url" name="cta_btn1_url" class="form-control form-control-sm"
+                                       value="{{ old('cta_btn1_url', setting('cta_btn1_url')) }}"
+                                       placeholder="https://... (kosong = otomatis)">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-4">
+                            <div class="col-5">
+                                <label class="form-label fw-semibold small">Tombol 2 — Teks</label>
+                                <input type="text" name="cta_btn2_text" class="form-control form-control-sm"
+                                       value="{{ old('cta_btn2_text', setting('cta_btn2_text', 'Cari LOA Saya')) }}"
+                                       placeholder="Cari LOA Saya">
+                            </div>
+                            <div class="col-7">
+                                <label class="form-label fw-semibold small">Tombol 2 — URL</label>
+                                <input type="url" name="cta_btn2_url" class="form-control form-control-sm"
+                                       value="{{ old('cta_btn2_url', setting('cta_btn2_url')) }}"
+                                       placeholder="https://... (kosong = otomatis)">
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-save me-1"></i>Simpan CTA
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-4">

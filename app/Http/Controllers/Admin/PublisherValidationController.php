@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Publisher;
+use App\Models\PublisherSubscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Notifications\PublisherActivatedNotification;
 use App\Notifications\PublisherSuspendedNotification;
@@ -67,6 +69,9 @@ class PublisherValidationController extends Controller
         }
 
         $publisher->activate(Auth::id(), $request->validation_notes);
+
+        // Auto-assign free plan if publisher has no active subscription
+        $this->assignFreePlanIfNeeded($publisher);
 
         ActivityLog::record('activate_publisher', "Mengaktifkan publisher \"{$publisher->name}\"", $publisher, [
             'notes' => $request->validation_notes,
@@ -148,6 +153,7 @@ class PublisherValidationController extends Controller
                 $publisher->generateValidationToken();
             }
             $publisher->activate(Auth::id(), $request->bulk_notes);
+            $this->assignFreePlanIfNeeded($publisher);
             $this->notifyPublisherActivation($publisher);
             $activated++;
         }
@@ -171,6 +177,33 @@ class PublisherValidationController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    private function assignFreePlanIfNeeded(Publisher $publisher): void
+    {
+        // Skip if publisher already has an active subscription
+        if ($publisher->activeSubscription()->exists()) {
+            return;
+        }
+
+        $freePlan = SubscriptionPlan::where('price', 0)->where('is_active', true)->orderBy('sort_order')->first();
+        if (!$freePlan) {
+            return;
+        }
+
+        $start = now();
+        $end   = $start->copy()->addMonths($freePlan->duration_months);
+
+        PublisherSubscription::create([
+            'publisher_id'         => $publisher->id,
+            'subscription_plan_id' => $freePlan->id,
+            'start_date'           => $start->toDateString(),
+            'end_date'             => $end->toDateString(),
+            'status'               => 'active',
+            'amount_paid'          => 0,
+            'notes'                => 'Paket gratis otomatis saat aktivasi',
+            'created_by'           => Auth::id(),
+        ]);
     }
 
     /**

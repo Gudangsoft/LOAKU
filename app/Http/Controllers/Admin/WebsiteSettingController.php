@@ -26,13 +26,19 @@ class WebsiteSettingController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'site_name' => 'required|string|max:255',
+            'site_name'        => 'required|string|max:255',
             'site_description' => 'nullable|string|max:500',
-            'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
-            'favicon' => 'nullable|mimes:png,ico,jpg,jpeg|max:1024',
-            'admin_email' => 'nullable|email',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
+            'logo'             => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
+            'favicon'          => 'nullable|mimes:png,ico,jpg,jpeg|max:1024',
+            'admin_email'      => 'nullable|email',
+            'phone'            => 'nullable|string|max:20',
+            'address'          => 'nullable|string|max:500',
+            'cta_title'        => 'nullable|string|max:200',
+            'cta_subtitle'     => 'nullable|string|max:500',
+            'cta_btn1_text'    => 'nullable|string|max:60',
+            'cta_btn1_url'     => 'nullable|url|max:500',
+            'cta_btn2_text'    => 'nullable|string|max:60',
+            'cta_btn2_url'     => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -48,6 +54,13 @@ class WebsiteSettingController extends Controller
             WebsiteSetting::set('admin_email', $request->admin_email, 'text', 'Email Admin');
             WebsiteSetting::set('phone', $request->phone, 'text', 'Nomor Telepon');
             WebsiteSetting::set('address', $request->address, 'text', 'Alamat');
+            // CTA Section
+            WebsiteSetting::set('cta_title',     $request->cta_title,     'text', 'CTA Judul');
+            WebsiteSetting::set('cta_subtitle',  $request->cta_subtitle,  'text', 'CTA Subjudul');
+            WebsiteSetting::set('cta_btn1_text', $request->cta_btn1_text, 'text', 'CTA Tombol 1 Teks');
+            WebsiteSetting::set('cta_btn1_url',  $request->cta_btn1_url,  'text', 'CTA Tombol 1 URL');
+            WebsiteSetting::set('cta_btn2_text', $request->cta_btn2_text, 'text', 'CTA Tombol 2 Teks');
+            WebsiteSetting::set('cta_btn2_url',  $request->cta_btn2_url,  'text', 'CTA Tombol 2 URL');
 
             // Handle logo upload
             if ($request->hasFile('logo')) {
