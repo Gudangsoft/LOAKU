@@ -22,6 +22,10 @@ class Publisher extends Model
         'website',
         'logo',
         'selected_plan_id',
+        'subdomain',
+        'custom_domain',
+        'domain_status',
+        'domain_notes',
     ];
 
     protected static function booted(): void
@@ -86,6 +90,34 @@ class Publisher extends Model
     public function latestPayment()
     {
         return $this->hasOne(SubscriptionPayment::class)->latest();
+    }
+
+    public function domainApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'domain_approved_by');
+    }
+
+    public function hasDomainActive(): bool
+    {
+        return $this->domain_status === 'active' &&
+               ($this->subdomain || $this->custom_domain);
+    }
+
+    public function getPublicDomainUrl(): ?string
+    {
+        if ($this->domain_status !== 'active') return null;
+        if ($this->custom_domain) return 'https://' . $this->custom_domain;
+        if ($this->subdomain) {
+            $main = parse_url(config('app.url'), PHP_URL_HOST) ?? 'loa.siptenan.org';
+            return 'https://' . $this->subdomain . '.' . $main;
+        }
+        return null;
+    }
+
+    public function canRequestDomain(): bool
+    {
+        $sub = $this->activeSubscription;
+        return $sub && $sub->plan->allowsCustomDomain();
     }
 
     public function activeSubscription()

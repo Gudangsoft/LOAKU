@@ -978,17 +978,23 @@
                         </div>
                         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
                             <li style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#334155;">
-                                <i class="fas fa-book" style="color:#10B981;width:16px;"></i>
-                                <strong>{{ $plan->maxJournalsLabel() }}</strong> jurnal
+                                <i class="fas fa-book" style="color:#10B981;width:16px;flex-shrink:0;"></i>
+                                <span><strong>{{ $plan->maxJournalsLabel() }}</strong> jurnal</span>
                             </li>
                             <li style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#334155;">
-                                <i class="fas fa-file-alt" style="color:#06B6D4;width:16px;"></i>
-                                <strong>{{ $plan->maxLoaPerMonthLabel() }}</strong> LOA / bulan
+                                <i class="fas fa-file-alt" style="color:#06B6D4;width:16px;flex-shrink:0;"></i>
+                                <span><strong>{{ $plan->maxLoaPerMonthLabel() }}</strong> LOA / bulan</span>
                             </li>
                             <li style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#334155;">
-                                <i class="fas fa-calendar-check" style="color:#F59E0B;width:16px;"></i>
-                                Durasi <strong>{{ $plan->duration_months }} bulan</strong>
+                                <i class="fas fa-calendar-check" style="color:#F59E0B;width:16px;flex-shrink:0;"></i>
+                                <span>Durasi <strong>{{ $plan->duration_months }} bulan</strong></span>
                             </li>
+                            @foreach($plan->getEnabledFeatures() as $fKey => $fMeta)
+                            <li style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#334155;">
+                                <i class="{{ $fMeta['icon'] }}" style="color:{{ match($fMeta['color']) { 'success'=>'#10B981','info'=>'#06B6D4','primary'=>'#4F46E5','warning'=>'#F59E0B','purple'=>'#8B5CF6','secondary'=>'#64748B','dark'=>'#1E293B', default=>'#64748B' } }};width:16px;flex-shrink:0;"></i>
+                                <span>{{ $fMeta['label'] }}</span>
+                            </li>
+                            @endforeach
                         </ul>
                     </div>
                     <div style="padding:0 28px 28px;">

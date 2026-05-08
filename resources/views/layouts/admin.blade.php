@@ -518,6 +518,15 @@
                     <i class="fas fa-university"></i>
                     <span>Rekening Bank</span>
                 </a>
+                <a href="{{ route('admin.domain-requests.index') }}" class="nav-link {{ request()->routeIs('admin.domain-requests.*') ? 'active' : '' }}">
+                    <i class="fas fa-globe"></i>
+                    <span>Domain Kustom
+                        @php $pendingDomain = \App\Models\Publisher::where('domain_status','pending')->count(); @endphp
+                        @if($pendingDomain > 0)
+                            <span class="badge bg-warning text-dark ms-1">{{ $pendingDomain }}</span>
+                        @endif
+                    </span>
+                </a>
             </div>
 
             <!-- System Management (Super Admin Only) -->

@@ -212,6 +212,12 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::get('/payment-settings', [\App\Http\Controllers\Admin\PaymentSettingController::class, 'index'])->name('payment-settings.index');
     Route::post('/payment-settings', [\App\Http\Controllers\Admin\PaymentSettingController::class, 'update'])->name('payment-settings.update');
 
+    // Domain Requests Management
+    Route::get('/domain-requests', [\App\Http\Controllers\Admin\DomainRequestController::class, 'index'])->name('domain-requests.index');
+    Route::post('/domain-requests/{publisher}/approve', [\App\Http\Controllers\Admin\DomainRequestController::class, 'approve'])->name('domain-requests.approve');
+    Route::post('/domain-requests/{publisher}/reject', [\App\Http\Controllers\Admin\DomainRequestController::class, 'reject'])->name('domain-requests.reject');
+    Route::delete('/domain-requests/{publisher}/revoke', [\App\Http\Controllers\Admin\DomainRequestController::class, 'revoke'])->name('domain-requests.revoke');
+
     // Publisher Validation Management
     Route::prefix('publisher-validation')->name('publisher-validation.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'index'])->name('index');
@@ -550,6 +556,11 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
         Route::get('/subscription', [\App\Http\Controllers\Publisher\SubscriptionController::class, 'index'])->name('subscription.index');
         Route::post('/subscription/select-plan', [\App\Http\Controllers\Publisher\SubscriptionController::class, 'selectPlan'])->name('subscription.select-plan');
         Route::post('/subscription/upload-proof/{payment}', [\App\Http\Controllers\Publisher\SubscriptionController::class, 'uploadProof'])->name('subscription.upload-proof');
+
+        // Domain Management
+        Route::get('/domain', [\App\Http\Controllers\Publisher\DomainController::class, 'index'])->name('domain.index');
+        Route::post('/domain', [\App\Http\Controllers\Publisher\DomainController::class, 'update'])->name('domain.update');
+        Route::post('/domain/cancel', [\App\Http\Controllers\Publisher\DomainController::class, 'cancel'])->name('domain.cancel');
 
     }); // End of protected publisher routes (publisher.validated middleware)
 }); // End of publisher routes group

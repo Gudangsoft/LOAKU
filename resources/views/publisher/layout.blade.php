@@ -105,6 +105,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('publisher.domain*') ? 'active' : '' }}" href="{{ route('publisher.domain.index') }}">
+                                <i class="fas fa-globe me-2"></i>Domain Kustom
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('publisher.profile*') ? 'active' : '' }}" href="{{ route('publisher.profile') }}">
                                 <i class="fas fa-user me-2"></i>Profile
                             </a>

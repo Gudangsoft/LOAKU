@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global middleware
         $middleware->web([
             \App\Http\Middleware\ShareWebsiteSettings::class,
+            \App\Http\Middleware\CustomDomainMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
