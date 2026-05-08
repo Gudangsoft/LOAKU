@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SubscriptionPayment;
 use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
 
@@ -81,6 +82,11 @@ class SubscriptionPlanController extends Controller
         }
 
         $name = $subscriptionPlan->name;
+
+        // Hapus riwayat pembayaran & langganan non-aktif yang mereferensikan paket ini
+        SubscriptionPayment::where('subscription_plan_id', $subscriptionPlan->id)->delete();
+        $subscriptionPlan->subscriptions()->delete();
+
         $subscriptionPlan->delete();
 
         return redirect()->route('admin.subscription-plans.index')
