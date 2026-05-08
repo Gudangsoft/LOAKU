@@ -925,10 +925,10 @@
             <p style="color:#64748B;max-width:520px;margin:10px auto 0;">Kelola jurnal dan LOA publisher Anda dengan mudah. Mulai gratis atau pilih paket premium.</p>
         </div>
 
-        <div class="row justify-content-center g-4">
+        <div class="row g-4">
             @foreach($homePlans as $i => $plan)
             @php $featured = ($i === intval($homePlans->count() / 2)); @endphp
-            <div class="col-md-4 col-sm-6">
+            <div class="col-lg-3 col-md-6">
                 <div style="border-radius:16px;overflow:hidden;box-shadow:{{ $featured ? '0 12px 40px rgba(79,70,229,.25)' : '0 4px 20px rgba(0,0,0,.08)' }};border:{{ $featured ? '2px solid #4F46E5' : '1px solid #E2E8F0' }};height:100%;display:flex;flex-direction:column;position:relative;background:#fff;">
                     @if($featured)
                     <div style="position:absolute;top:0;left:0;right:0;text-align:center;background:#4F46E5;color:#fff;font-size:.75rem;font-weight:700;padding:4px 0;letter-spacing:1px;">PALING POPULER</div>
