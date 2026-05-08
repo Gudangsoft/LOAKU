@@ -948,6 +948,67 @@
 </section>
 @endif
 
+<!-- ── PAKET LANGGANAN ── -->
+@php $homePlans = \App\Models\SubscriptionPlan::active()->orderBy('sort_order')->get(); @endphp
+@if($homePlans->count() > 0)
+<section style="padding: 72px 0; background: #fff;" id="paket">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span style="background:#EEF2FF;color:#4F46E5;padding:6px 18px;border-radius:50px;font-size:.85rem;font-weight:600;letter-spacing:.5px;">PAKET LANGGANAN</span>
+            <h2 style="margin-top:16px;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:#1E293B;">Pilih Paket yang Sesuai</h2>
+            <p style="color:#64748B;max-width:520px;margin:10px auto 0;">Kelola jurnal dan LOA publisher Anda dengan mudah. Mulai gratis atau pilih paket premium.</p>
+        </div>
+
+        <div class="row justify-content-center g-4">
+            @foreach($homePlans as $i => $plan)
+            @php $featured = ($i === intval($homePlans->count() / 2)); @endphp
+            <div class="col-md-4 col-sm-6">
+                <div style="border-radius:16px;overflow:hidden;box-shadow:{{ $featured ? '0 12px 40px rgba(79,70,229,.25)' : '0 4px 20px rgba(0,0,0,.08)' }};border:{{ $featured ? '2px solid #4F46E5' : '1px solid #E2E8F0' }};height:100%;display:flex;flex-direction:column;position:relative;background:#fff;">
+                    @if($featured)
+                    <div style="position:absolute;top:0;left:0;right:0;text-align:center;background:#4F46E5;color:#fff;font-size:.75rem;font-weight:700;padding:4px 0;letter-spacing:1px;">PALING POPULER</div>
+                    @endif
+                    <div style="padding:{{ $featured ? '40px 28px 24px' : '28px 28px 24px' }};flex:1;">
+                        <h4 style="font-weight:700;color:#1E293B;margin-bottom:4px;">{{ $plan->name }}</h4>
+                        @if($plan->description)
+                            <p style="color:#64748B;font-size:.875rem;margin-bottom:16px;">{{ $plan->description }}</p>
+                        @endif
+                        <div style="margin:20px 0;">
+                            <span style="font-size:2.4rem;font-weight:800;color:{{ $featured ? '#4F46E5' : '#1E293B' }};">{{ $plan->price == 0 ? 'Gratis' : 'Rp '.number_format($plan->price,0,',','.') }}</span>
+                            @if($plan->price > 0)<span style="color:#94A3B8;font-size:.9rem;margin-left:4px;">/ {{ $plan->duration_months }} bulan</span>@endif
+                        </div>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+                            <li style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#334155;">
+                                <i class="fas fa-book" style="color:#10B981;width:16px;"></i>
+                                <strong>{{ $plan->maxJournalsLabel() }}</strong> jurnal
+                            </li>
+                            <li style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#334155;">
+                                <i class="fas fa-file-alt" style="color:#06B6D4;width:16px;"></i>
+                                <strong>{{ $plan->maxLoaPerMonthLabel() }}</strong> LOA / bulan
+                            </li>
+                            <li style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#334155;">
+                                <i class="fas fa-calendar-check" style="color:#F59E0B;width:16px;"></i>
+                                Durasi <strong>{{ $plan->duration_months }} bulan</strong>
+                            </li>
+                        </ul>
+                    </div>
+                    <div style="padding:0 28px 28px;">
+                        <a href="{{ route('publisher.register.form') }}?plan={{ $plan->id }}"
+                           style="display:block;text-align:center;padding:12px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:all .2s;background:{{ $featured ? '#4F46E5' : '#F1F5F9' }};color:{{ $featured ? '#fff' : '#4F46E5' }};">
+                            Mulai Sekarang
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <p class="text-center mt-4" style="color:#94A3B8;font-size:.875rem;">
+            <i class="fas fa-shield-alt me-1"></i>Sudah publisher? <a href="{{ route('login') }}" style="color:#4F46E5;font-weight:600;">Login ke dashboard</a> untuk kelola langganan.
+        </p>
+    </div>
+</section>
+@endif
+
 <!-- ── CTA SECTION ── -->
 <section class="cta-section">
     <div class="container position-relative" style="z-index:1">

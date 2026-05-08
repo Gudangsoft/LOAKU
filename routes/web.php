@@ -201,6 +201,17 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::resource('publisher-subscriptions', \App\Http\Controllers\Admin\PublisherSubscriptionController::class);
     Route::post('/publisher-subscriptions/{publisherSubscription}/cancel', [\App\Http\Controllers\Admin\PublisherSubscriptionController::class, 'cancel'])->name('publisher-subscriptions.cancel');
 
+    // Subscription Payments (konfirmasi pembayaran)
+    Route::get('/subscription-payments', [\App\Http\Controllers\Admin\SubscriptionPaymentController::class, 'index'])->name('subscription-payments.index');
+    Route::get('/subscription-payments/{subscriptionPayment}', [\App\Http\Controllers\Admin\SubscriptionPaymentController::class, 'show'])->name('subscription-payments.show');
+    Route::post('/subscription-payments/{subscriptionPayment}/confirm', [\App\Http\Controllers\Admin\SubscriptionPaymentController::class, 'confirm'])->name('subscription-payments.confirm');
+    Route::post('/subscription-payments/{subscriptionPayment}/reject', [\App\Http\Controllers\Admin\SubscriptionPaymentController::class, 'reject'])->name('subscription-payments.reject');
+    Route::delete('/subscription-payments/{subscriptionPayment}', [\App\Http\Controllers\Admin\SubscriptionPaymentController::class, 'destroy'])->name('subscription-payments.destroy');
+
+    // Payment Settings (rekening bank)
+    Route::get('/payment-settings', [\App\Http\Controllers\Admin\PaymentSettingController::class, 'index'])->name('payment-settings.index');
+    Route::post('/payment-settings', [\App\Http\Controllers\Admin\PaymentSettingController::class, 'update'])->name('payment-settings.update');
+
     // Publisher Validation Management
     Route::prefix('publisher-validation')->name('publisher-validation.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\PublisherValidationController::class, 'index'])->name('index');
@@ -535,8 +546,10 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
             ->with('success', "Template LOA berhasil {$status}.");
     })->name('loa-templates.toggle');
     
-        // Subscription Status
+        // Subscription & Payment
         Route::get('/subscription', [\App\Http\Controllers\Publisher\SubscriptionController::class, 'index'])->name('subscription.index');
+        Route::post('/subscription/select-plan', [\App\Http\Controllers\Publisher\SubscriptionController::class, 'selectPlan'])->name('subscription.select-plan');
+        Route::post('/subscription/upload-proof/{payment}', [\App\Http\Controllers\Publisher\SubscriptionController::class, 'uploadProof'])->name('subscription.upload-proof');
 
     }); // End of protected publisher routes (publisher.validated middleware)
 }); // End of publisher routes group

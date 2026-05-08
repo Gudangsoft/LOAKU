@@ -278,6 +278,44 @@
                         </div>
                     </div>
 
+                    <!-- Pilih Paket Langganan -->
+                    @if(isset($plans) && $plans->count() > 0)
+                    <div class="form-section" style="border-left-color: #10b981;">
+                        <h4 style="color:#10b981;"><i class="fas fa-box-open me-2"></i>Pilih Paket Langganan <span class="fw-normal text-muted fs-6">(opsional)</span></h4>
+                        <p class="text-muted small mb-3">Pilih paket yang sesuai kebutuhan Anda. Anda dapat melewati langkah ini dan memilih paket nanti.</p>
+                        <div class="row g-3" id="planCards">
+                            <div class="col-12 col-md-4">
+                                <label class="plan-card" style="display:block;cursor:pointer;">
+                                    <input type="radio" name="selected_plan_id" value="" class="d-none plan-radio" checked>
+                                    <div class="plan-card-inner" style="border:2px solid #e9ecef;border-radius:12px;padding:16px;text-align:center;transition:all .2s;background:#f8f9fa;">
+                                        <i class="fas fa-times-circle fa-2x mb-2 text-muted"></i>
+                                        <div class="fw-bold">Lewati</div>
+                                        <div class="text-muted small">Pilih paket nanti</div>
+                                    </div>
+                                </label>
+                            </div>
+                            @foreach($plans as $plan)
+                            <div class="col-12 col-md-4">
+                                <label class="plan-card" style="display:block;cursor:pointer;">
+                                    <input type="radio" name="selected_plan_id" value="{{ $plan->id }}"
+                                           class="d-none plan-radio"
+                                           {{ old('selected_plan_id', request('plan')) == $plan->id ? 'checked' : '' }}>
+                                    <div class="plan-card-inner" style="border:2px solid #e9ecef;border-radius:12px;padding:16px;text-align:center;transition:all .2s;">
+                                        <div class="fw-bold fs-5" style="color:#667eea;">{{ $plan->formattedPrice() }}</div>
+                                        <div class="fw-semibold mb-1">{{ $plan->name }}</div>
+                                        <div class="text-muted small">{{ $plan->duration_months }} bulan • Maks. {{ $plan->maxJournalsLabel() }} jurnal</div>
+                                    </div>
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                        <div id="planInfo" class="alert alert-info mt-3 py-2 small d-none">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Invoice akan dikirim ke email Anda setelah akun diaktifkan oleh admin.
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Terms and Conditions -->
                     <div class="agreement-box">
                         <div class="form-check">
@@ -354,6 +392,31 @@
                 document.getElementById('password_confirmation').setCustomValidity('Password tidak cocok');
             }
         }
+
+        // Plan card selection highlight
+        document.querySelectorAll('.plan-radio').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.plan-card-inner').forEach(el => {
+                    el.style.borderColor = '#e9ecef';
+                    el.style.background = '';
+                    el.style.color = '';
+                });
+                if (this.value) {
+                    this.closest('.plan-card').querySelector('.plan-card-inner').style.borderColor = '#667eea';
+                    this.closest('.plan-card').querySelector('.plan-card-inner').style.background = '#f3f0ff';
+                    document.getElementById('planInfo').classList.remove('d-none');
+                } else {
+                    this.closest('.plan-card').querySelector('.plan-card-inner').style.borderColor = '#e9ecef';
+                    document.getElementById('planInfo').classList.add('d-none');
+                }
+            });
+            // Trigger for pre-selected
+            if (radio.checked && radio.value) {
+                radio.closest('.plan-card').querySelector('.plan-card-inner').style.borderColor = '#667eea';
+                radio.closest('.plan-card').querySelector('.plan-card-inner').style.background = '#f3f0ff';
+                document.getElementById('planInfo').classList.remove('d-none');
+            }
+        });
 
         // Auto-format phone — hanya format saat blur (bukan setiap keystroke)
         function formatPhone(input) {

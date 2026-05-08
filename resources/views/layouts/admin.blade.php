@@ -505,6 +505,19 @@
                     <i class="fas fa-id-card"></i>
                     <span>Langganan Publisher</span>
                 </a>
+                <a href="{{ route('admin.subscription-payments.index') }}" class="nav-link {{ request()->routeIs('admin.subscription-payments.*') ? 'active' : '' }}">
+                    <i class="fas fa-money-check-alt"></i>
+                    <span>Konfirmasi Bayar
+                        @php $pendingPay = \App\Models\SubscriptionPayment::where('status','proof_uploaded')->count(); @endphp
+                        @if($pendingPay > 0)
+                            <span class="badge bg-warning text-dark ms-1">{{ $pendingPay }}</span>
+                        @endif
+                    </span>
+                </a>
+                <a href="{{ route('admin.payment-settings.index') }}" class="nav-link {{ request()->routeIs('admin.payment-settings.*') ? 'active' : '' }}">
+                    <i class="fas fa-university"></i>
+                    <span>Rekening Bank</span>
+                </a>
             </div>
 
             <!-- System Management (Super Admin Only) -->

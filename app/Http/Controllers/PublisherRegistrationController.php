@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Publisher;
+use App\Models\SubscriptionPayment;
+use App\Models\SubscriptionPlan;
 use App\Notifications\AdminNewPublisherNotification;
 use App\Notifications\PublisherWelcomeNotification;
+use App\Notifications\SubscriptionInvoiceNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -20,7 +23,8 @@ class PublisherRegistrationController extends Controller
      */
     public function showRegistrationForm()
     {
-        return view('auth.publisher-register');
+        $plans = SubscriptionPlan::active()->orderBy('sort_order')->get();
+        return view('auth.publisher-register', compact('plans'));
     }
 
     /**
@@ -40,14 +44,17 @@ class PublisherRegistrationController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
-            
+
             // Publisher Company Information
             'company_name' => 'required|string|max:255',
             'company_address' => 'required|string|max:500',
             'company_phone' => 'required|string|max:20',
             'company_email' => 'required|email|max:255',
             'company_website' => 'nullable|url|max:255',
-            
+
+            // Paket langganan (opsional)
+            'selected_plan_id' => 'nullable|exists:subscription_plans,id',
+
             // Agreement
             'terms_agreement' => 'required|accepted',
         ], [
@@ -84,18 +91,39 @@ class PublisherRegistrationController extends Controller
 
             // Create publisher company
             $publisher = new Publisher([
-                'user_id' => $user->id,
-                'name' => $request->company_name,
-                'address' => $request->company_address,
-                'phone' => $request->company_phone,
-                'email' => $request->company_email,
-                'website' => $request->company_website,
+                'user_id'          => $user->id,
+                'name'             => $request->company_name,
+                'address'          => $request->company_address,
+                'phone'            => $request->company_phone,
+                'email'            => $request->company_email,
+                'website'          => $request->company_website,
+                'selected_plan_id' => $request->selected_plan_id ?: null,
             ]);
             $publisher->status = 'pending';
             $publisher->save();
 
             // Generate validation token
             $validationToken = $publisher->generateValidationToken();
+
+            // Buat invoice jika publisher memilih paket
+            if ($request->selected_plan_id) {
+                $plan = SubscriptionPlan::find($request->selected_plan_id);
+                if ($plan) {
+                    $payment = SubscriptionPayment::create([
+                        'publisher_id'         => $publisher->id,
+                        'subscription_plan_id' => $plan->id,
+                        'invoice_number'       => SubscriptionPayment::generateInvoiceNumber(),
+                        'amount'               => $plan->price,
+                        'status'               => 'pending_payment',
+                    ]);
+                    // Kirim invoice via email
+                    try {
+                        $user->notify(new SubscriptionInvoiceNotification($payment));
+                    } catch (\Exception $e) {
+                        \Log::warning('Gagal kirim invoice email: ' . $e->getMessage());
+                    }
+                }
+            }
 
             // Send verification email (if email verification is enabled)
             if (config('auth.verification.enabled', false)) {

@@ -21,6 +21,7 @@ class Publisher extends Model
         'email',
         'website',
         'logo',
+        'selected_plan_id',
     ];
 
     protected static function booted(): void
@@ -70,6 +71,21 @@ class Publisher extends Model
     public function subscriptions()
     {
         return $this->hasMany(PublisherSubscription::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(SubscriptionPayment::class);
+    }
+
+    public function selectedPlan()
+    {
+        return $this->belongsTo(SubscriptionPlan::class, 'selected_plan_id');
+    }
+
+    public function latestPayment()
+    {
+        return $this->hasOne(SubscriptionPayment::class)->latest();
     }
 
     public function activeSubscription()
