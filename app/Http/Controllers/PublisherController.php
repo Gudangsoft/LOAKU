@@ -233,10 +233,34 @@ class PublisherController extends Controller
     /**
      * Show journals list
      */
-    public function journals()
+    public function journals(Request $request)
     {
-        $journals = Auth::user()->journals()->with('publisher')->paginate(10);
-        return view('publisher.journals.index', compact('journals'));
+        $query = Auth::user()->journals()->with(['publisher', 'loaRequests']);
+
+        if ($request->filled('search')) {
+            $q = $request->search;
+            $query->where(function ($qb) use ($q) {
+                $qb->where('name', 'like', "%{$q}%")
+                   ->orWhere('e_issn', 'like', "%{$q}%")
+                   ->orWhere('p_issn', 'like', "%{$q}%")
+                   ->orWhere('chief_editor', 'like', "%{$q}%");
+            });
+        }
+
+        $journals = $query->withCount([
+            'loaRequests',
+            'loaRequests as pending_count'  => fn($q) => $q->where('status', 'pending'),
+            'loaRequests as approved_count' => fn($q) => $q->where('status', 'approved'),
+        ])->latest()->paginate(12)->withQueryString();
+
+        $stats = [
+            'total'    => Auth::user()->journals()->count(),
+            'pending'  => Auth::user()->journals()->withCount(['loaRequests as pc' => fn($q) => $q->where('status','pending')])->get()->sum('pc'),
+            'approved' => Auth::user()->journals()->withCount(['loaRequests as ac' => fn($q) => $q->where('status','approved')])->get()->sum('ac'),
+            'total_loa'=> Auth::user()->journals()->withCount('loaRequests')->get()->sum('loa_requests_count'),
+        ];
+
+        return view('publisher.journals.index', compact('journals', 'stats'));
     }
 
     /**
