@@ -265,28 +265,24 @@ class LoaController extends Controller
             ->with(['loaRequest.journal.publisher'])
             ->firstOrFail();
 
-        // Get publisher ID for template selection
-        $publisherId = $loaValidated->loaRequest->journal->publisher_id ?? null;
+        $loaRequest  = $loaValidated->loaRequest;
+        $journal     = $loaRequest?->journal;
+        $publisher   = $journal?->publisher;
+        $publisherId = $journal?->publisher_id ?? null;
 
-        // Try to get custom template, fallback to default
         $template = LoaTemplate::getDefault($lang, $publisherId);
 
         $data = [
-            'loa' => $loaValidated,
-            'request' => $loaValidated->loaRequest,
-            'journal' => $loaValidated->loaRequest->journal,
-            'publisher' => $loaValidated->loaRequest->journal->publisher,
-            'lang' => $lang,
-            'template' => $template
+            'loa'      => $loaValidated,
+            'request'  => $loaRequest,
+            'journal'  => $journal,
+            'publisher'=> $publisher,
+            'lang'     => $lang,
+            'template' => $template,
         ];
 
-        // If custom template exists, use it with template rendering
-        if ($template) {
-            return $this->renderDynamicTemplate($template, $data);
-        }
-
-        // Fallback to default view
-        return view('loa.view', $data);
+        // Always render the professional certificate view
+        return $this->renderDynamicTemplate($template, $data);
     }
 
     private function renderDynamicTemplate($template, $data)
@@ -298,71 +294,41 @@ class LoaController extends Controller
         $journal     = $data['journal'];
         $publisher   = $data['publisher'];
 
-        // Build substitution map and apply to template body (best-effort, handles spaces too)
-        $variables = [
-            'publisher_name'      => $publisher->name ?? '',
-            'publisher_address'   => $publisher->address ?? '',
-            'publisher_email'     => $publisher->email ?? '',
-            'publisher_phone'     => $publisher->phone ?? '',
-            'publisher_logo'      => $publisher->logo ? asset('storage/' . $publisher->logo) : '',
-            'journal_name'        => $journal->name ?? '',
-            'journal_issn_e'      => $journal->e_issn ?? '',
-            'journal_issn_p'      => $journal->p_issn ?? '',
-            'chief_editor'        => $journal->chief_editor ?? '',
-            'signature_stamp'     => $journal->ttd_stample ? asset('storage/' . $journal->ttd_stample) : '',
-            'loa_code'            => $loa->loa_code ?? '',
-            'article_title'       => $req->article_title ?? '',
-            'author_name'         => $req->author ?? '',
-            'author_email'        => $req->author_email ?? '',
-            'volume'              => $req->volume ?? '',
-            'number'              => $req->number ?? '',
-            'month'               => $req->month ?? '',
-            'year'                => $req->year ?? '',
-            'registration_number' => $req->no_reg ?? '',
-            'approval_date'       => ($req->approved_at ?? null) ? $req->approved_at->format('d F Y') : $loa->created_at->format('d F Y'),
-            'current_date'        => now()->format('d F Y, H:i:s'),
-            'verification_url'    => route('loa.verify'),
-            'qr_code_url'         => route('qr.code', $loa->loa_code),
-        ];
+        // Pre-compute display values (null-safe — any relationship may be absent)
+        $loaCode        = $loa->loa_code;
+        $articleTitle   = $req?->article_title   ?? '-';
+        $authorName     = $req?->author           ?? '-';
+        $authorEmail    = $req?->author_email     ?? '-';
+        $volume         = $req?->volume           ?? '-';
+        $number         = $req?->number           ?? '-';
+        $monthYear      = trim(($req?->month ?? '') . ' ' . ($req?->year ?? ''));
+        $noReg          = $req?->no_reg           ?? '-';
+        $reqApprovedAt  = $req?->approved_at;
+        $approvalDate   = $reqApprovedAt ? $reqApprovedAt->format('d F Y') : $loa->created_at->format('d F Y');
+        $createdAt      = $loa->created_at->format('d F Y, H:i');
+        $publisherName  = $publisher?->name       ?? '';
+        $publisherAddr  = $publisher?->address    ?? '';
+        $publisherEmail = $publisher?->email      ?? '';
+        $publisherPhone = $publisher?->phone      ?? '';
+        $journalName    = $journal?->name         ?? '';
+        $eIssn          = $journal?->e_issn       ?? '';
+        $pIssn          = $journal?->p_issn       ?? '';
+        $chiefEditor    = $journal?->chief_editor ?? ($lang === 'id' ? 'Pemimpin Redaksi' : 'Editor-in-Chief');
 
-        // Flexible replacement: handles {{var}}, {{ var }}, and {var}
-        $customBody = $template->body_template ?? '';
-        $customBody = preg_replace_callback('/\{\{[\s]*(\w+)[\s]*\}\}/', function ($m) use ($variables) {
-            return $variables[$m[1]] ?? $m[0];
-        }, $customBody);
-        $customBody = $this->processConditionals($customBody, $lang);
-
-        // Pre-compute display values
-        $loaCode      = $loa->loa_code;
-        $articleTitle = $req->article_title ?? '-';
-        $authorName   = $req->author ?? '-';
-        $authorEmail  = $req->author_email ?? '-';
-        $volume       = $req->volume ?? '-';
-        $number       = $req->number ?? '-';
-        $monthYear    = ($req->month ?? '') . ' ' . ($req->year ?? '');
-        $noReg        = $req->no_reg ?? '-';
-        $approvalDate = ($req->approved_at ?? null) ? $req->approved_at->format('d F Y') : $loa->created_at->format('d F Y');
-        $createdAt    = $loa->created_at->format('d F Y, H:i');
-        $publisherName = $publisher->name ?? '';
-        $publisherAddr = $publisher->address ?? '';
-        $publisherEmail = $publisher->email ?? '';
-        $publisherPhone = $publisher->phone ?? '';
-        $journalName  = $journal->name ?? '';
-        $eIssn        = $journal->e_issn ?? '';
-        $pIssn        = $journal->p_issn ?? '';
-        $chiefEditor  = $journal->chief_editor ?? ($lang === 'id' ? 'Pemimpin Redaksi' : 'Editor-in-Chief');
-
-        // Logo HTML
-        $pubLogoHtml = $publisher->logo
-            ? '<img src="' . asset('storage/' . $publisher->logo) . '" alt="' . e($publisherName) . '" style="max-height:72px;max-width:120px;object-fit:contain;background:rgba(255,255,255,.15);padding:8px;border-radius:8px;">'
+        // Logo HTML (null-safe)
+        $pubLogo     = $publisher?->logo;
+        $pubLogoHtml = $pubLogo
+            ? '<img src="' . asset('storage/' . $pubLogo) . '" alt="' . e($publisherName) . '" style="max-height:72px;max-width:120px;object-fit:contain;background:rgba(255,255,255,.15);padding:8px;border-radius:8px;">'
             : '<div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-building fa-2x" style="color:rgba(255,255,255,.7);"></i></div>';
 
-        $jrnLogoHtml = $journal->logo
-            ? '<img src="' . asset('storage/' . $journal->logo) . '" alt="' . e($journalName) . '" style="max-height:72px;max-width:120px;object-fit:contain;background:rgba(255,255,255,.15);padding:8px;border-radius:8px;">'
+        $jrnLogo     = $journal?->logo;
+        $jrnLogoHtml = $jrnLogo
+            ? '<img src="' . asset('storage/' . $jrnLogo) . '" alt="' . e($journalName) . '" style="max-height:72px;max-width:120px;object-fit:contain;background:rgba(255,255,255,.15);padding:8px;border-radius:8px;">'
             : '<div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-book fa-2x" style="color:rgba(255,255,255,.7);"></i></div>';
 
-        $stampHtml = $journal->ttd_stample
-            ? '<img src="' . asset('storage/' . $journal->ttd_stample) . '" alt="Signature" style="max-height:100px;max-width:180px;object-fit:contain;">'
+        $ttdStamp    = $journal?->ttd_stample;
+        $stampHtml   = $ttdStamp
+            ? '<img src="' . asset('storage/' . $ttdStamp) . '" alt="Signature" style="max-height:100px;max-width:180px;object-fit:contain;">'
             : '<div style="border:2px dashed #ccc;border-radius:8px;padding:20px;color:#aaa;text-align:center;min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;"><i class="fas fa-signature fa-2x mb-1"></i><small>' . ($lang === 'id' ? 'Tanda Tangan & Stempel' : 'Signature & Stamp') . '</small></div>';
 
         $issnHtml = '';
@@ -407,10 +373,9 @@ class LoaController extends Controller
             ? "<p>Naskah artikel ilmiah telah melalui proses <strong>review</strong> dan memenuhi persyaratan untuk dipublikasikan pada jurnal <strong>" . e($journalName) . "</strong>.</p><p style='color:#6c757d;font-size:.93rem;'>Surat persetujuan ini merupakan bukti resmi penerimaan naskah untuk publikasi dan dapat digunakan untuk keperluan akademik dan profesional.</p>"
             : "<p>The scientific article manuscript has undergone the <strong>review process</strong> and has met the requirements for publication in <strong>" . e($journalName) . "</strong>.</p><p style='color:#6c757d;font-size:.93rem;'>This letter of acceptance serves as official proof of manuscript acceptance for publication and can be used for academic and professional purposes.</p>";
 
-        // Use custom template body if it's meaningful (after replacement), else use default
-        $statementHtml = (trim(strip_tags($customBody)) !== '' && strpos($customBody, '{{') === false)
-            ? '<div class="custom-body">' . $customBody . '</div>'
-            : $defaultBody;
+        // Always use the professional default statement — data is in the info table above.
+        // The custom template body is for PDF/print only; the web view uses structured layout.
+        $statementHtml = $defaultBody;
 
         // URLs
         $homeUrl    = route('home');
