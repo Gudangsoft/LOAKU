@@ -12,7 +12,7 @@ class CustomDomainMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $host = $request->getHost();
-        $mainHost = parse_url(config('app.url'), PHP_URL_HOST) ?? 'loa.siptenan.org';
+        $mainHost = config('app.base_domain', 'loa.siptenan.org');
 
         // Skip if accessing the main app domain or any of its subpaths
         if ($host === $mainHost || str_ends_with($host, '.' . $mainHost) === false) {

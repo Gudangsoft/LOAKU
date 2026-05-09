@@ -53,7 +53,7 @@
         @if($publisher->subdomain)
             <div class="mb-2">
                 <span class="text-muted small">Subdomain:</span>
-                <strong class="d-block">{{ $publisher->subdomain }}.{{ parse_url(config('app.url'), PHP_URL_HOST) ?? 'loa.siptenan.org' }}</strong>
+                <strong class="d-block">{{ $publisher->subdomain }}.{{ config('app.base_domain') }}</strong>
             </div>
         @elseif($publisher->custom_domain)
             <div class="mb-2">
@@ -115,7 +115,7 @@
                             <div>
                                 <div class="fw-semibold"><i class="fas fa-link me-1 text-primary"></i>Subdomain Gratis</div>
                                 <div class="text-muted" style="font-size:.8rem;">
-                                    nama-anda.<strong>{{ parse_url(config('app.url'), PHP_URL_HOST) ?? 'loa.siptenan.org' }}</strong><br>
+                                    nama-anda.<strong>{{ config('app.base_domain') }}</strong><br>
                                     Lebih mudah, langsung aktif setelah disetujui.
                                 </div>
                             </div>
@@ -145,7 +145,7 @@
                     <input type="text" name="subdomain" class="form-control @error('subdomain') is-invalid @enderror"
                            value="{{ old('subdomain', $publisher->subdomain) }}"
                            placeholder="nama-publisher" pattern="[a-zA-Z0-9\-]+" minlength="3" maxlength="50">
-                    <span class="input-group-text">.{{ parse_url(config('app.url'), PHP_URL_HOST) ?? 'loa.siptenan.org' }}</span>
+                    <span class="input-group-text">.{{ config('app.base_domain') }}</span>
                 </div>
                 @error('subdomain') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                 <div class="form-text">Hanya huruf kecil, angka, dan tanda hubung (-). Minimal 3 karakter.</div>
@@ -166,7 +166,7 @@
                     <ol class="mb-0 mt-2">
                         <li>Ajukan domain di form ini</li>
                         <li>Tambahkan record DNS berikut di registrar domain Anda:<br>
-                            <code>A record → {{ gethostbyname(parse_url(config('app.url'), PHP_URL_HOST) ?? 'loa.siptenan.org') }}</code>
+                            <code>A record → {{ gethostbyname(config('app.base_domain')) }}</code>
                         </li>
                         <li>Admin akan memverifikasi dan mengaktifkan domain Anda</li>
                     </ol>

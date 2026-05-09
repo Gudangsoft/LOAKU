@@ -67,7 +67,7 @@
                             </td>
                             <td>
                                 @if($pub->subdomain)
-                                    <code>{{ $pub->subdomain }}.{{ parse_url(config('app.url'), PHP_URL_HOST) ?? 'loa.siptenan.org' }}</code>
+                                    <code>{{ $pub->subdomain }}.{{ config('app.base_domain') }}</code>
                                 @elseif($pub->custom_domain)
                                     <code>{{ $pub->custom_domain }}</code>
                                 @else
@@ -142,7 +142,7 @@
                                         </div>
                                         <div class="modal-body">
                                             <p>Setujui domain untuk <strong>{{ $pub->name }}</strong>?</p>
-                                            <p class="text-muted small">Domain: <code>{{ $pub->subdomain ? $pub->subdomain.'.'.( parse_url(config('app.url'), PHP_URL_HOST) ?? 'loa.siptenan.org' ) : $pub->custom_domain }}</code></p>
+                                            <p class="text-muted small">Domain: <code>{{ $pub->subdomain ? $pub->subdomain.'.'.( config('app.base_domain') ) : $pub->custom_domain }}</code></p>
                                             @if($pub->custom_domain)
                                             <div class="alert alert-info small">
                                                 Pastikan DNS sudah diarahkan ke server ini sebelum mengaktifkan domain kustom.
