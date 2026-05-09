@@ -266,20 +266,16 @@
                             </a>
                             <div class="dropdown flex-grow-1">
                                 <button class="btn btn-sm btn-success w-100 dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="fas fa-download me-1"></i>Download LOA
+                                    <i class="fas fa-download me-1"></i>Download
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'id']) }}" target="_blank"><i class="fas fa-flag me-2"></i>Bahasa Indonesia</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'en']) }}" target="_blank"><i class="fas fa-flag-usa me-2"></i>English</a></li>
-                                </ul>
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="fas fa-qrcode"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" target="_blank"><i class="fas fa-eye me-2 text-info"></i>Lihat QR</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" download="QR-{{ $loa->loa_code }}.png"><i class="fas fa-download me-2 text-primary"></i>Download QR</a></li>
+                                    <li><h6 class="dropdown-header text-muted" style="font-size:.7rem;">LOA Dokumen</h6></li>
+                                    <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'id']) }}" target="_blank"><i class="fas fa-flag me-2 text-success"></i>Bahasa Indonesia</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'en']) }}" target="_blank"><i class="fas fa-flag-usa me-2 text-primary"></i>English</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header text-muted" style="font-size:.7rem;">QR Code</h6></li>
+                                    <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" target="_blank"><i class="fas fa-qrcode me-2 text-info"></i>Lihat QR</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" download="QR-{{ $loa->loa_code }}.png"><i class="fas fa-download me-2 text-secondary"></i>Download QR</a></li>
                                 </ul>
                             </div>
                         </div>
