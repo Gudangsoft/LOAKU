@@ -20,8 +20,6 @@
         border: 1px solid #E2E8F0;
         box-shadow: 0 8px 40px rgba(0,0,0,.08);
         overflow: hidden;
-        position: relative;
-        z-index: 1;
     }
 
     .verify-card-header {
@@ -196,13 +194,18 @@
     .tip-box i { color: #F59E0B; margin-top: 2px; flex-shrink: 0; }
 
     /* Sidebar */
+    .sidebar-col {
+        position: sticky;
+        top: 80px;
+        align-self: flex-start;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
     .sidebar-card {
         background: #FFFBEB;
         border: 1px solid #FDE68A;
         border-radius: 16px;
         padding: 24px;
-        position: sticky;
-        top: 80px;
     }
 
     .sidebar-card h6 {
@@ -249,7 +252,7 @@
 </div>
 
 <div class="container py-5" style="padding-top:60px!important">
-    <div class="row g-4 justify-content-center">
+    <div class="row g-4 justify-content-center align-items-start">
         <!-- Verify Form -->
         <div class="col-lg-8">
             <div class="verify-card">
@@ -329,7 +332,7 @@
         </div>
 
         <!-- Sidebar -->
-        <div class="col-lg-4">
+        <div class="col-lg-4 sidebar-col">
             <div class="sidebar-card">
                 <h6><i class="fas fa-shield-alt"></i> Status Verifikasi</h6>
                 <p style="font-size:.8rem;color:#92400E;margin-bottom:16px">Hasil verifikasi akan menampilkan salah satu status berikut:</p>

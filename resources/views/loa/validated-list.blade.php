@@ -205,183 +205,261 @@
 
             @if($validatedLoas->count() > 0)
                 <!-- LOA Cards -->
-                <div class="row">
+                <style>
+                .loa-card {
+                    border: none;
+                    border-radius: 16px;
+                    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+                    transition: transform .2s, box-shadow .2s;
+                    overflow: hidden;
+                }
+                .loa-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 8px 28px rgba(0,0,0,.14);
+                }
+                .loa-card-header {
+                    background: linear-gradient(135deg, #065F46 0%, #059669 60%, #10B981 100%);
+                    padding: 14px 16px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .loa-card-header .loa-code {
+                    font-family: monospace;
+                    font-size: .85rem;
+                    font-weight: 700;
+                    color: #fff;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .loa-badge-valid {
+                    background: rgba(255,255,255,.2);
+                    border: 1px solid rgba(255,255,255,.4);
+                    color: #fff;
+                    font-size: .7rem;
+                    font-weight: 600;
+                    padding: 3px 10px;
+                    border-radius: 20px;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    white-space: nowrap;
+                }
+                .loa-card-body { padding: 16px; flex: 1; }
+                .loa-article-title {
+                    font-size: .92rem;
+                    font-weight: 700;
+                    color: #1E293B;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    line-height: 1.45;
+                    min-height: 2.6em;
+                    margin-bottom: 12px;
+                }
+                .loa-meta-row {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 8px;
+                    font-size: .8rem;
+                    color: #475569;
+                    margin-bottom: 7px;
+                }
+                .loa-meta-row i { color: #059669; width: 14px; flex-shrink: 0; margin-top: 2px; }
+                .loa-meta-row .label { font-weight: 600; color: #1E293B; min-width: 56px; }
+                .loa-footer-bar {
+                    background: #F0FDF4;
+                    border-top: 1px solid #D1FAE5;
+                    padding: 10px 16px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: .75rem;
+                }
+                .loa-footer-bar .noreg { font-weight: 700; color: #065F46; font-family: monospace; }
+                .loa-footer-bar .date  { color: #64748B; }
+                .loa-action-row {
+                    padding: 10px 16px 14px;
+                    display: flex;
+                    gap: 8px;
+                }
+                .loa-action-row .btn-lihat {
+                    flex: 0 0 auto;
+                    border: 2px solid #6366F1;
+                    color: #6366F1;
+                    background: #fff;
+                    border-radius: 10px;
+                    font-size: .8rem;
+                    font-weight: 600;
+                    padding: 7px 14px;
+                    text-decoration: none;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    transition: all .2s;
+                }
+                .loa-action-row .btn-lihat:hover { background: #EEF2FF; }
+                .loa-action-row .btn-dl {
+                    flex: 1;
+                    background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+                    color: #fff;
+                    border: none;
+                    border-radius: 10px;
+                    font-size: .8rem;
+                    font-weight: 700;
+                    padding: 7px 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 5px;
+                    cursor: pointer;
+                    transition: opacity .2s;
+                }
+                .loa-action-row .btn-dl:hover { opacity: .88; }
+                .loa-action-row .btn-qr {
+                    flex: 0 0 auto;
+                    border: 2px solid #0891B2;
+                    color: #0891B2;
+                    background: #fff;
+                    border-radius: 10px;
+                    font-size: .8rem;
+                    font-weight: 600;
+                    padding: 7px 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    cursor: pointer;
+                    transition: all .2s;
+                }
+                .loa-action-row .btn-qr:hover { background: #ECFEFF; }
+                /* dropdown override */
+                .loa-action-row .dropdown-toggle::after { margin-left: 4px; }
+                </style>
+
+                <div class="row g-3">
                     @foreach($validatedLoas as $loa)
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-certificate me-1"></i>
-                                            {{ $loa->loa_code }}
-                                        </h6>
-                                    </div>
-                                    <div>
-                                        <span class="badge bg-light text-success">
-                                            <i class="fas fa-check me-1"></i>
-                                            Tervalidasi
-                                        </span>
-                                    </div>
+                    @php
+                        $journal   = $loa->loaRequest?->journal;
+                        $publisher = $journal?->publisher;
+                        $journalLogo = $journal?->logo ? Storage::url($journal->logo) : null;
+                    @endphp
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card loa-card h-100 d-flex flex-column">
+
+                            {{-- Header --}}
+                            <div class="loa-card-header">
+                                <div class="loa-code">
+                                    <i class="fas fa-certificate"></i>
+                                    {{ $loa->loa_code }}
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    @if($journalLogo)
+                                    <img src="{{ $journalLogo }}" alt="" style="height:28px;width:28px;object-fit:cover;border-radius:6px;border:2px solid rgba(255,255,255,.4)">
+                                    @endif
+                                    <span class="loa-badge-valid">
+                                        <i class="fas fa-check-circle"></i> Tervalidasi
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Body --}}
+                            <div class="loa-card-body">
+                                <div class="loa-article-title" title="{{ $loa->loaRequest?->article_title }}">
+                                    {{ $loa->loaRequest?->article_title ?? '-' }}
+                                </div>
+                                <div class="loa-meta-row">
+                                    <i class="fas fa-user"></i>
+                                    <span class="label">Penulis</span>
+                                    <span>{{ $loa->loaRequest?->author ?? '-' }}</span>
+                                </div>
+                                <div class="loa-meta-row">
+                                    <i class="fas fa-book"></i>
+                                    <span class="label">Jurnal</span>
+                                    <span>{{ $journal?->name ?? 'N/A' }}</span>
+                                </div>
+                                <div class="loa-meta-row">
+                                    <i class="fas fa-building"></i>
+                                    <span class="label">Penerbit</span>
+                                    <span>{{ $publisher?->name ?? 'N/A' }}</span>
+                                </div>
+                            </div>
+
+                            {{-- Footer info bar --}}
+                            <div class="loa-footer-bar">
+                                <div>
+                                    <div style="font-size:.67rem;color:#64748B;text-transform:uppercase;letter-spacing:.4px;">No. Reg</div>
+                                    <div class="noreg">{{ $loa->loaRequest?->no_reg ?? '-' }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <div style="font-size:.67rem;color:#64748B;text-transform:uppercase;letter-spacing:.4px;">Divalidasi</div>
+                                    <div class="date">{{ $loa->created_at->format('d M Y') }}</div>
+                                </div>
+                            </div>
+
+                            {{-- Action row --}}
+                            <div class="loa-action-row">
+                                <a href="{{ route('loa.view', [$loa->loa_code, 'id']) }}" target="_blank" class="btn-lihat">
+                                    <i class="fas fa-eye"></i> Lihat
+                                </a>
+
+                                <div class="dropdown flex-grow-1">
+                                    <button class="btn-dl w-100 dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-download"></i> Download LOA
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'id']) }}" target="_blank">
+                                            <i class="fas fa-flag me-2"></i>Bahasa Indonesia
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'en']) }}" target="_blank">
+                                            <i class="fas fa-flag-usa me-2"></i>English
+                                        </a></li>
+                                    </ul>
                                 </div>
 
-                                <div class="card-body">
-                                    <h6 class="card-title text-truncate" title="{{ $loa->loaRequest->article_title }}">
-                                        {{ Str::limit($loa->loaRequest->article_title, 60) }}
-                                    </h6>
+                                <button class="btn-qr" data-bs-toggle="modal" data-bs-target="#qrModal{{ $loop->index }}">
+                                    <i class="fas fa-qrcode"></i> QR
+                                </button>
+                            </div>
 
-                                    <div class="row text-sm mb-3">
-                                        <div class="col-12 mb-2">
-                                            <strong><i class="fas fa-user me-1 text-primary"></i>Penulis:</strong><br>
-                                            <span class="text-muted">{{ $loa->loaRequest->author }}</span>
+                            {{-- QR Modal --}}
+                            <div class="modal fade" id="qrModal{{ $loop->index }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background:linear-gradient(135deg,#0891B2,#06B6D4);color:#fff;">
+                                            <h6 class="modal-title"><i class="fas fa-qrcode me-2"></i>QR — {{ $loa->loa_code }}</h6>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                         </div>
-                                        <div class="col-12 mb-2">
-                                            <strong><i class="fas fa-book me-1 text-info"></i>Jurnal:</strong><br>
-                                            <span class="text-muted">{{ $loa->loaRequest->journal->name ?? 'N/A' }}</span>
-                                        </div>
-                                        <div class="col-12 mb-2">
-                                            <strong><i class="fas fa-building me-1 text-warning"></i>Penerbit:</strong><br>
-                                            <span class="text-muted">{{ $loa->loaRequest->journal->publisher->name ?? 'N/A' }}</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="row text-sm mb-3">
-                                        <div class="col-6">
-                                            <strong class="text-success">No. Reg:</strong><br>
-                                            <small class="badge bg-light text-dark">{{ $loa->loaRequest->no_reg }}</small>
-                                        </div>
-                                        <div class="col-6">
-                                            <strong class="text-success">Dibuat:</strong><br>
-                                            <small class="text-muted">{{ $loa->created_at->format('d M Y') }}</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card-footer bg-light">
-                                    <div class="d-flex gap-2 mb-2">
-                                        <a href="{{ route('loa.view', [$loa->loa_code, 'id']) }}"
-                                           class="btn btn-sm btn-outline-primary flex-grow-1"
-                                           target="_blank">
-                                            <i class="fas fa-eye me-1"></i>
-                                            Lihat
-                                        </a>
-                                        <div class="btn-group flex-grow-1">
-                                            <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
-                                                <i class="fas fa-download me-1"></i>
-                                                Download LOA
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'id']) }}" target="_blank">
-                                                        <i class="fas fa-flag me-2"></i>Bahasa Indonesia
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'en']) }}" target="_blank">
-                                                        <i class="fas fa-flag-usa me-2"></i>English
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    <!-- QR Code Section -->
-                                    <div class="d-flex gap-2">
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-info flex-grow-1"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#qrModal{{ $loop->index }}">
-                                            <i class="fas fa-qrcode me-1"></i>
-                                            Lihat QR
-                                        </button>
-                                        <div class="btn-group flex-grow-1">
-                                            <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
-                                                <i class="fas fa-download me-1"></i>
-                                                Download QR
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item" 
-                                                       href="javascript:void(0)" 
-                                                       onclick="downloadQrImage('{{ route('qr.download', $loa->loa_code) }}')">
-                                                        <i class="fas fa-qrcode me-2"></i>QR Code PNG
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item" 
-                                                       href="{{ route('qr.download', $loa->loa_code) }}" 
-                                                       target="_blank">
-                                                        <i class="fas fa-external-link-alt me-2"></i>Buka di Tab Baru
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    <!-- QR Code Modal -->
-                                    <div class="modal fade" id="qrModal{{ $loop->index }}" tabindex="-1">
-                                        <div class="modal-dialog modal-dialog-centered modal-sm">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-info text-white">
-                                                    <h6 class="modal-title">
-                                                        <i class="fas fa-qrcode me-2"></i>
-                                                        QR Code - {{ $loa->loa_code }}
-                                                    </h6>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body text-center p-4">
-                                                    <!-- Loading Spinner -->
-                                                    <div id="qrLoading{{ $loop->index }}" class="mb-3">
-                                                        <div class="spinner-border text-primary" role="status">
-                                                            <span class="visually-hidden">Loading...</span>
-                                                        </div>
-                                                        <p class="text-muted mt-2">Memuat QR Code...</p>
-                                                    </div>
-
-                                                    <!-- QR Code Container -->
-                                                    <div id="qrContainer{{ $loop->index }}" class="mb-3" style="display: none;">
-                                                        <div class="qr-code-wrapper p-3 bg-white border rounded shadow-sm d-inline-block">
-                                                            <img id="qrImage{{ $loop->index }}"
-                                                                 alt="QR Code {{ $loa->loa_code }}"
-                                                                 class="img-fluid"
-                                                                 style="width: 200px; height: 200px; object-fit: contain;">
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Error State -->
-                                                    <div id="qrError{{ $loop->index }}" class="mb-3" style="display: none;">
-                                                        <div class="alert alert-warning">
-                                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                                            Gagal memuat QR Code
-                                                        </div>
-                                                    </div>
-
-                                                    <div id="qrDescription{{ $loop->index }}" style="display: none;">
-                                                        <p class="text-muted small mb-0">
-                                                            <i class="fas fa-mobile-alt me-1"></i>
-                                                            Scan QR Code ini untuk memverifikasi LOA {{ $loa->loa_code }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button"
-                                                            class="btn btn-primary btn-sm"
-                                                            onclick="downloadQrImage('{{ route('qr.download', $loa->loa_code) }}')">
-                                                        <i class="fas fa-download me-1"></i>
-                                                        Download QR
-                                                    </button>
-                                                    <button type="button"
-                                                            class="btn btn-secondary btn-sm"
-                                                            data-bs-dismiss="modal">
-                                                        <i class="fas fa-times me-1"></i>
-                                                        Close
-                                                    </button>
+                                        <div class="modal-body text-center p-4">
+                                            <div id="qrLoading{{ $loop->index }}">
+                                                <div class="spinner-border text-primary" role="status"></div>
+                                                <p class="text-muted mt-2 small">Memuat QR Code...</p>
+                                            </div>
+                                            <div id="qrContainer{{ $loop->index }}" class="mb-3" style="display:none;">
+                                                <div class="p-3 bg-white border rounded shadow-sm d-inline-block">
+                                                    <img id="qrImage{{ $loop->index }}" alt="QR {{ $loa->loa_code }}" style="width:200px;height:200px;object-fit:contain;">
                                                 </div>
                                             </div>
+                                            <div id="qrError{{ $loop->index }}" class="mb-3" style="display:none;">
+                                                <div class="alert alert-warning small"><i class="fas fa-exclamation-triangle me-2"></i>Gagal memuat QR Code</div>
+                                            </div>
+                                            <div id="qrDescription{{ $loop->index }}" style="display:none;">
+                                                <p class="text-muted small mb-0"><i class="fas fa-mobile-alt me-1"></i>Scan untuk verifikasi {{ $loa->loa_code }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="downloadQrImage('{{ route('qr.download', $loa->loa_code) }}')">
+                                                <i class="fas fa-download me-1"></i>Download QR
+                                            </button>
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
                         </div>
+                    </div>
                     @endforeach
                 </div>
 
