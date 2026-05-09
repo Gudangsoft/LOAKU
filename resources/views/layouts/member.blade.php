@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title') - LOA SIPTENAN Member</title>
+    <title>@yield('title', 'Member') - {{ site_name() }}</title>
+    @if(site_favicon())
+        <link rel="icon" type="image/x-icon" href="{{ site_favicon() }}">
+    @endif
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -80,8 +83,14 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ route('member.dashboard') }}">
-                <i class="fas fa-graduation-cap me-2"></i>LOA SIPTENAN
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('member.dashboard') }}">
+                @if(site_logo())
+                    <img src="{{ site_logo() }}" alt="{{ site_name() }}"
+                         style="height:28px;max-width:110px;object-fit:contain;margin-right:8px;">
+                @else
+                    <i class="fas fa-graduation-cap me-2"></i>
+                @endif
+                {{ site_name() }}
             </a>
             
             <div class="navbar-nav ms-auto">

@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publisher Dashboard - LOA Management System</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'Publisher Dashboard') - {{ site_name() }}</title>
+    @if(site_favicon())
+        <link rel="icon" type="image/x-icon" href="{{ site_favicon() }}">
+    @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -65,9 +69,21 @@
             <!-- Sidebar -->
             <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <h5 class="text-white"><i class="fas fa-building me-2"></i>Publisher Panel</h5>
-                        <hr class="bg-white">
+                    <div class="text-center mb-4 px-2">
+                        @if(site_logo())
+                            <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.5rem .75rem;display:inline-block;margin-bottom:.4rem;">
+                                <img src="{{ site_logo() }}" alt="{{ site_name() }}"
+                                     style="max-height:36px; max-width:130px; object-fit:contain; display:block;">
+                            </div>
+                            <div class="text-white fw-semibold" style="font-size:.9rem;">{{ site_name() }}</div>
+                            <div class="text-white-50 small">Publisher Panel</div>
+                        @else
+                            <h5 class="text-white mb-0">
+                                <i class="fas fa-certificate me-2"></i>{{ site_name() }}
+                            </h5>
+                            <div class="text-white-50 small">Publisher Panel</div>
+                        @endif
+                        <hr class="bg-white opacity-25 mt-2">
                     </div>
                     
                     <ul class="nav flex-column">
@@ -137,9 +153,12 @@
                 <!-- Top Navbar -->
                 <nav class="navbar navbar-expand-lg navbar-light bg-white mb-4">
                     <div class="container-fluid">
-                        <button class="btn btn-outline-secondary d-md-none" type="button" data-bs-toggle="collapse" data-bs-target=".sidebar">
-                            <i class="fas fa-bars"></i>
-                        </button>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-outline-secondary d-md-none" type="button" data-bs-toggle="collapse" data-bs-target=".sidebar">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <span class="fw-semibold text-muted d-none d-md-inline" style="font-size:.9rem;">@yield('title', 'Dashboard')</span>
+                        </div>
                         
                         <div class="ms-auto d-flex align-items-center gap-3">
 
