@@ -256,6 +256,7 @@
     </div>
 </div>
 <!-- Audit Trail -->
+@php $recentActivity = $recentActivity ?? collect(); @endphp
 <div class="row mt-2 mb-4">
     <div class="col-12">
         <div class="card">
@@ -308,7 +309,7 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const monthly = @json($monthlyStats);
+const monthly = @json($monthlyStats ?? []);
 const labels  = monthly.map(m => m.label);
 
 // Bar chart — monthly trend
