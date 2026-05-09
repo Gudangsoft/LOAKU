@@ -291,161 +291,364 @@ class LoaController extends Controller
 
     private function renderDynamicTemplate($template, $data)
     {
+        // Extract data objects directly — avoids template variable mismatch issues
+        $lang        = $data['lang'];
+        $loa         = $data['loa'];
+        $req         = $data['request'];
+        $journal     = $data['journal'];
+        $publisher   = $data['publisher'];
+
+        // Build substitution map and apply to template body (best-effort, handles spaces too)
         $variables = [
-            'publisher_name'      => $data['publisher']->name ?? '',
-            'publisher_address'   => $data['publisher']->address ?? '',
-            'publisher_email'     => $data['publisher']->email ?? '',
-            'publisher_phone'     => $data['publisher']->phone ?? '',
-            'publisher_logo'      => $data['publisher']->logo ? asset('storage/' . $data['publisher']->logo) : '',
-            'journal_name'        => $data['journal']->name ?? '',
-            'journal_issn_e'      => $data['journal']->e_issn ?? '',
-            'journal_issn_p'      => $data['journal']->p_issn ?? '',
-            'chief_editor'        => $data['journal']->chief_editor ?? '',
-            'signature_stamp'     => $data['journal']->ttd_stample ? asset('storage/' . $data['journal']->ttd_stample) : '',
-            'loa_code'            => $data['loa']->loa_code ?? '',
-            'article_title'       => $data['request']->article_title ?? '',
-            'author_name'         => $data['request']->author ?? '',
-            'author_email'        => $data['request']->author_email ?? '',
-            'volume'              => $data['request']->volume ?? '',
-            'number'              => $data['request']->number ?? '',
-            'month'               => $data['request']->month ?? '',
-            'year'                => $data['request']->year ?? '',
-            'registration_number' => $data['request']->no_reg ?? '',
-            'approval_date'       => isset($data['request']->approved_at) ? $data['request']->approved_at->format('d F Y') : $data['loa']->created_at->format('d F Y'),
+            'publisher_name'      => $publisher->name ?? '',
+            'publisher_address'   => $publisher->address ?? '',
+            'publisher_email'     => $publisher->email ?? '',
+            'publisher_phone'     => $publisher->phone ?? '',
+            'publisher_logo'      => $publisher->logo ? asset('storage/' . $publisher->logo) : '',
+            'journal_name'        => $journal->name ?? '',
+            'journal_issn_e'      => $journal->e_issn ?? '',
+            'journal_issn_p'      => $journal->p_issn ?? '',
+            'chief_editor'        => $journal->chief_editor ?? '',
+            'signature_stamp'     => $journal->ttd_stample ? asset('storage/' . $journal->ttd_stample) : '',
+            'loa_code'            => $loa->loa_code ?? '',
+            'article_title'       => $req->article_title ?? '',
+            'author_name'         => $req->author ?? '',
+            'author_email'        => $req->author_email ?? '',
+            'volume'              => $req->volume ?? '',
+            'number'              => $req->number ?? '',
+            'month'               => $req->month ?? '',
+            'year'                => $req->year ?? '',
+            'registration_number' => $req->no_reg ?? '',
+            'approval_date'       => ($req->approved_at ?? null) ? $req->approved_at->format('d F Y') : $loa->created_at->format('d F Y'),
             'current_date'        => now()->format('d F Y, H:i:s'),
             'verification_url'    => route('loa.verify'),
-            'qr_code_url'         => route('qr.code', $data['loa']->loa_code),
+            'qr_code_url'         => route('qr.code', $loa->loa_code),
         ];
 
-        $content = $template->header_template . $template->body_template . $template->footer_template;
+        // Flexible replacement: handles {{var}}, {{ var }}, and {var}
+        $customBody = $template->body_template ?? '';
+        $customBody = preg_replace_callback('/\{\{[\s]*(\w+)[\s]*\}\}/', function ($m) use ($variables) {
+            return $variables[$m[1]] ?? $m[0];
+        }, $customBody);
+        $customBody = $this->processConditionals($customBody, $lang);
 
-        foreach ($variables as $key => $value) {
-            $content = str_replace('{{' . $key . '}}', $value, $content);
-        }
+        // Pre-compute display values
+        $loaCode      = $loa->loa_code;
+        $articleTitle = $req->article_title ?? '-';
+        $authorName   = $req->author ?? '-';
+        $authorEmail  = $req->author_email ?? '-';
+        $volume       = $req->volume ?? '-';
+        $number       = $req->number ?? '-';
+        $monthYear    = ($req->month ?? '') . ' ' . ($req->year ?? '');
+        $noReg        = $req->no_reg ?? '-';
+        $approvalDate = ($req->approved_at ?? null) ? $req->approved_at->format('d F Y') : $loa->created_at->format('d F Y');
+        $createdAt    = $loa->created_at->format('d F Y, H:i');
+        $publisherName = $publisher->name ?? '';
+        $publisherAddr = $publisher->address ?? '';
+        $publisherEmail = $publisher->email ?? '';
+        $publisherPhone = $publisher->phone ?? '';
+        $journalName  = $journal->name ?? '';
+        $eIssn        = $journal->e_issn ?? '';
+        $pIssn        = $journal->p_issn ?? '';
+        $chiefEditor  = $journal->chief_editor ?? ($lang === 'id' ? 'Pemimpin Redaksi' : 'Editor-in-Chief');
 
-        $content = $this->processConditionals($content, $data['lang']);
+        // Logo HTML
+        $pubLogoHtml = $publisher->logo
+            ? '<img src="' . asset('storage/' . $publisher->logo) . '" alt="' . e($publisherName) . '" style="max-height:72px;max-width:120px;object-fit:contain;background:rgba(255,255,255,.15);padding:8px;border-radius:8px;">'
+            : '<div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-building fa-2x" style="color:rgba(255,255,255,.7);"></i></div>';
 
-        // Pre-compute values for the HTML wrapper
-        $lang         = $data['lang'];
-        $loaCode      = $data['loa']->loa_code;
-        $pageTitle    = $lang === 'id' ? 'Surat Persetujuan Naskah' : 'Letter of Acceptance';
-        $homeUrl      = route('home');
-        $searchUrl    = route('loa.validated');
-        $viewIdUrl    = route('loa.view', [$loaCode, 'id']);
-        $viewEnUrl    = route('loa.view', [$loaCode, 'en']);
-        $printIdUrl   = route('loa.print', [$loaCode, 'id']);
-        $printEnUrl   = route('loa.print', [$loaCode, 'en']);
-        $verifyUrl    = route('loa.verify');
-        $homeLabel    = $lang === 'id' ? 'Beranda' : 'Home';
-        $searchLabel  = $lang === 'id' ? 'Cari LOA' : 'Search LOA';
-        $backLabel    = $lang === 'id' ? 'Kembali ke Pencarian' : 'Back to Search';
-        $verifyLabel  = $lang === 'id' ? 'Verifikasi LOA Lain' : 'Verify Other LOA';
-        $printLabel   = $lang === 'id' ? 'Cetak Halaman' : 'Print Page';
-        $btnId        = $lang === 'id' ? 'btn-primary' : 'btn-outline-primary';
-        $btnEn        = $lang === 'en' ? 'btn-primary' : 'btn-outline-primary';
+        $jrnLogoHtml = $journal->logo
+            ? '<img src="' . asset('storage/' . $journal->logo) . '" alt="' . e($journalName) . '" style="max-height:72px;max-width:120px;object-fit:contain;background:rgba(255,255,255,.15);padding:8px;border-radius:8px;">'
+            : '<div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-book fa-2x" style="color:rgba(255,255,255,.7);"></i></div>';
+
+        $stampHtml = $journal->ttd_stample
+            ? '<img src="' . asset('storage/' . $journal->ttd_stample) . '" alt="Signature" style="max-height:100px;max-width:180px;object-fit:contain;">'
+            : '<div style="border:2px dashed #ccc;border-radius:8px;padding:20px;color:#aaa;text-align:center;min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;"><i class="fas fa-signature fa-2x mb-1"></i><small>' . ($lang === 'id' ? 'Tanda Tangan & Stempel' : 'Signature & Stamp') . '</small></div>';
+
+        $issnHtml = '';
+        if ($eIssn) $issnHtml .= '<span style="display:inline-block;background:#198754;color:#fff;font-size:.75rem;padding:2px 8px;border-radius:20px;margin-right:4px;">E-ISSN: ' . e($eIssn) . '</span>';
+        if ($pIssn) $issnHtml .= '<span style="display:inline-block;background:#0dcaf0;color:#000;font-size:.75rem;padding:2px 8px;border-radius:20px;">P-ISSN: ' . e($pIssn) . '</span>';
+        if (!$issnHtml) $issnHtml = '<span style="color:#999;">-</span>';
+
+        $contactHtml = '';
+        if ($publisherEmail) $contactHtml .= '<span><i class="fas fa-envelope me-1"></i>' . e($publisherEmail) . '</span>';
+        if ($publisherPhone) $contactHtml .= '<span class="mx-2">|</span><span><i class="fas fa-phone me-1"></i>' . e($publisherPhone) . '</span>';
+
+        // Localized labels
+        $isId = ($lang === 'id');
+        $certTitle      = $isId ? 'SURAT PERSETUJUAN NASKAH' : 'LETTER OF ACCEPTANCE';
+        $certSub        = $isId ? '(LETTER OF ACCEPTANCE)' : '(SURAT PERSETUJUAN NASKAH)';
+        $labelArticle   = $isId ? 'Informasi Artikel' : 'Article Information';
+        $labelTitle     = $isId ? 'Judul Artikel' : 'Article Title';
+        $labelAuthor    = $isId ? 'Penulis' : 'Author(s)';
+        $labelEmail     = $isId ? 'Email Penulis' : 'Author Email';
+        $labelJournal   = $isId ? 'Jurnal' : 'Journal';
+        $labelVol       = $isId ? 'Volume / Nomor' : 'Volume / Number';
+        $labelEdition   = $isId ? 'Edisi' : 'Issue';
+        $labelReg       = $isId ? 'No. Registrasi' : 'Registration No.';
+        $labelApproved  = $isId ? 'Tanggal Persetujuan' : 'Approval Date';
+        $labelVerifyQr  = $isId ? 'Verifikasi QR' : 'QR Verification';
+        $labelScanVerif = $isId ? 'Scan untuk verifikasi' : 'Scan to verify';
+        $labelDocInfo   = $isId ? 'Informasi Dokumen' : 'Document Info';
+        $labelCreated   = $isId ? 'Dibuat' : 'Created';
+        $labelViewed    = $isId ? 'Dilihat' : 'Viewed';
+        $labelValidated = $isId ? 'TERVALIDASI' : 'VALIDATED';
+        $labelAccepted  = $isId ? 'TELAH DITERIMA UNTUK DIPUBLIKASIKAN' : 'HAS BEEN ACCEPTED FOR PUBLICATION';
+        $labelAccSub    = $isId ? '(HAS BEEN ACCEPTED FOR PUBLICATION)' : '(TELAH DITERIMA UNTUK DIPUBLIKASIKAN)';
+        $labelEditorRole = $isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief';
+        $labelVerifyDoc  = $isId ? 'Verifikasi Dokumen' : 'Document Verification';
+        $labelVerifyInst = $isId ? 'Untuk memverifikasi keaslian dokumen ini:' : 'To verify the authenticity of this document:';
+        $labelVisit      = $isId ? 'Kunjungi' : 'Visit';
+        $labelLoaCode    = $isId ? 'Kode LOA' : 'LOA Code';
+        $labelSysInfo    = $isId ? 'Informasi Sistem' : 'System Information';
+        $labelSysGen     = $isId ? 'Dokumen dibuat otomatis oleh:' : 'Document automatically generated by:';
+        $labelPrinted    = $isId ? 'Dicetak pada' : 'Generated on';
+        $defaultBody     = $isId
+            ? "<p>Naskah artikel ilmiah telah melalui proses <strong>review</strong> dan memenuhi persyaratan untuk dipublikasikan pada jurnal <strong>" . e($journalName) . "</strong>.</p><p style='color:#6c757d;font-size:.93rem;'>Surat persetujuan ini merupakan bukti resmi penerimaan naskah untuk publikasi dan dapat digunakan untuk keperluan akademik dan profesional.</p>"
+            : "<p>The scientific article manuscript has undergone the <strong>review process</strong> and has met the requirements for publication in <strong>" . e($journalName) . "</strong>.</p><p style='color:#6c757d;font-size:.93rem;'>This letter of acceptance serves as official proof of manuscript acceptance for publication and can be used for academic and professional purposes.</p>";
+
+        // Use custom template body if it's meaningful (after replacement), else use default
+        $statementHtml = (trim(strip_tags($customBody)) !== '' && strpos($customBody, '{{') === false)
+            ? '<div class="custom-body">' . $customBody . '</div>'
+            : $defaultBody;
+
+        // URLs
+        $homeUrl    = route('home');
+        $searchUrl  = route('loa.validated');
+        $viewIdUrl  = route('loa.view', [$loaCode, 'id']);
+        $viewEnUrl  = route('loa.view', [$loaCode, 'en']);
+        $printIdUrl = route('loa.print', [$loaCode, 'id']);
+        $printEnUrl = route('loa.print', [$loaCode, 'en']);
+        $verifyUrl  = route('loa.verify');
+        $qrUrl      = route('qr.code', $loaCode);
+        $pageTitle  = $isId ? 'Surat Persetujuan Naskah' : 'Letter of Acceptance';
+        $homeLabel  = $isId ? 'Beranda' : 'Home';
+        $searchLabel = $isId ? 'Cari LOA' : 'Search LOA';
+        $backLabel  = $isId ? 'Kembali ke Pencarian' : 'Back to Search';
+        $verifyLabel = $isId ? 'Verifikasi LOA Lain' : 'Verify Other LOA';
+        $printLabel = $isId ? 'Cetak Halaman' : 'Print Page';
+        $btnId      = $isId ? 'btn-primary' : 'btn-outline-primary';
+        $btnEn      = !$isId ? 'btn-primary' : 'btn-outline-primary';
+        $nowStr     = now()->format('d F Y, H:i:s');
 
         $html = <<<HTML
 <!DOCTYPE html>
 <html lang="{$lang}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{$pageTitle} - {$loaCode}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', system-ui, sans-serif; }
-        .loa-wrapper { max-width: 980px; margin: 0 auto; padding: 2rem 1rem 3rem; }
-        .loa-certificate {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,.14);
-            background: #fff;
-            animation: fadeInUp .5s ease-out;
-        }
-        @keyframes fadeInUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-        .loa-inner { padding: 0; }
-        /* Give inner content some breathing room if template doesn't add its own */
-        .loa-inner > *:first-child { margin-top: 0 !important; }
-        @media print {
-            .no-print { display: none !important; }
-            body { background: #fff !important; }
-            .loa-wrapper { padding: 0; max-width: 100%; }
-            .loa-certificate { box-shadow: none; border-radius: 0; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{$pageTitle} – {$loaCode}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+body{background:#eef2f7;font-family:'Segoe UI',system-ui,sans-serif;color:#212529;}
+.loa-page{max-width:960px;margin:0 auto;padding:2rem 1rem 4rem;}
+.cert-card{border-radius:20px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.16);animation:fadeUp .5s ease-out;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.cert-header{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 60%,#764ba2 100%);color:#fff;padding:2rem;}
+.cert-header-grid{display:grid;grid-template-columns:auto 1fr auto;gap:1.5rem;align-items:center;}
+.cert-pub-info h2{font-size:1.3rem;font-weight:700;margin-bottom:.3rem;}
+.cert-pub-info p{font-size:.85rem;opacity:.85;margin:0;}
+.cert-title-block{text-align:center;margin-top:1.2rem;border-top:1px solid rgba(255,255,255,.25);padding-top:1.2rem;}
+.cert-title-block h3{font-size:1.5rem;font-weight:800;letter-spacing:1px;margin:0;}
+.cert-title-block small{opacity:.75;font-size:.9rem;}
+.loa-code-bar{background:#fff;border-top:4px solid #1e3c72;border-bottom:1px solid #dee2e6;padding:.9rem 1.5rem;text-align:center;}
+.loa-code-bar span{font-size:1.2rem;font-weight:700;color:#1e3c72;letter-spacing:1px;}
+.cert-body{background:#fff;padding:2rem 2.5rem;}
+.info-table td{padding:.55rem .75rem;border-bottom:1px solid #f0f2f5;vertical-align:top;}
+.info-table td:first-child{color:#6c757d;font-weight:600;white-space:nowrap;width:36%;}
+.qr-box{background:#f8f9fa;border:2px solid #dee2e6;border-radius:12px;padding:1rem;text-align:center;}
+.qr-box img{width:140px;height:140px;object-fit:contain;}
+.accepted-banner{background:linear-gradient(135deg,#d4edda,#a8dfb5);border:none;border-radius:12px;padding:1.5rem;text-align:center;margin:1.5rem 0;}
+.accepted-banner h3{color:#155724;font-weight:800;font-size:1.4rem;margin-bottom:.3rem;}
+.accepted-banner small{color:#218838;}
+.sig-section{text-align:center;padding-top:1.5rem;}
+.sig-section .sig-label{color:#6c757d;font-size:.9rem;margin-bottom:.5rem;}
+.sig-name{border-top:2px solid #212529;padding-top:.5rem;margin-top:.5rem;font-weight:700;}
+.cert-footer{background:#f8f9fa;border-top:1px solid #dee2e6;padding:1.5rem 2.5rem;}
+.verified-badge{display:inline-flex;align-items:center;gap:.4rem;background:#d4edda;color:#155724;border-radius:20px;padding:.35rem .9rem;font-size:.82rem;font-weight:600;}
+code.loa{background:#e9ecef;padding:.15rem .5rem;border-radius:4px;font-size:.9rem;}
+@media print{
+  .no-print{display:none!important;}
+  body{background:#fff!important;}
+  .loa-page{padding:0;max-width:100%;}
+  .cert-card{box-shadow:none;border-radius:0;animation:none;}
+}
+@media(max-width:600px){
+  .cert-header-grid{grid-template-columns:1fr;text-align:center;}
+  .cert-body{padding:1.5rem;}
+}
+</style>
 </head>
 <body>
-<div class="loa-wrapper">
+<div class="loa-page">
 
-    <!-- Top bar: breadcrumb + download -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 no-print">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item">
-                    <a href="{$homeUrl}" class="text-decoration-none text-secondary">
-                        <i class="fas fa-home me-1"></i>{$homeLabel}
-                    </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{$searchUrl}" class="text-decoration-none text-secondary">{$searchLabel}</a>
-                </li>
-                <li class="breadcrumb-item active fw-semibold">{$loaCode}</li>
-            </ol>
-        </nav>
-        <div class="btn-group shadow-sm">
-            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i>Download PDF
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                    <a class="dropdown-item" href="{$printIdUrl}" target="_blank">
-                        <i class="fas fa-flag me-2 text-danger"></i>Bahasa Indonesia
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="{$printEnUrl}" target="_blank">
-                        <i class="fas fa-flag-usa me-2 text-primary"></i>English Version
-                    </a>
-                </li>
-            </ul>
+  <!-- Nav bar -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 no-print">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{$homeUrl}" class="text-decoration-none text-secondary"><i class="fas fa-home me-1"></i>{$homeLabel}</a></li>
+        <li class="breadcrumb-item"><a href="{$searchUrl}" class="text-decoration-none text-secondary">{$searchLabel}</a></li>
+        <li class="breadcrumb-item active fw-semibold">{$loaCode}</li>
+      </ol>
+    </nav>
+    <div class="btn-group shadow-sm">
+      <button class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="fas fa-file-pdf me-1"></i>Download PDF
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="{$printIdUrl}" target="_blank"><i class="fas fa-flag me-2 text-danger"></i>Bahasa Indonesia</a></li>
+        <li><a class="dropdown-item" href="{$printEnUrl}" target="_blank"><i class="fas fa-flag-usa me-2 text-primary"></i>English Version</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Language toggle -->
+  <div class="text-center mb-4 no-print">
+    <div class="btn-group shadow-sm">
+      <a href="{$viewIdUrl}" class="btn {$btnId}"><i class="fas fa-flag me-1"></i>Bahasa Indonesia</a>
+      <a href="{$viewEnUrl}" class="btn {$btnEn}"><i class="fas fa-flag-usa me-1"></i>English</a>
+    </div>
+  </div>
+
+  <!-- Certificate card -->
+  <div class="cert-card">
+
+    <!-- Gradient header -->
+    <div class="cert-header">
+      <div class="cert-header-grid">
+        <div>{$pubLogoHtml}</div>
+        <div class="cert-pub-info">
+          <h2>{$publisherName}</h2>
+          <p>{$publisherAddr}</p>
+          <p style="margin-top:.3rem;">{$contactHtml}</p>
         </div>
+        <div style="text-align:right;">{$jrnLogoHtml}</div>
+      </div>
+      <div class="cert-title-block">
+        <h3><i class="fas fa-certificate me-2"></i>{$certTitle}</h3>
+        <small>{$certSub}</small>
+      </div>
     </div>
 
-    <!-- Language toggle -->
-    <div class="text-center mb-4 no-print">
-        <div class="btn-group shadow-sm" role="group">
-            <a href="{$viewIdUrl}" class="btn {$btnId}">
-                <i class="fas fa-flag me-1"></i>Bahasa Indonesia
-            </a>
-            <a href="{$viewEnUrl}" class="btn {$btnEn}">
-                <i class="fas fa-flag-usa me-1"></i>English
-            </a>
-        </div>
+    <!-- LOA code bar -->
+    <div class="loa-code-bar">
+      <i class="fas fa-qrcode me-2 text-primary"></i>
+      <span>{$labelLoaCode}: {$loaCode}</span>
+      <span class="verified-badge ms-3"><i class="fas fa-check-circle"></i>{$labelValidated}</span>
     </div>
 
-    <!-- Certificate -->
-    <div class="loa-certificate">
-        <div class="loa-inner">
-            {$content}
+    <!-- Body -->
+    <div class="cert-body">
+      <div class="row g-4">
+
+        <!-- Article info -->
+        <div class="col-lg-8">
+          <div class="card border-0 h-100" style="background:#f8f9fa;border-radius:12px;">
+            <div class="card-header border-0 text-white fw-semibold" style="background:#0d6efd;border-radius:12px 12px 0 0;">
+              <i class="fas fa-file-alt me-2"></i>{$labelArticle}
+            </div>
+            <div class="card-body p-0">
+              <table class="table table-borderless info-table mb-0">
+                <tbody>
+                  <tr><td><i class="fas fa-heading text-primary me-2"></i>{$labelTitle}</td><td><strong>{$articleTitle}</strong></td></tr>
+                  <tr><td><i class="fas fa-user text-success me-2"></i>{$labelAuthor}</td><td>{$authorName}</td></tr>
+                  <tr><td><i class="fas fa-envelope text-warning me-2"></i>{$labelEmail}</td><td>{$authorEmail}</td></tr>
+                  <tr><td><i class="fas fa-book text-info me-2"></i>{$labelJournal}</td><td><strong>{$journalName}</strong><br><small>{$issnHtml}</small></td></tr>
+                  <tr><td><i class="fas fa-list-ol text-primary me-2"></i>{$labelVol}</td><td>Vol. {$volume} &nbsp; No. {$number}</td></tr>
+                  <tr><td><i class="fas fa-calendar text-warning me-2"></i>{$labelEdition}</td><td>{$monthYear}</td></tr>
+                  <tr><td><i class="fas fa-hashtag text-secondary me-2"></i>{$labelReg}</td><td><code class="loa">{$noReg}</code></td></tr>
+                  <tr><td><i class="fas fa-check-circle text-success me-2"></i>{$labelApproved}</td><td><strong class="text-success">{$approvalDate}</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
+
+        <!-- QR + status -->
+        <div class="col-lg-4 d-flex flex-column gap-3">
+          <div class="card border-0" style="background:#fff8e1;border-radius:12px;border:1px solid #ffe082!important;">
+            <div class="card-header border-0 fw-semibold" style="background:#ffc107;border-radius:12px 12px 0 0;font-size:.9rem;">
+              <i class="fas fa-qrcode me-2"></i>{$labelVerifyQr}
+            </div>
+            <div class="card-body text-center p-3">
+              <div class="qr-box mb-2">
+                <img src="{$qrUrl}" alt="QR {$loaCode}" onerror="this.parentNode.innerHTML='<i class=\'fas fa-qrcode fa-3x text-muted\'></i>'">
+              </div>
+              <small class="text-muted"><i class="fas fa-mobile-alt me-1"></i>{$labelScanVerif}</small>
+            </div>
+          </div>
+          <div class="card border-0" style="background:#f0fff4;border:1px solid #b2dfdb!important;border-radius:12px;">
+            <div class="card-header border-0 fw-semibold text-white" style="background:#198754;border-radius:12px 12px 0 0;font-size:.9rem;">
+              <i class="fas fa-info-circle me-2"></i>{$labelDocInfo}
+            </div>
+            <div class="card-body p-3 small">
+              <div class="text-center mb-2">
+                <span class="badge bg-success py-2 px-3 fs-6"><i class="fas fa-check-circle me-1"></i>{$labelValidated}</span>
+              </div>
+              <p class="mb-1 text-muted"><strong>{$labelCreated}:</strong><br><i class="fas fa-calendar me-1"></i>{$createdAt}</p>
+              <p class="mb-0 text-muted"><strong>{$labelViewed}:</strong><br><i class="fas fa-clock me-1"></i>{$nowStr}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acceptance banner -->
+      <div class="accepted-banner mt-4">
+        <h3><i class="fas fa-check-circle me-2"></i>{$labelAccepted}</h3>
+        <small>{$labelAccSub}</small>
+      </div>
+
+      <!-- Statement text -->
+      <div class="text-center mb-4 px-2" style="font-size:1.05rem;line-height:1.8;">
+        {$statementHtml}
+      </div>
+
+      <!-- Signature -->
+      <div class="row justify-content-end mt-4">
+        <div class="col-md-5 col-lg-4">
+          <div class="sig-section">
+            <p class="sig-label">{$approvalDate}</p>
+            <p class="sig-label fw-semibold">{$labelEditorRole}</p>
+            <div class="mb-3">{$stampHtml}</div>
+            <div class="sig-name">
+              {$chiefEditor}<br>
+              <small class="text-muted">{$labelEditorRole}</small>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Bottom actions -->
-    <div class="text-center mt-4 no-print">
-        <div class="btn-group shadow-sm flex-wrap">
-            <a href="{$searchUrl}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i>{$backLabel}
-            </a>
-            <a href="{$verifyUrl}" class="btn btn-outline-warning">
-                <i class="fas fa-shield-alt me-1"></i>{$verifyLabel}
-            </a>
-            <button class="btn btn-outline-info" onclick="window.print()">
-                <i class="fas fa-print me-1"></i>{$printLabel}
-            </button>
+    <!-- Footer -->
+    <div class="cert-footer">
+      <div class="row gy-3">
+        <div class="col-md-6">
+          <h6 class="fw-bold text-primary mb-1"><i class="fas fa-shield-alt me-2"></i>{$labelVerifyDoc}</h6>
+          <p class="small text-muted mb-1">{$labelVerifyInst}</p>
+          <p class="small mb-0">
+            <strong>{$labelVisit}:</strong>
+            <a href="{$verifyUrl}" class="text-decoration-none" target="_blank">{$verifyUrl}</a><br>
+            <strong>{$labelLoaCode}:</strong> <code class="loa">{$loaCode}</code>
+          </p>
         </div>
+        <div class="col-md-6 text-md-end">
+          <h6 class="fw-bold text-secondary mb-1"><i class="fas fa-cog me-2"></i>{$labelSysInfo}</h6>
+          <p class="small text-muted mb-1">{$labelSysGen}</p>
+          <p class="small mb-0"><strong>LOA Management System</strong><br>{$labelPrinted}: {$nowStr}</p>
+        </div>
+      </div>
     </div>
+  </div>
 
+  <!-- Bottom actions -->
+  <div class="text-center mt-4 no-print">
+    <div class="btn-group shadow-sm flex-wrap">
+      <a href="{$searchUrl}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>{$backLabel}</a>
+      <a href="{$verifyUrl}" class="btn btn-outline-warning"><i class="fas fa-shield-alt me-1"></i>{$verifyLabel}</a>
+      <button class="btn btn-outline-info" onclick="window.print()"><i class="fas fa-print me-1"></i>{$printLabel}</button>
+    </div>
+  </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
