@@ -418,45 +418,19 @@
                                     </ul>
                                 </div>
 
-                                <button class="btn-qr" data-bs-toggle="modal" data-bs-target="#qrModal{{ $loop->index }}">
-                                    <i class="fas fa-qrcode"></i> QR
-                                </button>
-                            </div>
-
-                            {{-- QR Modal --}}
-                            <div class="modal fade" id="qrModal{{ $loop->index }}" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered modal-sm">
-                                    <div class="modal-content">
-                                        <div class="modal-header" style="background:linear-gradient(135deg,#0891B2,#06B6D4);color:#fff;">
-                                            <h6 class="modal-title"><i class="fas fa-qrcode me-2"></i>QR — {{ $loa->loa_code }}</h6>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body text-center p-4">
-                                            <div id="qrLoading{{ $loop->index }}">
-                                                <div class="spinner-border text-primary" role="status"></div>
-                                                <p class="text-muted mt-2 small">Memuat QR Code...</p>
-                                            </div>
-                                            <div id="qrContainer{{ $loop->index }}" class="mb-3" style="display:none;">
-                                                <div class="p-3 bg-white border rounded shadow-sm d-inline-block">
-                                                    <img id="qrImage{{ $loop->index }}" alt="QR {{ $loa->loa_code }}" style="width:200px;height:200px;object-fit:contain;">
-                                                </div>
-                                            </div>
-                                            <div id="qrError{{ $loop->index }}" class="mb-3" style="display:none;">
-                                                <div class="alert alert-warning small"><i class="fas fa-exclamation-triangle me-2"></i>Gagal memuat QR Code</div>
-                                            </div>
-                                            <div id="qrDescription{{ $loop->index }}" style="display:none;">
-                                                <p class="text-muted small mb-0"><i class="fas fa-mobile-alt me-1"></i>Scan untuk verifikasi {{ $loa->loa_code }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-primary btn-sm" onclick="downloadQrImage('{{ route('qr.download', $loa->loa_code) }}')">
-                                                <i class="fas fa-download me-1"></i>Download QR
-                                            </button>
-                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
-                                        </div>
-                                    </div>
+                                <div class="dropdown">
+                                    <button class="btn-qr dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-qrcode"></i> QR
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" target="_blank">
+                                            <i class="fas fa-eye me-2 text-info"></i>Lihat QR
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" download="QR-{{ $loa->loa_code }}.png">
+                                            <i class="fas fa-download me-2 text-primary"></i>Download QR
+                                        </a></li>
+                                    </ul>
                                 </div>
-                            </div>
 
                         </div>
                     </div>
