@@ -645,7 +645,7 @@
                     </a>
                 </div>
                 <div class="d-flex align-items-center gap-4 mt-4" style="font-size:.8rem;color:#93C5FD">
-                    <span><i class="fas fa-check-circle me-1" style="color:#34D399"></i> Gratis & Cepat</span>
+                    <span><i class="fas fa-check-circle me-1" style="color:#34D399"></i> Profesional & Cepat</span>
                     <span><i class="fas fa-check-circle me-1" style="color:#34D399"></i> QR Terverifikasi</span>
                     <span><i class="fas fa-check-circle me-1" style="color:#34D399"></i> PDF Bilingual</span>
                 </div>
