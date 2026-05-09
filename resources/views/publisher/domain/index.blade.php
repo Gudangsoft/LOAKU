@@ -53,7 +53,7 @@
         @if($publisher->subdomain)
             <div class="mb-2">
                 <span class="text-muted small">URL Portal:</span>
-                <strong class="d-block">{{ config('app.base_domain') }}/publishers/{{ $publisher->subdomain }}</strong>
+                <strong class="d-block">{{ config('app.base_domain') }}/{{ $publisher->subdomain }}</strong>
             </div>
         @elseif($publisher->custom_domain)
             <div class="mb-2">
@@ -115,7 +115,7 @@
                             <div>
                                 <div class="fw-semibold"><i class="fas fa-link me-1 text-primary"></i>URL Portal Gratis</div>
                                 <div class="text-muted" style="font-size:.8rem;">
-                                    <strong>{{ config('app.base_domain') }}</strong>/publishers/nama-anda<br>
+                                    <strong>{{ config('app.base_domain') }}</strong>/nama-anda<br>
                                     Lebih mudah, langsung aktif setelah disetujui.
                                 </div>
                             </div>
@@ -142,7 +142,7 @@
             <div id="subdomainInput" class="mb-4">
                 <label class="form-label fw-semibold">Nama URL Portal</label>
                 <div class="input-group">
-                    <span class="input-group-text text-muted" style="font-size:.85rem;">{{ config('app.base_domain') }}/publishers/</span>
+                    <span class="input-group-text text-muted" style="font-size:.85rem;">{{ config('app.base_domain') }}/</span>
                     <input type="text" name="subdomain" class="form-control @error('subdomain') is-invalid @enderror"
                            value="{{ old('subdomain', $publisher->subdomain) }}"
                            placeholder="nama-publisher" pattern="[a-zA-Z0-9\-]+" minlength="3" maxlength="50">

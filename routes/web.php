@@ -571,3 +571,8 @@ Route::get('/test-new-view/{id}', function ($id) {
     return view('publisher.loa-requests.show', compact('loaRequest'));
 });
 
+// Short publisher portal URL: /{slug} → publisher detail
+Route::get('/{slug}', [HomeController::class, 'publisherDetail'])
+    ->where('slug', '[a-zA-Z0-9\-]+')
+    ->name('publishers.short');
+

@@ -67,7 +67,7 @@
                             </td>
                             <td>
                                 @if($pub->subdomain)
-                                    <code>{{ config('app.base_domain') }}/publishers/{{ $pub->subdomain }}</code>
+                                    <code>{{ config('app.base_domain') }}/{{ $pub->subdomain }}</code>
                                 @elseif($pub->custom_domain)
                                     <code>{{ $pub->custom_domain }}</code>
                                 @else
@@ -142,7 +142,7 @@
                                         </div>
                                         <div class="modal-body">
                                             <p>Setujui domain untuk <strong>{{ $pub->name }}</strong>?</p>
-                                            <p class="text-muted small">URL: <code>{{ $pub->subdomain ? config('app.base_domain').'/publishers/'.$pub->subdomain : $pub->custom_domain }}</code></p>
+                                            <p class="text-muted small">URL: <code>{{ $pub->subdomain ? config('app.base_domain').'/'.$pub->subdomain : $pub->custom_domain }}</code></p>
                                             @if($pub->custom_domain)
                                             <div class="alert alert-info small">
                                                 Pastikan DNS sudah diarahkan ke server ini sebelum mengaktifkan domain kustom.
