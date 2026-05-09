@@ -458,16 +458,28 @@ class PublisherController extends Controller
     /**
      * Show LOA requests
      */
-    public function loaRequests()
+    public function loaRequests(Request $request)
     {
-        // Get journals owned by the current publisher user
         $journalIds = Journal::where('user_id', Auth::id())->pluck('id');
-        
-        $requests = LoaRequest::whereIn('journal_id', $journalIds)
-            ->with(['journal.publisher', 'loaValidated'])
-            ->latest()
-            ->paginate(15);
 
+        $query = LoaRequest::whereIn('journal_id', $journalIds)
+            ->with(['journal.publisher', 'loaValidated']);
+
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function($sub) use ($q) {
+                $sub->where('article_title', 'like', "%{$q}%")
+                    ->orWhere('author', 'like', "%{$q}%")
+                    ->orWhere('no_reg', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            $results = $query->latest()->take(10)->get(['id', 'article_title', 'author', 'status', 'no_reg', 'created_at']);
+            return response()->json(['data' => $results]);
+        }
+
+        $requests = $query->latest()->paginate(15);
         return view('publisher.loa-requests.index', compact('requests'));
     }
 
@@ -616,6 +628,43 @@ class PublisherController extends Controller
 
         return redirect()->route('publisher.profile')
             ->with('success', 'Profil berhasil diperbarui!');
+    }
+
+    public function exportDashboard()
+    {
+        $user = Auth::user();
+        if ($user->role !== 'publisher') {
+            abort(403);
+        }
+
+        $journalIds = Journal::where('user_id', $user->id)->pluck('id');
+        $requests   = LoaRequest::whereIn('journal_id', $journalIds)
+            ->with('journal')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $filename = 'loa_requests_' . date('Y-m-d_His') . '.csv';
+
+        return response()->stream(function () use ($requests) {
+            $out = fopen('php://output', 'w');
+            fputs($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['No Reg', 'Judul Artikel', 'Penulis', 'Jurnal', 'Status', 'Tanggal Masuk', 'Tanggal Proses']);
+            foreach ($requests as $r) {
+                fputcsv($out, [
+                    $r->no_reg ?? '-',
+                    $r->article_title,
+                    $r->author,
+                    $r->journal?->name ?? '-',
+                    $r->status,
+                    $r->created_at?->format('d/m/Y H:i') ?? '-',
+                    $r->approved_at?->format('d/m/Y H:i') ?? '-',
+                ]);
+            }
+            fclose($out);
+        }, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     public function exportJournals()

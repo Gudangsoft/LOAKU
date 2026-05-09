@@ -258,45 +258,143 @@ Route::get('/publisher/dashboard', function() {
     if (!Auth::check()) {
         return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
     }
-    
+
     $user = Auth::user();
     if ($user->role !== 'publisher') {
         return redirect()->route('home')->with('error', 'Akses ditolak. Halaman ini khusus untuk publisher.');
     }
-    
+
     // Check if publisher is active and set session
-    $publisher = App\Models\Publisher::where('user_id', $user->id)->first();
+    $publisher = App\Models\Publisher::where('user_id', $user->id)->with('activeSubscription.plan')->first();
     if ($publisher && $publisher->isActive()) {
         session(['publisher_validated' => true]);
     }
-    
-    // Get user's publishers and journals with safe queries
+
+    // Get user's publishers and journals
     $userPublishers = App\Models\Publisher::where('user_id', $user->id)->get();
-    $userJournals = App\Models\Journal::where('user_id', $user->id)->get();
-    $journalIds = $userJournals->pluck('id');
-    
-    // Statistics
+    $userJournals   = App\Models\Journal::where('user_id', $user->id)->get();
+    $journalIds     = $userJournals->pluck('id');
+
+    // Core statistics
+    $totalLoa    = App\Models\LoaRequest::whereIn('journal_id', $journalIds)->count();
+    $pendingLoa  = App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'pending')->count();
+    $approvedLoa = App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'approved')->count();
+    $rejectedLoa = App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'rejected')->count();
+    $validatedLoa = App\Models\LoaValidated::whereIn('journal_id', $journalIds)->count();
+
+    // Avg response time (hours between created_at and approved_at/updated_at for approved/rejected)
+    $avgResponseHours = null;
+    $processedRequests = App\Models\LoaRequest::whereIn('journal_id', $journalIds)
+        ->whereIn('status', ['approved', 'rejected'])
+        ->whereNotNull('approved_at')
+        ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, approved_at)) as avg_hours')
+        ->value('avg_hours');
+    $avgResponseHours = $processedRequests ? round($processedRequests, 1) : null;
+
+    // Urgent pending LOAs (pending > 3 days)
+    $urgentLoaRequests = App\Models\LoaRequest::whereIn('journal_id', $journalIds)
+        ->where('status', 'pending')
+        ->where('created_at', '<', now()->subDays(3))
+        ->with('journal')
+        ->latest()
+        ->get();
+
     $stats = [
-        'publishers' => $userPublishers->count(),
-        'journals' => $userJournals->count(),
+        'publishers'   => $userPublishers->count(),
+        'journals'     => $userJournals->count(),
         'loa_requests' => [
-            'total' => App\Models\LoaRequest::whereIn('journal_id', $journalIds)->count(),
-            'pending' => App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'pending')->count(),
-            'approved' => App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'approved')->count(),
-            'rejected' => App\Models\LoaRequest::whereIn('journal_id', $journalIds)->where('status', 'rejected')->count(),
+            'total'    => $totalLoa,
+            'pending'  => $pendingLoa,
+            'approved' => $approvedLoa,
+            'rejected' => $rejectedLoa,
         ],
-        'validated' => App\Models\LoaValidated::whereIn('journal_id', $journalIds)->count()
+        'validated'         => $validatedLoa,
+        'avg_response_hours'=> $avgResponseHours,
+        'urgent_count'      => $urgentLoaRequests->count(),
     ];
 
-    // Recent LOA requests
+    // Recent LOA requests (with quick approve/reject support)
     $recentRequests = App\Models\LoaRequest::whereIn('journal_id', $journalIds)
         ->with(['journal', 'journal.publisher'])
         ->latest()
         ->take(10)
         ->get();
-    
-    return view('publisher.dashboard', compact('stats', 'recentRequests'));
+
+    // Per-journal breakdown with completeness
+    $journalStats = $userJournals->map(function($journal) use ($journalIds) {
+        $jId = $journal->id;
+        $total    = App\Models\LoaRequest::where('journal_id', $jId)->count();
+        $pending  = App\Models\LoaRequest::where('journal_id', $jId)->where('status', 'pending')->count();
+        $approved = App\Models\LoaRequest::where('journal_id', $jId)->where('status', 'approved')->count();
+        $validated = App\Models\LoaValidated::where('journal_id', $jId)->count();
+
+        $completenessFields = ['name', 'e_issn', 'p_issn', 'chief_editor', 'email', 'logo', 'signature_stamp', 'sinta_id'];
+        $filled = collect($completenessFields)->filter(fn($f) => !empty($journal->$f))->count();
+        $completeness = round(($filled / count($completenessFields)) * 100);
+
+        return [
+            'journal'      => $journal,
+            'total'        => $total,
+            'pending'      => $pending,
+            'approved'     => $approved,
+            'validated'    => $validated,
+            'completeness' => $completeness,
+            'filled'       => $filled,
+            'total_fields' => count($completenessFields),
+        ];
+    });
+
+    // 6-month trend
+    $monthlyStats = collect(range(5, 0))->map(function($i) use ($journalIds) {
+        $month = now()->subMonths($i);
+        $base  = App\Models\LoaRequest::whereIn('journal_id', $journalIds)
+            ->whereYear('created_at', $month->year)
+            ->whereMonth('created_at', $month->month);
+        return [
+            'label'    => $month->format('M Y'),
+            'total'    => (clone $base)->count(),
+            'approved' => (clone $base)->where('status', 'approved')->count(),
+            'rejected' => (clone $base)->where('status', 'rejected')->count(),
+        ];
+    });
+
+    // Per-journal chart data
+    $journalChartData = $journalStats->map(fn($js) => [
+        'label'    => \Illuminate\Support\Str::limit($js['journal']->name, 20),
+        'approved' => $js['approved'],
+        'pending'  => $js['pending'],
+    ]);
+
+    // Subscription info
+    $activeSub = $publisher?->activeSubscription;
+    $subPlan   = $activeSub?->plan;
+
+    // This month's LOA usage
+    $thisMonthLoa = App\Models\LoaRequest::whereIn('journal_id', $journalIds)
+        ->whereMonth('created_at', now()->month)
+        ->whereYear('created_at', now()->year)
+        ->count();
+
+    // Widget embed stats (validated LOAs)
+    $widgetCount = $validatedLoa;
+
+    // Recent activity log (by this user)
+    $recentActivity = App\Models\ActivityLog::where('user_id', $user->id)
+        ->latest('created_at')
+        ->take(10)
+        ->get();
+
+    return view('publisher.dashboard', compact(
+        'stats', 'recentRequests', 'urgentLoaRequests', 'journalStats',
+        'monthlyStats', 'journalChartData', 'activeSub', 'subPlan',
+        'thisMonthLoa', 'widgetCount', 'recentActivity', 'publisher'
+    ));
 })->name('publisher.dashboard');
+
+// Publisher Dashboard Export
+Route::get('/publisher/dashboard/export', [App\Http\Controllers\PublisherController::class, 'exportDashboard'])
+    ->middleware(['auth'])
+    ->name('publisher.dashboard.export');
 
 // Publisher Routes (for publisher role)
 Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher'])->group(function () {
