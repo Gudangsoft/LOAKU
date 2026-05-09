@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Publisher;
 use App\Models\Journal;
 use App\Models\LoaRequest;
@@ -63,7 +64,29 @@ class PublisherController extends Controller
             ->take(10)
             ->get();
 
-        return view('publisher.dashboard', compact('stats', 'recentRequests'));
+        // Monthly LOA stats — last 6 months for Chart.js
+        $monthlyStats = collect(range(5, 0))->map(function ($monthsAgo) use ($journalIds) {
+            $date = now()->subMonths($monthsAgo);
+            $base = LoaRequest::whereIn('journal_id', $journalIds)
+                ->whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month);
+            return [
+                'label'    => $date->format('M Y'),
+                'total'    => (clone $base)->count(),
+                'approved' => (clone $base)->where('status', 'approved')->count(),
+                'rejected' => (clone $base)->where('status', 'rejected')->count(),
+            ];
+        });
+
+        // Recent activity log for this publisher's journals
+        $journalIdArray = $journalIds->toArray();
+        $recentActivity = ActivityLog::where('model_type', LoaRequest::class)
+            ->whereIn('model_id', LoaRequest::whereIn('journal_id', $journalIdArray)->pluck('id'))
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('publisher.dashboard', compact('stats', 'recentRequests', 'monthlyStats', 'recentActivity'));
     }
 
     /**

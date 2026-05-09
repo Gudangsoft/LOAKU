@@ -42,10 +42,19 @@ class LoaRequestController extends Controller
         // Generate LOA code based on article ID if available
         $loaCode = LoaValidated::generateLoaCodeWithArticleId($loaRequest->article_id);
         
+        $signedAt = now();
+        $signature = hash_hmac(
+            'sha256',
+            implode('|', [$loaCode, $signedAt->toISOString(), $loaRequest->author_email, $loaRequest->journal_id]),
+            config('app.key')
+        );
+
         $loaValidated = LoaValidated::create([
-            'loa_request_id' => $loaRequest->id,
-            'loa_code' => $loaCode,
-            'verification_url' => route('loa.verify')
+            'loa_request_id'   => $loaRequest->id,
+            'loa_code'         => $loaCode,
+            'verification_url' => route('loa.verify'),
+            'digital_signature'=> $signature,
+            'signed_at'        => $signedAt,
         ]);
 
         $loaRequest->loa_code = $loaCode;
@@ -61,6 +70,16 @@ class LoaRequestController extends Controller
                 ->notify(new LoaApprovedNotification($loaRequest));
         } catch (\Exception $e) {
             \Log::error('Failed to send LOA approval email: ' . $e->getMessage());
+        }
+
+        // Notifikasi in-app ke publisher user
+        $publisherUser = optional(optional($loaRequest->journal)->publisher)->user;
+        if ($publisherUser) {
+            try {
+                $publisherUser->notify(new LoaApprovedNotification($loaRequest));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send in-app notification: ' . $e->getMessage());
+            }
         }
 
         return redirect()->route('admin.loa-requests.index')
@@ -97,8 +116,88 @@ class LoaRequestController extends Controller
             \Log::error('Failed to send LOA rejection email: ' . $e->getMessage());
         }
 
+        // Notifikasi in-app ke publisher user
+        $publisherUser = optional(optional($loaRequest->journal)->publisher)->user;
+        if ($publisherUser) {
+            try {
+                $publisherUser->notify(new LoaRejectedNotification($loaRequest));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send in-app notification: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->route('admin.loa-requests.index')
             ->with('success', 'LOA request berhasil ditolak.');
+    }
+
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action'  => 'required|in:approve,reject',
+            'ids'     => 'required|array|min:1',
+            'ids.*'   => 'integer|exists:loa_requests,id',
+            'admin_notes' => 'required_if:action,reject|nullable|string|max:1000',
+        ]);
+
+        $pending = LoaRequest::whereIn('id', $request->ids)->where('status', 'pending')->get();
+
+        if ($pending->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada permintaan pending yang dipilih.');
+        }
+
+        $count = 0;
+
+        foreach ($pending as $loaRequest) {
+            if ($request->action === 'approve') {
+                $loaRequest->status      = 'approved';
+                $loaRequest->approved_at = now();
+                $loaRequest->save();
+
+                $signedAt  = now();
+                $loaCode   = LoaValidated::generateLoaCodeWithArticleId($loaRequest->article_id);
+                $signature = hash_hmac('sha256',
+                    implode('|', [$loaCode, $signedAt->toISOString(), $loaRequest->author_email, $loaRequest->journal_id]),
+                    config('app.key')
+                );
+                LoaValidated::create([
+                    'loa_request_id'    => $loaRequest->id,
+                    'loa_code'          => $loaCode,
+                    'verification_url'  => route('loa.verify'),
+                    'digital_signature' => $signature,
+                    'signed_at'         => $signedAt,
+                ]);
+                $loaRequest->loa_code = $loaCode;
+
+                ActivityLog::record('approve_loa', "Bulk approve: \"{$loaRequest->article_title}\" (kode: {$loaCode})", $loaRequest, ['bulk' => true, 'loa_code' => $loaCode]);
+
+                try {
+                    Notification::route('mail', $loaRequest->author_email)->notify(new LoaApprovedNotification($loaRequest));
+                    $publisherUser = optional(optional($loaRequest->journal)->publisher)->user;
+                    if ($publisherUser) $publisherUser->notify(new LoaApprovedNotification($loaRequest));
+                } catch (\Exception $e) {
+                    \Log::error('Bulk approve notification failed: ' . $e->getMessage());
+                }
+            } else {
+                $loaRequest->status      = 'rejected';
+                $loaRequest->admin_notes = $request->admin_notes;
+                $loaRequest->save();
+
+                ActivityLog::record('reject_loa', "Bulk reject: \"{$loaRequest->article_title}\"", $loaRequest, ['bulk' => true, 'reason' => $request->admin_notes]);
+
+                try {
+                    Notification::route('mail', $loaRequest->author_email)->notify(new LoaRejectedNotification($loaRequest));
+                    $publisherUser = optional(optional($loaRequest->journal)->publisher)->user;
+                    if ($publisherUser) $publisherUser->notify(new LoaRejectedNotification($loaRequest));
+                } catch (\Exception $e) {
+                    \Log::error('Bulk reject notification failed: ' . $e->getMessage());
+                }
+            }
+            $count++;
+        }
+
+        $action = $request->action === 'approve' ? 'disetujui' : 'ditolak';
+        return redirect()->route('admin.loa-requests.index')
+            ->with('success', "{$count} permintaan LOA berhasil {$action}.");
     }
 
     public function export(Request $request)

@@ -66,13 +66,30 @@
         </div>
     </div>
 
+    <!-- Bulk Action Form -->
+    <form id="bulkForm" action="{{ route('admin.loa-requests.bulk-action') }}" method="POST">
+        @csrf
+
     <!-- Requests Table -->
     <div class="card shadow">
-        <div class="card-header py-3">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">
                 <i class="fas fa-table me-2"></i>
                 Daftar Permintaan LOA
             </h6>
+            {{-- Bulk Action Bar (muncul saat ada yang dipilih) --}}
+            <div id="bulkBar" class="d-none d-flex align-items-center gap-2">
+                <span class="text-muted small" id="selectedCount">0 dipilih</span>
+                <button type="submit" name="action" value="approve"
+                        class="btn btn-success btn-sm"
+                        onclick="return confirmBulk('approve')">
+                    <i class="fas fa-check me-1"></i>Setujui Semua
+                </button>
+                <button type="button" class="btn btn-danger btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#bulkRejectModal">
+                    <i class="fas fa-times me-1"></i>Tolak Semua
+                </button>
+            </div>
         </div>
         <div class="card-body">
             @if($requests->count() > 0)
@@ -80,6 +97,9 @@
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
                             <tr>
+                                <th style="width:36px;">
+                                    <input type="checkbox" id="selectAll" title="Pilih semua pending">
+                                </th>
                                 <th>No. Reg</th>
                                 <th>No. LOA</th>
                                 <th>Judul Artikel</th>
@@ -94,6 +114,11 @@
                         <tbody>
                             @foreach($requests as $request)
                                 <tr>
+                                    <td class="text-center">
+                                        @if($request->status === 'pending')
+                                        <input type="checkbox" name="ids[]" value="{{ $request->id }}" class="row-check">
+                                        @endif
+                                    </td>
                                     <td>
                                         <span class="badge bg-secondary">{{ $request->no_reg }}</span>
                                     </td>
@@ -245,17 +270,89 @@
             @endif
         </div>
     </div>
+
+    </form>{{-- end bulkForm --}}
+</div>
+
+{{-- Bulk Reject Modal --}}
+<div class="modal fade" id="bulkRejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tolak Permintaan (Bulk)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Semua permintaan yang dipilih akan ditolak dengan alasan yang sama.</p>
+                <div class="mb-3">
+                    <label class="form-label">Alasan Penolakan <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="bulkRejectNotes" rows="3"
+                              placeholder="Berikan alasan penolakan..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" onclick="submitBulkReject()">
+                    <i class="fas fa-times me-1"></i>Tolak Semua Terpilih
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @push('scripts')
 <script>
-    // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+        // Tooltips
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+
+        // Bulk checkbox logic
+        const selectAll  = document.getElementById('selectAll');
+        const bulkBar    = document.getElementById('bulkBar');
+        const countLabel = document.getElementById('selectedCount');
+
+        function updateBulkBar() {
+            const checked = document.querySelectorAll('.row-check:checked').length;
+            bulkBar.classList.toggle('d-none', checked === 0);
+            bulkBar.classList.toggle('d-flex', checked > 0);
+            countLabel.textContent = checked + ' dipilih';
+        }
+
+        selectAll?.addEventListener('change', function() {
+            document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
+            updateBulkBar();
         });
+
+        document.querySelectorAll('.row-check').forEach(cb =>
+            cb.addEventListener('change', updateBulkBar)
+        );
     });
+
+    function confirmBulk(action) {
+        const checked = document.querySelectorAll('.row-check:checked').length;
+        if (checked === 0) { alert('Pilih minimal satu permintaan.'); return false; }
+        return confirm(`Yakin ingin menyetujui ${checked} permintaan LOA sekaligus?`);
+    }
+
+    function submitBulkReject() {
+        const notes = document.getElementById('bulkRejectNotes').value.trim();
+        if (!notes) { alert('Alasan penolakan wajib diisi.'); return; }
+        const checked = document.querySelectorAll('.row-check:checked').length;
+        if (checked === 0) { alert('Pilih minimal satu permintaan.'); return; }
+
+        // Inject hidden fields ke bulkForm
+        const form = document.getElementById('bulkForm');
+        let inp = form.querySelector('input[name="action"]');
+        if (!inp) { inp = document.createElement('input'); inp.type = 'hidden'; inp.name = 'action'; form.appendChild(inp); }
+        inp.value = 'reject';
+
+        let notesInp = form.querySelector('input[name="admin_notes"]');
+        if (!notesInp) { notesInp = document.createElement('input'); notesInp.type = 'hidden'; notesInp.name = 'admin_notes'; form.appendChild(notesInp); }
+        notesInp.value = notes;
+
+        bootstrap.Modal.getInstance(document.getElementById('bulkRejectModal')).hide();
+        form.submit();
+    }
 </script>
 @endpush
 

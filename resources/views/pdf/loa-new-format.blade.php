@@ -425,5 +425,29 @@
         Phone :  {{ (isset($publisher) ? $publisher->phone : null) ?? '+62 851-585640236283' }}<br>
         E- Mail :  {{ (isset($publisher) ? $publisher->email : null) ?? 'info@gudangsoft.net' }}
     </div>
+
+    @if(!empty($digitalSignature))
+    <!-- Digital Signature Block -->
+    <div style="margin-top:16px; padding:8px 12px; border:1px solid #003366; border-radius:4px; font-size:8px; color:#333; background:#f8f9fc;">
+        <table style="width:100%; border:none; margin:0;">
+            <tr>
+                <td style="width:18px; vertical-align:middle; padding:0 6px 0 0;">
+                    <div style="width:16px; height:16px; border:2px solid #003366; border-radius:50%; text-align:center; line-height:14px; font-size:9px; font-weight:bold; color:#003366;">&#10003;</div>
+                </td>
+                <td style="vertical-align:middle; padding:0;">
+                    <strong style="font-size:9px; color:#003366;">{{ $lang == 'id' ? 'DOKUMEN INI TELAH DITANDATANGANI SECARA DIGITAL' : 'THIS DOCUMENT HAS BEEN DIGITALLY SIGNED' }}</strong><br>
+                    <span style="color:#555;">
+                        {{ $lang == 'id' ? 'Ditandatangani oleh' : 'Signed by' }}: <strong>Sistem LOA SIPTENAN</strong> &nbsp;|&nbsp;
+                        {{ $lang == 'id' ? 'Waktu' : 'Timestamp' }}: <strong>{{ isset($signedAt) ? $signedAt->format('d M Y H:i:s') . ' UTC' : '-' }}</strong>
+                    </span><br>
+                    <span style="font-family: monospace; letter-spacing:0.5px; color:#444;">
+                        Hash: {{ strtoupper(substr($digitalSignature, 0, 16)) }}-{{ strtoupper(substr($digitalSignature, 16, 16)) }}-{{ strtoupper(substr($digitalSignature, 32, 8)) }}...
+                    </span><br>
+                    <span style="color:#666;">{{ $lang == 'id' ? 'Verifikasi keaslian dokumen ini di' : 'Verify this document at' }}: <strong>{{ config('app.base_domain') }}/verify-loa</strong></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    @endif
 </body>
 </html>

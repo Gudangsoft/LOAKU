@@ -17,6 +17,12 @@ class LoaValidated extends Model
         'pdf_path_id',
         'pdf_path_en',
         'verification_url',
+        'digital_signature',
+        'signed_at',
+    ];
+
+    protected $casts = [
+        'signed_at' => 'datetime',
     ];
 
     public function loaRequest()

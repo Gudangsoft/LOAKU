@@ -131,6 +131,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     // LOA Requests Management
     Route::get('/loa-requests', [AdminLoaRequestController::class, 'index'])->name('loa-requests.index');
     Route::get('/loa-requests/export', [AdminLoaRequestController::class, 'export'])->name('loa-requests.export');
+    Route::post('/loa-requests/bulk-action', [AdminLoaRequestController::class, 'bulkAction'])->name('loa-requests.bulk-action');
     Route::get('/loa-requests/{loaRequest}', [AdminLoaRequestController::class, 'show'])->name('loa-requests.show');
     Route::post('/loa-requests/{loaRequest}/approve', [AdminLoaRequestController::class, 'approve'])->name('loa-requests.approve');
     Route::post('/loa-requests/{loaRequest}/reject', [AdminLoaRequestController::class, 'reject'])->name('loa-requests.reject');
@@ -564,6 +565,13 @@ Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'publisher']
 
     }); // End of protected publisher routes (publisher.validated middleware)
 }); // End of publisher routes group
+
+// Notification routes (publisher & admin)
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications/fetch', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.fetch');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+});
 
 // Simple test route for new view without middleware
 Route::get('/test-new-view/{id}', function ($id) {

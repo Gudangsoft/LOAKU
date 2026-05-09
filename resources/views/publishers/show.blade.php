@@ -169,6 +169,9 @@
     }
     .issn-badge.e { background: #EEF2FF; color: #4F46E5; }
     .issn-badge.p { background: #ECFDF5; color: #059669; }
+    .sinta-badge { background: #FEF3C7; color: #92400E; }
+    .doi-badge   { background: #F0FDF4; color: #166534; }
+    .garuda-badge{ background: #EFF6FF; color: #1D4ED8; }
 
     .journal-meta-row {
         display: flex;
@@ -405,6 +408,18 @@
                                         @endif
                                         @if($journal->p_issn)
                                         <span class="issn-badge p">p-ISSN: {{ $journal->p_issn }}</span>
+                                        @endif
+                                        @if(!empty($journal->accreditation_level) && $journal->accreditation_level !== 'none')
+                                        <span class="issn-badge sinta-badge"><i class="fas fa-star" style="font-size:.65rem"></i> SINTA {{ $journal->accreditation_level }}</span>
+                                        @endif
+                                        @if(!empty($journal->sinta_id))
+                                        <a href="https://sinta.kemdikbud.go.id/journals/detail?id={{ $journal->sinta_id }}" target="_blank" class="issn-badge sinta-badge text-decoration-none"><i class="fas fa-external-link-alt" style="font-size:.6rem"></i> SINTA</a>
+                                        @endif
+                                        @if(!empty($journal->doi_prefix))
+                                        <span class="issn-badge doi-badge"><i class="fas fa-fingerprint" style="font-size:.65rem"></i> DOI: {{ $journal->doi_prefix }}</span>
+                                        @endif
+                                        @if(!empty($journal->garuda_id))
+                                        <a href="https://garuda.kemdikbud.go.id/journal/view/{{ $journal->garuda_id }}" target="_blank" class="issn-badge garuda-badge text-decoration-none"><i class="fas fa-external-link-alt" style="font-size:.6rem"></i> Garuda</a>
                                         @endif
                                     </div>
                                 </div>

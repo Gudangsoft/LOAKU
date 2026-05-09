@@ -88,6 +88,39 @@
                         </div>
                     </div>
 
+                    {{-- SINTA / DOI / Akreditasi --}}
+                    <div class="card bg-light border-0 mb-3 p-3">
+                        <div class="fw-semibold small mb-2 text-primary"><i class="fas fa-award me-1"></i>Akreditasi & Indeksasi</div>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label small">SINTA ID</label>
+                                <input type="text" class="form-control form-control-sm" name="sinta_id"
+                                       value="{{ old('sinta_id', $journal->sinta_id) }}" placeholder="cth: 56789">
+                                <div class="form-text" style="font-size:.72rem;">ID jurnal di sinta.kemdikbud.go.id</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small">DOI Prefix</label>
+                                <input type="text" class="form-control form-control-sm" name="doi_prefix"
+                                       value="{{ old('doi_prefix', $journal->doi_prefix) }}" placeholder="cth: 10.12345">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small">Garuda ID</label>
+                                <input type="text" class="form-control form-control-sm" name="garuda_id"
+                                       value="{{ old('garuda_id', $journal->garuda_id) }}" placeholder="cth: 12345">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Level Akreditasi SINTA</label>
+                                <select class="form-select form-select-sm" name="accreditation_level">
+                                    @foreach(['none','S1','S2','S3','S4','S5','S6'] as $lvl)
+                                    <option value="{{ $lvl }}" {{ old('accreditation_level', $journal->accreditation_level ?? 'none') === $lvl ? 'selected' : '' }}>
+                                        {{ $lvl === 'none' ? 'Belum Terakreditasi' : $lvl }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="website" class="form-label">Website URL</label>
                         <input type="url" class="form-control @error('website') is-invalid @enderror" 

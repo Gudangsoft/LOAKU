@@ -23,6 +23,10 @@ class Journal extends Model
         'signature_stamp',
         'website',
         'publisher_id',
+        'sinta_id',
+        'doi_prefix',
+        'garuda_id',
+        'accreditation_level',
     ];
 
     public function user()

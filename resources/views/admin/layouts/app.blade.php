@@ -274,7 +274,27 @@
                         <i class="fas fa-bars"></i>
                     </button>
                     
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+
+                        {{-- Bell Notification --}}
+                        <div class="position-relative" id="notifWrapper">
+                            <button class="btn btn-link p-0 text-secondary position-relative" id="notifBtn" title="Notifikasi">
+                                <i class="fas fa-bell fs-5"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                      id="notifBadge" style="display:none; font-size:.6rem; min-width:18px;">0</span>
+                            </button>
+                            <div id="notifDropdown" class="dropdown-menu dropdown-menu-end shadow"
+                                 style="display:none; position:absolute; right:0; top:110%; width:320px; z-index:9999; border-radius:8px;">
+                                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                    <strong class="small">Notifikasi</strong>
+                                    <button class="btn btn-link btn-sm p-0 text-primary small" onclick="markAllRead()">Tandai semua dibaca</button>
+                                </div>
+                                <div id="notifList" style="max-height:320px; overflow-y:auto;">
+                                    <div class="text-center text-muted py-3 small">Memuat...</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                                 <div class="avatar avatar-sm bg-primary text-white rounded-circle me-2">
@@ -319,7 +339,80 @@
     </script>
     
     @stack('scripts')
-    
+
+<script>
+const notifBtn      = document.getElementById('notifBtn');
+const notifDropdown = document.getElementById('notifDropdown');
+const notifBadge    = document.getElementById('notifBadge');
+const notifList     = document.getElementById('notifList');
+let notifOpen = false;
+
+function loadNotifications() {
+    fetch('{{ route("notifications.fetch") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(data => {
+            if (data.unread_count > 0) {
+                notifBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                notifBadge.style.display = 'inline';
+            } else {
+                notifBadge.style.display = 'none';
+            }
+            if (data.notifications.length === 0) {
+                notifList.innerHTML = '<div class="text-center text-muted py-3 small">Tidak ada notifikasi</div>';
+                return;
+            }
+            notifList.innerHTML = data.notifications.map(n => `
+                <a href="${n.url}" class="d-block text-decoration-none px-3 py-2 border-bottom ${n.read ? '' : 'bg-light'}"
+                   onclick="markRead('${n.id}', event)" style="cursor:pointer;">
+                    <div class="d-flex align-items-start gap-2">
+                        <span class="mt-1" style="font-size:.75rem;">
+                            ${n.type === 'loa_approved'
+                                ? '<i class="fas fa-check-circle text-success"></i>'
+                                : '<i class="fas fa-times-circle text-danger"></i>'}
+                        </span>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold small">${n.title}</div>
+                            <div class="text-muted" style="font-size:.78rem;">${n.body}</div>
+                            <div class="text-muted" style="font-size:.72rem;">${n.time}</div>
+                        </div>
+                        ${!n.read ? '<span class="bg-primary rounded-circle" style="width:8px;height:8px;flex-shrink:0;margin-top:4px;"></span>' : ''}
+                    </div>
+                </a>`).join('');
+        });
+}
+
+function markRead(id, e) {
+    fetch(`/notifications/${id}/read`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(() => loadNotifications());
+}
+
+function markAllRead() {
+    fetch('/notifications/read-all', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(() => loadNotifications());
+}
+
+notifBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    notifOpen = !notifOpen;
+    notifDropdown.style.display = notifOpen ? 'block' : 'none';
+    if (notifOpen) loadNotifications();
+});
+
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('notifWrapper').contains(e.target)) {
+        notifOpen = false;
+        notifDropdown.style.display = 'none';
+    }
+});
+
+loadNotifications();
+setInterval(loadNotifications, 60000);
+</script>
+
     <!-- Logout Form -->
     <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
         @csrf

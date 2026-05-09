@@ -227,12 +227,14 @@ class LoaController extends Controller
                 $qrCode = $this->generateQrCode($verificationUrl);
 
                 $data = [
-                    'loa' => $loaValidated,
-                    'request' => $loaValidated->loaRequest,
-                    'journal' => $loaValidated->loaRequest ? $loaValidated->loaRequest->journal : null,
-                    'publisher' => $loaValidated->loaRequest && $loaValidated->loaRequest->journal ? $loaValidated->loaRequest->journal->publisher : null,
-                    'lang' => $lang,
-                    'qrCode' => $qrCode
+                    'loa'               => $loaValidated,
+                    'request'           => $loaValidated->loaRequest,
+                    'journal'           => $loaValidated->loaRequest ? $loaValidated->loaRequest->journal : null,
+                    'publisher'         => $loaValidated->loaRequest && $loaValidated->loaRequest->journal ? $loaValidated->loaRequest->journal->publisher : null,
+                    'lang'              => $lang,
+                    'qrCode'            => $qrCode,
+                    'digitalSignature'  => $loaValidated->digital_signature,
+                    'signedAt'          => $loaValidated->signed_at,
                 ];
 
             }
