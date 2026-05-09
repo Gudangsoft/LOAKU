@@ -57,10 +57,10 @@ class HomeController extends Controller
                 $q->orderBy('name')->withCount('loaRequests');
             }, 'journals.loaRequests']);
 
-        // Accept both slug and numeric ID (backward compat)
+        // Accept numeric ID, slug, or subdomain
         $publisher = is_numeric($slug)
             ? $query->findOrFail($slug)
-            : $query->where('slug', $slug)->firstOrFail();
+            : $query->where('slug', $slug)->orWhere('subdomain', $slug)->firstOrFail();
 
         return view('publishers.show', compact('publisher'));
     }

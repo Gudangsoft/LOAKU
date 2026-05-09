@@ -108,7 +108,7 @@ class Publisher extends Model
         if ($this->domain_status !== 'active') return null;
         if ($this->custom_domain) return 'https://' . $this->custom_domain;
         if ($this->subdomain) {
-            return 'https://' . $this->subdomain . '.' . config('app.base_domain', 'loa.siptenan.org');
+            return url('/publishers/' . $this->subdomain);
         }
         return null;
     }

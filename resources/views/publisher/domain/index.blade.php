@@ -52,8 +52,8 @@
     <div class="card-body">
         @if($publisher->subdomain)
             <div class="mb-2">
-                <span class="text-muted small">Subdomain:</span>
-                <strong class="d-block">{{ $publisher->subdomain }}.{{ config('app.base_domain') }}</strong>
+                <span class="text-muted small">URL Portal:</span>
+                <strong class="d-block">{{ config('app.base_domain') }}/publishers/{{ $publisher->subdomain }}</strong>
             </div>
         @elseif($publisher->custom_domain)
             <div class="mb-2">
@@ -113,9 +113,9 @@
                             <input type="radio" name="type" id="typeSubdomain" value="subdomain" class="form-check-input mt-1 flex-shrink-0"
                                    {{ old('type', 'subdomain') === 'subdomain' ? 'checked' : '' }}>
                             <div>
-                                <div class="fw-semibold"><i class="fas fa-link me-1 text-primary"></i>Subdomain Gratis</div>
+                                <div class="fw-semibold"><i class="fas fa-link me-1 text-primary"></i>URL Portal Gratis</div>
                                 <div class="text-muted" style="font-size:.8rem;">
-                                    nama-anda.<strong>{{ config('app.base_domain') }}</strong><br>
+                                    <strong>{{ config('app.base_domain') }}</strong>/publishers/nama-anda<br>
                                     Lebih mudah, langsung aktif setelah disetujui.
                                 </div>
                             </div>
@@ -140,12 +140,12 @@
 
             {{-- Input Subdomain --}}
             <div id="subdomainInput" class="mb-4">
-                <label class="form-label fw-semibold">Nama Subdomain</label>
+                <label class="form-label fw-semibold">Nama URL Portal</label>
                 <div class="input-group">
+                    <span class="input-group-text text-muted" style="font-size:.85rem;">{{ config('app.base_domain') }}/publishers/</span>
                     <input type="text" name="subdomain" class="form-control @error('subdomain') is-invalid @enderror"
                            value="{{ old('subdomain', $publisher->subdomain) }}"
                            placeholder="nama-publisher" pattern="[a-zA-Z0-9\-]+" minlength="3" maxlength="50">
-                    <span class="input-group-text">.{{ config('app.base_domain') }}</span>
                 </div>
                 @error('subdomain') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                 <div class="form-text">Hanya huruf kecil, angka, dan tanda hubung (-). Minimal 3 karakter.</div>
