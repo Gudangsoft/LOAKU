@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin') - LOA Management System</title>
-    
+    <title>@yield('title', 'Admin') - {{ site_name() }}</title>
+    @if(site_favicon())
+        <link rel="icon" type="image/x-icon" href="{{ site_favicon() }}">
+    @endif
+
     <!-- Bootstrap 5.3.2 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome 6.4.0 -->
@@ -399,8 +402,13 @@
             <button class="btn btn-link d-md-none me-3" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
             </button>
-            <a href="{{ route('admin.dashboard') }}" class="header-brand">
-                <i class="fas fa-certificate me-2"></i>LOA Management
+            <a href="{{ route('admin.dashboard') }}" class="header-brand d-flex align-items-center">
+                @if(site_logo())
+                    <img src="{{ site_logo() }}" alt="{{ site_name() }}" style="height:32px;max-width:130px;object-fit:contain;margin-right:8px;">
+                @else
+                    <i class="fas fa-certificate me-2"></i>
+                @endif
+                {{ site_name() }}
             </a>
         </div>
         

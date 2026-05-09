@@ -18,11 +18,12 @@ class LoaRejectedNotification extends Notification
     {
         $mail = (new MailMessage)
             ->to($this->loaRequest->author_email)
-            ->subject('LOA Anda Ditolak – LOA SIPTENAN')
+            ->subject('LOA Anda Ditolak – ' . site_name())
             ->greeting('Halo, ' . $this->loaRequest->author . '!')
             ->line('Kami menyampaikan bahwa permohonan Letter of Acceptance (LOA) Anda tidak dapat kami setujui pada saat ini.')
             ->line('**Detail Permohonan:**')
-            ->line('- Judul Artikel: ' . $this->loaRequest->article_title);
+            ->line('- Judul Artikel: ' . $this->loaRequest->article_title)
+            ->line('- Nama Jurnal: ' . (optional($this->loaRequest->journal)->name ?? '-'));
 
         if ($this->loaRequest->admin_notes) {
             $mail->line('**Alasan Penolakan:**')
@@ -31,8 +32,8 @@ class LoaRejectedNotification extends Notification
 
         return $mail
             ->line('Kami mendorong Anda untuk meninjau kembali permohonan Anda dan mengajukan kembali.')
-            ->action('Ajukan Ulang', url('/loa/create'))
-            ->salutation("Salam,\nTim LOA SIPTENAN");
+            ->action('Ajukan Ulang', route('loa.create'))
+            ->salutation("Salam,\nTim " . site_name());
     }
 
     public function toDatabase(object $notifiable): array
