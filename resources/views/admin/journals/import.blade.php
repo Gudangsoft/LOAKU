@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Import Jurnal')
-@section('subtitle', 'Import data jurnal dari file Excel')
+@section('subtitle', 'Import data jurnal dari file CSV')
 
 @section('content')
 <div class="container-fluid py-4">
@@ -22,7 +22,7 @@
                             Petunjuk Import
                         </h6>
                         <ul class="mb-0">
-                            <li>File harus berformat Excel (.xlsx, .xls) atau CSV</li>
+                            <li>File harus berformat <strong>CSV (.csv)</strong></li>
                             <li>Ukuran file maksimal 2MB</li>
                             <li>Download template untuk format yang benar</li>
                             <li>Jurnal yang sudah ada akan di-update berdasarkan nama jurnal</li>
@@ -33,7 +33,7 @@
                     <div class="mb-4">
                         <a href="{{ route('admin.journals.template') }}" class="btn btn-outline-primary">
                             <i class="fas fa-download me-2"></i>
-                            Download Template Excel
+                            Download Template CSV
                         </a>
                     </div>
 
@@ -43,20 +43,20 @@
                         
                         <div class="mb-3">
                             <label for="file" class="form-label">
-                                <i class="fas fa-file-excel me-1"></i>
-                                Pilih File Excel <span class="text-danger">*</span>
+                                <i class="fas fa-file-csv me-1"></i>
+                                Pilih File CSV <span class="text-danger">*</span>
                             </label>
                             <input type="file" 
                                    class="form-control @error('file') is-invalid @enderror" 
                                    id="file" 
                                    name="file" 
-                                   accept=".xlsx,.xls,.csv" 
+                                   accept=".csv"
                                    required>
                             @error('file')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">
-                                Format yang didukung: .xlsx, .xls, .csv (Maksimal 2MB)
+                                Format: .csv — Maksimal 2MB
                             </div>
                         </div>
 

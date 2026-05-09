@@ -7,13 +7,10 @@ use App\Models\Publisher;
 use App\Models\Journal;
 use App\Models\LoaRequest;
 use App\Models\LoaValidated;
-use App\Exports\JournalsExport;
-use App\Imports\JournalsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Facades\Excel;
 
 class PublisherController extends Controller
 {
@@ -597,79 +594,116 @@ class PublisherController extends Controller
             ->with('success', 'Profil berhasil diperbarui!');
     }
 
-    /**
-     * Export journals to Excel
-     */
     public function exportJournals()
     {
-        $publisherId = Auth::id();
-        return Excel::download(new JournalsExport($publisherId), 'my_journals_' . date('Y-m-d_His') . '.xlsx');
+        $journals = Journal::with('publisher')
+            ->where('user_id', Auth::id())
+            ->get();
+
+        $filename = 'my_journals_' . date('Y-m-d_His') . '.csv';
+
+        return response()->stream(function () use ($journals) {
+            $out = fopen('php://output', 'w');
+            fputs($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['nama_jurnal', 'p_issn', 'e_issn', 'chief_editor', 'email', 'website', 'deskripsi', 'sinta_id', 'doi_prefix', 'garuda_id', 'accreditation_level']);
+            foreach ($journals as $j) {
+                fputcsv($out, [
+                    $j->name, $j->p_issn, $j->e_issn, $j->chief_editor,
+                    $j->email, $j->website, $j->description,
+                    $j->sinta_id, $j->doi_prefix, $j->garuda_id, $j->accreditation_level,
+                ]);
+            }
+            fclose($out);
+        }, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
-    /**
-     * Show import form
-     */
     public function importJournalsForm()
     {
         return view('publisher.journals.import');
     }
 
-    /**
-     * Import journals from Excel
-     */
     public function importJournals(Request $request)
     {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:2048'
-        ]);
+        $request->validate(['file' => 'required|mimes:csv,txt|max:2048']);
 
-        try {
-            $import = new JournalsImport(Auth::id());
-            Excel::import($import, $request->file('file'));
+        $path      = $request->file('file')->getRealPath();
+        $handle    = fopen($path, 'r');
+        $headers   = array_map('trim', fgetcsv($handle));
+        $userId    = Auth::id();
+        $publisher = Publisher::where('user_id', $userId)->first();
 
-            $message = "Import berhasil! {$import->getSuccessCount()} jurnal berhasil diproses.";
-            
-            if ($import->hasErrors()) {
-                $message .= " Namun ada beberapa error: " . implode('; ', array_slice($import->getErrors(), 0, 3));
-                if (count($import->getErrors()) > 3) {
-                    $message .= " dan " . (count($import->getErrors()) - 3) . " error lainnya.";
-                }
-                return redirect()->route('publisher.journals.index')
-                    ->with('warning', $message);
+        $successCount = 0;
+        $errors       = [];
+        $rowNumber    = 1;
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $rowNumber++;
+            $data = array_combine($headers, array_pad($row, count($headers), ''));
+
+            if (empty(trim($data['nama_jurnal'] ?? ''))) {
+                $errors[] = "Baris {$rowNumber}: nama_jurnal wajib diisi";
+                continue;
             }
 
-            return redirect()->route('publisher.journals.index')
-                ->with('success', $message);
+            try {
+                $existing = Journal::where('name', trim($data['nama_jurnal']))
+                    ->where('user_id', $userId)
+                    ->first();
 
-        } catch (\Exception $e) {
-            return redirect()->route('publisher.journals.index')
-                ->with('error', 'Gagal mengimport file: ' . $e->getMessage());
+                $fields = [
+                    'p_issn'             => trim($data['p_issn'] ?? $data['issn'] ?? ''),
+                    'e_issn'             => trim($data['e_issn'] ?? ''),
+                    'chief_editor'       => trim($data['chief_editor'] ?? ''),
+                    'email'              => trim($data['email'] ?? ''),
+                    'website'            => trim($data['website'] ?? ''),
+                    'description'        => trim($data['deskripsi'] ?? ''),
+                    'sinta_id'           => trim($data['sinta_id'] ?? ''),
+                    'doi_prefix'         => trim($data['doi_prefix'] ?? ''),
+                    'garuda_id'          => trim($data['garuda_id'] ?? ''),
+                    'accreditation_level'=> trim($data['accreditation_level'] ?? ''),
+                ];
+
+                if ($existing) {
+                    $existing->update($fields);
+                } else {
+                    Journal::create(array_merge($fields, [
+                        'name'         => trim($data['nama_jurnal']),
+                        'user_id'      => $userId,
+                        'publisher_id' => $publisher?->id,
+                    ]));
+                }
+                $successCount++;
+            } catch (\Exception $e) {
+                $errors[] = "Baris {$rowNumber}: " . $e->getMessage();
+            }
         }
+        fclose($handle);
+
+        $message = "Import berhasil! {$successCount} jurnal diproses.";
+        if (!empty($errors)) {
+            $preview = implode('; ', array_slice($errors, 0, 3));
+            $message .= " Error: {$preview}" . (count($errors) > 3 ? ' dan ' . (count($errors) - 3) . ' lainnya.' : '');
+            return redirect()->route('publisher.journals.index')->with('warning', $message);
+        }
+
+        return redirect()->route('publisher.journals.index')->with('success', $message);
     }
 
-    /**
-     * Download template Excel
-     */
     public function downloadJournalsTemplate()
     {
-        $headers = [
-            ['nama_jurnal', 'deskripsi', 'issn', 'e_issn', 'website', 'email', 'alamat', 'status'],
-            ['Jurnal Teknologi Informasi', 'Jurnal yang membahas teknologi informasi terkini', '1234-5678', '8765-4321', 'https://jti.example.com', 'editor@jti.com', 'Jl. Teknologi No. 123', 'active'],
-            ['Jurnal Ilmu Komputer', 'Jurnal penelitian ilmu komputer dan informatika', '2345-6789', '9876-5432', 'https://jik.example.com', 'editor@jik.com', 'Jl. Komputer No. 456', 'active']
-        ];
-
-        $fileName = 'template_import_jurnal.xlsx';
-        
-        return Excel::download(new class($headers) implements \Maatwebsite\Excel\Concerns\FromArray {
-            private $data;
-            
-            public function __construct($data) {
-                $this->data = $data;
-            }
-            
-            public function array(): array {
-                return $this->data;
-            }
-        }, $fileName);
+        return response()->stream(function () {
+            $out = fopen('php://output', 'w');
+            fputs($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['nama_jurnal', 'p_issn', 'e_issn', 'chief_editor', 'email', 'website', 'deskripsi', 'sinta_id', 'doi_prefix', 'garuda_id', 'accreditation_level']);
+            fputcsv($out, ['Jurnal Teknologi Informasi', '1234-5678', '8765-4321', 'Dr. Ahmad', 'editor@jti.com', 'https://jti.example.com', 'Jurnal teknologi informasi terkini', 'S12345', '10.12345', 'G12345', 'Sinta 2']);
+            fputcsv($out, ['Jurnal Ilmu Komputer', '2345-6789', '9876-5432', 'Dr. Budi', 'editor@jik.com', 'https://jik.example.com', 'Jurnal penelitian ilmu komputer', 'S23456', '10.23456', 'G23456', 'Sinta 3']);
+            fclose($out);
+        }, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="template_import_jurnal.csv"',
+        ]);
     }
 }
