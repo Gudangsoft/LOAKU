@@ -204,240 +204,91 @@
             @endif
 
             @if($validatedLoas->count() > 0)
-                <!-- LOA Cards -->
                 <style>
-                .loa-card {
-                    border: none;
-                    border-radius: 16px;
-                    box-shadow: 0 2px 12px rgba(0,0,0,.08);
-                    transition: transform .2s, box-shadow .2s;
-                    overflow: hidden;
-                }
-                .loa-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 8px 28px rgba(0,0,0,.14);
-                }
-                .loa-card-header {
-                    background: linear-gradient(135deg, #065F46 0%, #059669 60%, #10B981 100%);
-                    padding: 14px 16px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .loa-card-header .loa-code {
-                    font-family: monospace;
-                    font-size: .85rem;
-                    font-weight: 700;
-                    color: #fff;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                }
-                .loa-badge-valid {
-                    background: rgba(255,255,255,.2);
-                    border: 1px solid rgba(255,255,255,.4);
-                    color: #fff;
-                    font-size: .7rem;
-                    font-weight: 600;
-                    padding: 3px 10px;
-                    border-radius: 20px;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    white-space: nowrap;
-                }
-                .loa-card-body { padding: 16px; flex: 1; }
-                .loa-article-title {
-                    font-size: .92rem;
-                    font-weight: 700;
-                    color: #1E293B;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    line-height: 1.45;
-                    min-height: 2.6em;
-                    margin-bottom: 12px;
-                }
-                .loa-meta-row {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 8px;
-                    font-size: .8rem;
-                    color: #475569;
-                    margin-bottom: 7px;
-                }
-                .loa-meta-row i { color: #059669; width: 14px; flex-shrink: 0; margin-top: 2px; }
-                .loa-meta-row .label { font-weight: 600; color: #1E293B; min-width: 56px; }
-                .loa-footer-bar {
-                    background: #F0FDF4;
-                    border-top: 1px solid #D1FAE5;
-                    padding: 10px 16px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    font-size: .75rem;
-                }
-                .loa-footer-bar .noreg { font-weight: 700; color: #065F46; font-family: monospace; }
-                .loa-footer-bar .date  { color: #64748B; }
-                .loa-action-row {
-                    padding: 10px 16px 14px;
-                    display: flex;
-                    gap: 8px;
-                }
-                .loa-action-row .btn-lihat {
-                    flex: 0 0 auto;
-                    border: 2px solid #6366F1;
-                    color: #6366F1;
-                    background: #fff;
-                    border-radius: 10px;
-                    font-size: .8rem;
-                    font-weight: 600;
-                    padding: 7px 14px;
-                    text-decoration: none;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    transition: all .2s;
-                }
-                .loa-action-row .btn-lihat:hover { background: #EEF2FF; }
-                .loa-action-row .btn-dl {
-                    flex: 1;
-                    background: linear-gradient(135deg, #059669 0%, #10B981 100%);
-                    color: #fff;
-                    border: none;
-                    border-radius: 10px;
-                    font-size: .8rem;
-                    font-weight: 700;
-                    padding: 7px 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 5px;
-                    cursor: pointer;
-                    transition: opacity .2s;
-                }
-                .loa-action-row .btn-dl:hover { opacity: .88; }
-                .loa-action-row .btn-qr {
-                    flex: 0 0 auto;
-                    border: 2px solid #0891B2;
-                    color: #0891B2;
-                    background: #fff;
-                    border-radius: 10px;
-                    font-size: .8rem;
-                    font-weight: 600;
-                    padding: 7px 12px;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    cursor: pointer;
-                    transition: all .2s;
-                }
-                .loa-action-row .btn-qr:hover { background: #ECFEFF; }
-                /* dropdown override */
-                .loa-action-row .dropdown-toggle::after { margin-left: 4px; }
+                .lcard { border:none; border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.09); overflow:hidden; background:#fff; transition:transform .18s,box-shadow .18s; }
+                .lcard:hover { transform:translateY(-3px); box-shadow:0 6px 22px rgba(0,0,0,.13); }
+                .lcard-head { background:linear-gradient(135deg,#065F46 0%,#059669 55%,#10B981 100%); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+                .lcard-code { font-family:monospace; font-size:.8rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:5px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+                .lcard-badge { flex-shrink:0; background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.5); color:#fff; font-size:.68rem; font-weight:600; padding:2px 9px; border-radius:20px; white-space:nowrap; }
+                .lcard-body { padding:13px 14px 11px; }
+                .lcard-title { font-size:.88rem; font-weight:700; color:#1E293B; line-height:1.4; margin-bottom:10px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+                .lcard-meta { display:flex; gap:7px; font-size:.78rem; color:#475569; margin-bottom:5px; }
+                .lcard-meta i { color:#059669; width:13px; flex-shrink:0; margin-top:2px; }
+                .lcard-meta b { color:#1E293B; min-width:52px; flex-shrink:0; font-weight:600; }
+                .lcard-infobar { display:flex; justify-content:space-between; background:#F0FDF4; border-top:1px solid #D1FAE5; padding:8px 14px; font-size:.72rem; }
+                .lcard-infobar .lbl { color:#64748B; text-transform:uppercase; letter-spacing:.3px; margin-bottom:1px; }
+                .lcard-infobar .val { font-weight:700; color:#065F46; font-family:monospace; }
+                .lcard-infobar .val2 { font-weight:500; color:#374151; }
+                .lcard-foot { display:flex; gap:6px; padding:10px 14px 12px; }
+                .lcard-foot .btn { font-size:.78rem; font-weight:600; border-radius:8px; padding:6px 11px; }
                 </style>
 
-                <div class="row g-3">
-                    @foreach($validatedLoas as $loa)
-                    @php
-                        $journal   = $loa->loaRequest?->journal;
-                        $publisher = $journal?->publisher;
-                        $journalLogo = $journal?->logo ? Storage::url($journal->logo) : null;
-                    @endphp
-                    <div class="col-xl-4 col-md-6">
-                        <div class="card loa-card h-100 d-flex flex-column">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+                @foreach($validatedLoas as $loa)
+                @php
+                    $j  = $loa->loaRequest?->journal;
+                    $p  = $j?->publisher;
+                    $jl = $j?->logo ? Storage::url($j->logo) : null;
+                @endphp
+                <div class="col">
+                    <div class="lcard">
 
-                            {{-- Header --}}
-                            <div class="loa-card-header">
-                                <div class="loa-code">
-                                    <i class="fas fa-certificate"></i>
-                                    {{ $loa->loa_code }}
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    @if($journalLogo)
-                                    <img src="{{ $journalLogo }}" alt="" style="height:28px;width:28px;object-fit:cover;border-radius:6px;border:2px solid rgba(255,255,255,.4)">
-                                    @endif
-                                    <span class="loa-badge-valid">
-                                        <i class="fas fa-check-circle"></i> Tervalidasi
-                                    </span>
-                                </div>
+                        <div class="lcard-head">
+                            <div class="lcard-code"><i class="fas fa-certificate"></i> {{ $loa->loa_code }}</div>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                @if($jl)<img src="{{ $jl }}" alt="" style="height:24px;width:24px;object-fit:cover;border-radius:5px;opacity:.9">@endif
+                                <span class="lcard-badge"><i class="fas fa-check me-1"></i>Tervalidasi</span>
                             </div>
-
-                            {{-- Body --}}
-                            <div class="loa-card-body">
-                                <div class="loa-article-title" title="{{ $loa->loaRequest?->article_title }}">
-                                    {{ $loa->loaRequest?->article_title ?? '-' }}
-                                </div>
-                                <div class="loa-meta-row">
-                                    <i class="fas fa-user"></i>
-                                    <span class="label">Penulis</span>
-                                    <span>{{ $loa->loaRequest?->author ?? '-' }}</span>
-                                </div>
-                                <div class="loa-meta-row">
-                                    <i class="fas fa-book"></i>
-                                    <span class="label">Jurnal</span>
-                                    <span>{{ $journal?->name ?? 'N/A' }}</span>
-                                </div>
-                                <div class="loa-meta-row">
-                                    <i class="fas fa-building"></i>
-                                    <span class="label">Penerbit</span>
-                                    <span>{{ $publisher?->name ?? 'N/A' }}</span>
-                                </div>
-                            </div>
-
-                            {{-- Footer info bar --}}
-                            <div class="loa-footer-bar">
-                                <div>
-                                    <div style="font-size:.67rem;color:#64748B;text-transform:uppercase;letter-spacing:.4px;">No. Reg</div>
-                                    <div class="noreg">{{ $loa->loaRequest?->no_reg ?? '-' }}</div>
-                                </div>
-                                <div class="text-end">
-                                    <div style="font-size:.67rem;color:#64748B;text-transform:uppercase;letter-spacing:.4px;">Divalidasi</div>
-                                    <div class="date">{{ $loa->created_at->format('d M Y') }}</div>
-                                </div>
-                            </div>
-
-                            {{-- Action row --}}
-                            <div class="loa-action-row">
-                                <a href="{{ route('loa.view', [$loa->loa_code, 'id']) }}" target="_blank" class="btn-lihat">
-                                    <i class="fas fa-eye"></i> Lihat
-                                </a>
-
-                                <div class="dropdown flex-grow-1">
-                                    <button class="btn-dl w-100 dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i class="fas fa-download"></i> Download LOA
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'id']) }}" target="_blank">
-                                            <i class="fas fa-flag me-2"></i>Bahasa Indonesia
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'en']) }}" target="_blank">
-                                            <i class="fas fa-flag-usa me-2"></i>English
-                                        </a></li>
-                                    </ul>
-                                </div>
-
-                                <div class="dropdown">
-                                    <button class="btn-qr dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i class="fas fa-qrcode"></i> QR
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" target="_blank">
-                                            <i class="fas fa-eye me-2 text-info"></i>Lihat QR
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" download="QR-{{ $loa->loa_code }}.png">
-                                            <i class="fas fa-download me-2 text-primary"></i>Download QR
-                                        </a></li>
-                                    </ul>
-                                </div>
-
                         </div>
+
+                        <div class="lcard-body">
+                            <div class="lcard-title" title="{{ $loa->loaRequest?->article_title }}">{{ $loa->loaRequest?->article_title ?? '-' }}</div>
+                            <div class="lcard-meta"><i class="fas fa-user"></i><b>Penulis</b><span>{{ $loa->loaRequest?->author ?? '-' }}</span></div>
+                            <div class="lcard-meta"><i class="fas fa-book"></i><b>Jurnal</b><span>{{ $j?->name ?? 'N/A' }}</span></div>
+                            <div class="lcard-meta"><i class="fas fa-building"></i><b>Penerbit</b><span>{{ $p?->name ?? 'N/A' }}</span></div>
+                        </div>
+
+                        <div class="lcard-infobar">
+                            <div>
+                                <div class="lbl">No. Reg</div>
+                                <div class="val">{{ $loa->loaRequest?->no_reg ?? '-' }}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="lbl">Divalidasi</div>
+                                <div class="val2">{{ $loa->created_at->format('d M Y') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="lcard-foot">
+                            <a href="{{ route('loa.view', [$loa->loa_code, 'id']) }}" target="_blank"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>Lihat
+                            </a>
+                            <div class="dropdown flex-grow-1">
+                                <button class="btn btn-sm btn-success w-100 dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="fas fa-download me-1"></i>Download LOA
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'id']) }}" target="_blank"><i class="fas fa-flag me-2"></i>Bahasa Indonesia</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('loa.print', [$loa->loa_code, 'en']) }}" target="_blank"><i class="fas fa-flag-usa me-2"></i>English</a></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="fas fa-qrcode"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" target="_blank"><i class="fas fa-eye me-2 text-info"></i>Lihat QR</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('qr.download', $loa->loa_code) }}" download="QR-{{ $loa->loa_code }}.png"><i class="fas fa-download me-2 text-primary"></i>Download QR</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
                     </div>
-                    @endforeach
+                </div>
+                @endforeach
                 </div>
 
-                <!-- Pagination -->
                 <div class="d-flex justify-content-center mt-4">
                     {{ $validatedLoas->links() }}
                 </div>
