@@ -227,7 +227,7 @@
                         ];
                         @endphp
                         @foreach($vars as $key => $label)
-                            <span class="var-chip" title="{{ $label }}" onclick="copyVar('{{{{$key}}}}')">&#123;&#123;{{ $key }}&#125;&#125;</span>
+                            <span class="var-chip" title="{{ $label }}" onclick="copyVar('&#123;&#123;{{ $key }}&#125;&#125;')">&#123;&#123;{{ $key }}&#125;&#125;</span>
                         @endforeach
                     </div>
                     <div id="varCopied" class="text-success small mt-2" style="display:none;">

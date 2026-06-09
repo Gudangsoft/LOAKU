@@ -342,7 +342,7 @@
                     @if(isset($qrCodePath) && file_exists($qrCodePath))
                         <img src="{{ $qrCodePath }}" alt="QR Code" style="width: 80px; height: 80px; border: 1px solid #ddd;">
                     @elseif(isset($qrCode))
-                        <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code" style="width: 80px; height: 80px; border: 1px solid #ddd;">
+                        <img src="data:image/svg+xml;base64,{{ $qrCode }}" alt="QR Code" style="width: 80px; height: 80px; border: 1px solid #ddd;">
                     @else
                         <div style="width: 80px; height: 80px; border: 2px solid #ddd; margin: 0 auto; display: table;">
                             <div style="display: table-cell; vertical-align: middle; text-align: left; font-size: 8px; color: #666;">
