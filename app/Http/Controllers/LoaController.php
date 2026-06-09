@@ -188,73 +188,74 @@ class LoaController extends Controller
     public function print($loaCode, $lang = 'id')
     {
         try {
+            ini_set('memory_limit', '512M');
+            set_time_limit(120);
+
             $loaValidated = LoaValidated::where('loa_code', $loaCode)
                 ->with(['loaRequest.journal.publisher'])
-                ->first();
+                ->firstOrFail();
 
-            if (!$loaValidated) {
-                // If no data found, create demo data for testing
-                $data = [
-                    'loa' => (object)['loa_code' => $loaCode],
-                    'request' => (object)[
-                        'article_title' => 'Sample Article Title',
-                        'author' => 'Sample Author',
-                        'author_email' => 'author@example.com',
-                        'volume' => '1',
-                        'number' => '1',
-                        'month' => date('F'),
-                        'year' => date('Y'),
-                        'no_reg' => 'REG001',
-                        'approved_at' => (object)['format' => function($format) { return date($format); }]
-                    ],
-                    'journal' => (object)[
-                        'name' => 'Sample Journal',
-                        'e_issn' => '0000-0000',
-                        'p_issn' => '0000-0000',
-                        'chief_editor' => 'Sample Editor'
-                    ],
-                    'publisher' => (object)[
-                        'name' => 'Sample Publisher',
-                        'address' => 'Sample Address',
-                        'email' => 'publisher@example.com',
-                        'phone' => '+62-xxx-xxxx'
-                    ],
-                    'lang' => $lang
-                ];
-            } else {
-                // Generate QR Code for verification - with fallback for ImageMagick issues
-                $verificationUrl = route('loa.verify.result', $loaValidated->loa_code);
-                $qrCode = $this->generateQrCode($verificationUrl);
+            $req       = $loaValidated->loaRequest;
+            $journal   = $req?->journal;
+            $publisher = $journal?->publisher;
+            $isId      = ($lang === 'id');
 
-                $data = [
-                    'loa'               => $loaValidated,
-                    'request'           => $loaValidated->loaRequest,
-                    'journal'           => $loaValidated->loaRequest ? $loaValidated->loaRequest->journal : null,
-                    'publisher'         => $loaValidated->loaRequest && $loaValidated->loaRequest->journal ? $loaValidated->loaRequest->journal->publisher : null,
-                    'lang'              => $lang,
-                    'qrCode'            => $qrCode,
-                    'digitalSignature'  => $loaValidated->digital_signature,
-                    'signedAt'          => $loaValidated->signed_at,
-                ];
+            $mnId = ['','Januari','Februari','Maret','April','Mei','Juni',
+                       'Juli','Agustus','September','Oktober','November','Desember'];
 
-            }
+            $rawDate      = $req?->approved_at ?? $loaValidated->created_at;
+            $approvalDate = $isId
+                ? ($rawDate->format('d').' '.$mnId[(int)$rawDate->format('n')].' '.$rawDate->format('Y'))
+                : $rawDate->format('d F Y');
 
-            // Check if new PDF template exists, fallback to old template
-            $templateName = view()->exists('pdf.loa-new-format') ? 'pdf.loa-new-format' : 'pdf.loa-certificate';
+            $pubLogoPath = $publisher?->logo       ? public_path('storage/'.$publisher->logo)      : null;
+            $jrnLogoPath = $journal?->logo         ? public_path('storage/'.$journal->logo)        : null;
+            $stampPath   = $journal?->ttd_stample  ? public_path('storage/'.$journal->ttd_stample) : null;
 
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($templateName, $data);
+            $qrCode = $this->generateQrCode(route('loa.verify.result', $loaCode));
+
+            $data = [
+                'lang'         => $lang,
+                'isId'         => $isId,
+                'loaCode'      => $loaCode,
+                'artTitle'     => $req?->article_title ?? '-',
+                'author'       => $req?->author        ?? '-',
+                'email'        => $req?->author_email  ?? '-',
+                'journalName'  => $journal?->name      ?? '',
+                'eIssn'        => $journal?->e_issn    ?? '',
+                'pIssn'        => $journal?->p_issn    ?? '',
+                'volume'       => $req?->volume        ?? '-',
+                'number'       => $req?->number        ?? '-',
+                'month'        => $req?->month         ?? '-',
+                'year'         => $req?->year          ?? '-',
+                'noReg'        => $req?->no_reg        ?? '-',
+                'pubName'      => $publisher?->name    ?? '',
+                'pubEmail'     => $publisher?->email   ?? '',
+                'pubPhone'     => $publisher?->phone   ?? '',
+                'chiefEditor'  => $journal?->chief_editor ?? ($isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief'),
+                'approvalDate' => $approvalDate,
+                'pubLogoPath'  => ($pubLogoPath && file_exists($pubLogoPath)) ? $pubLogoPath : null,
+                'jrnLogoPath'  => ($jrnLogoPath && file_exists($jrnLogoPath)) ? $jrnLogoPath : null,
+                'stampPath'    => ($stampPath   && file_exists($stampPath))   ? $stampPath   : null,
+                'qrCode'       => $qrCode,
+                'verifyUrl'    => route('loa.verify.result', $loaCode),
+                'nowStr'       => now()->format('d F Y, H:i'),
+                'certTitle'    => $isId ? 'SURAT PERSETUJUAN NASKAH' : 'LETTER OF ACCEPTANCE',
+                'certSub'      => $isId ? '(Letter of Acceptance)'   : '(Surat Persetujuan Naskah)',
+            ];
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.loa-new-format', $data);
             $pdf->setPaper('A4', 'portrait');
 
-            $filename = $loaCode . '_' . $lang . '.pdf';
+            return $pdf->download($loaCode . '_' . $lang . '.pdf');
 
-            return $pdf->stream($filename);
         } catch (\Exception $e) {
-            \Log::error('PDF Generation Error: ' . $e->getMessage());
+            \Log::error('PDF Generation Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             return response()->json([
-                'error' => 'Failed to generate PDF',
+                'error'   => 'Gagal membuat PDF',
                 'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile()
             ], 500);
         }
     }
@@ -265,24 +266,17 @@ class LoaController extends Controller
             ->with(['loaRequest.journal.publisher'])
             ->firstOrFail();
 
-        $loaRequest  = $loaValidated->loaRequest;
-        $journal     = $loaRequest?->journal;
-        $publisher   = $journal?->publisher;
-        $publisherId = $journal?->publisher_id ?? null;
+        $loaRequest = $loaValidated->loaRequest;
+        $journal    = $loaRequest?->journal;
+        $publisher  = $journal?->publisher;
 
-        $template = LoaTemplate::getDefault($lang, $publisherId);
-
-        $data = [
+        return view('loa.view-page', [
             'loa'      => $loaValidated,
             'request'  => $loaRequest,
             'journal'  => $journal,
             'publisher'=> $publisher,
             'lang'     => $lang,
-            'template' => $template,
-        ];
-
-        // Always render the professional certificate view
-        return $this->renderDynamicTemplate($template, $data);
+        ]);
     }
 
     private function renderDynamicTemplate($template, $data)

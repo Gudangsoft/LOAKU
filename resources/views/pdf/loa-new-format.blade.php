@@ -1,464 +1,265 @@
 <!DOCTYPE html>
-<html lang="{{ $lang ?? 'id' }}">
+<html lang="{{ $lang }}">
 <head>
 <meta charset="UTF-8">
-<title>LOA – {{ isset($loa) ? $loa->loa_code : '' }}</title>
+<title>{{ $certTitle }} – {{ $loaCode }}</title>
 <style>
-@page {
-    margin: 14mm 16mm 14mm 16mm;
-    size: A4 portrait;
-}
+@page { margin: 12mm 14mm 12mm 14mm; size: A4 portrait; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    font-family: 'DejaVu Sans', Arial, sans-serif;
-    font-size: 9pt;
-    line-height: 1.45;
-    color: #1a1a2e;
-    background: #fff;
-}
+body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 9pt; color: #1a1a2e; background: #fff; }
 
-/* ── OUTER FRAME ── */
-.page-frame {
-    border: 2.5pt solid #1e3a6e;
-    padding: 0;
-}
+/* ── FRAME ── */
+.frame { border: 2pt solid #1e3a6e; width: 100%; }
 
 /* ── HEADER ── */
-.hdr {
-    background-color: #1e3a6e;
-    padding: 9pt 12pt;
-}
-.hdr table { width: 100%; border-collapse: collapse; margin: 0; }
+.hdr { background-color: #1e3a6e; padding: 10pt 12pt; }
+.hdr table { width: 100%; border-collapse: collapse; }
 .hdr td { padding: 0; vertical-align: middle; }
-.hdr-logo-cell { width: 58pt; text-align: center; }
-.hdr-logo {
-    max-width: 50pt;
-    max-height: 50pt;
-}
-.logo-circle {
-    width: 46pt; height: 46pt;
-    border: 1.5pt solid rgba(255,255,255,0.35);
-    border-radius: 50%;
-    margin: 0 auto;
-    padding-top: 14pt;
-    text-align: center;
-    font-size: 6pt;
-    color: rgba(255,255,255,0.55);
-}
-.hdr-center { padding: 0 10pt; text-align: center; }
-.hdr-pub-name {
-    font-size: 13pt;
-    font-weight: bold;
-    color: #ffffff;
-    letter-spacing: 0.5pt;
-    margin-bottom: 2pt;
-}
-.hdr-journal-name {
-    font-size: 9pt;
-    color: rgba(255,255,255,0.88);
-    margin-bottom: 2pt;
-}
-.hdr-issn {
-    font-size: 7.5pt;
-    color: rgba(255,255,255,0.70);
-    margin-bottom: 1.5pt;
-}
-.hdr-contact {
-    font-size: 7pt;
-    color: rgba(255,255,255,0.60);
-}
+.hdr-logo { width: 54pt; text-align: center; }
+.hdr-logo img { max-width: 48pt; max-height: 48pt; }
+.logo-ph { width: 44pt; height: 44pt; border: 1pt solid rgba(255,255,255,0.3); border-radius: 22pt; margin: 0 auto; padding-top: 14pt; text-align: center; font-size: 6pt; color: rgba(255,255,255,0.5); }
+.hdr-mid { text-align: center; padding: 0 8pt; }
+.hdr-pub { font-size: 13pt; font-weight: bold; color: #ffffff; margin-bottom: 2pt; }
+.hdr-jrn { font-size: 9pt; color: rgba(255,255,255,0.85); margin-bottom: 2pt; }
+.hdr-issn { font-size: 7.5pt; color: rgba(255,255,255,0.65); margin-bottom: 1pt; }
+.hdr-ct { font-size: 7pt; color: rgba(255,255,255,0.55); }
+
+/* ── GOLD LINE ── */
+.gold-line { height: 3pt; background-color: #c9a84c; }
 
 /* ── TITLE BAND ── */
-.title-band {
-    background-color: #f4f7fb;
-    border-top: 3pt solid #c9a84c;
-    border-bottom: 1.5pt solid #1e3a6e;
-    padding: 7pt 12pt;
-    text-align: center;
-}
-.doc-title {
-    font-size: 12pt;
-    font-weight: bold;
-    color: #1e3a6e;
-    letter-spacing: 0.8pt;
-    text-transform: uppercase;
-}
-.doc-sub {
-    font-size: 8pt;
-    color: #6c757d;
-    margin-top: 2pt;
-}
-.loa-badge {
-    display: inline-block;
-    background-color: #1e3a6e;
-    color: #ffffff;
-    font-size: 8pt;
-    font-weight: bold;
-    padding: 2pt 10pt;
-    border-radius: 20pt;
-    margin-top: 4pt;
-    letter-spacing: 0.5pt;
-}
+.title-band { background-color: #f4f7fb; border-bottom: 1pt solid #d0d8e8; padding: 8pt 12pt; text-align: center; }
+.doc-title { font-size: 12pt; font-weight: bold; color: #1e3a6e; letter-spacing: 0.5pt; }
+.doc-sub { font-size: 8pt; color: #6c757d; margin-top: 2pt; }
+.loa-badge { font-size: 8.5pt; font-weight: bold; color: #1e3a6e; margin-top: 4pt; border: 1pt solid #1e3a6e; padding: 2pt 10pt; border-radius: 12pt; display: inline-block; }
 
-/* ── CONTENT PAD ── */
-.body-pad { padding: 8pt 12pt 6pt 12pt; }
+/* ── BODY ── */
+.body { padding: 9pt 12pt 6pt 12pt; }
+
+.to-label { font-size: 8pt; color: #6c757d; margin-bottom: 1pt; }
+.author-name { font-size: 12pt; font-weight: bold; color: #1a1a2e; margin-bottom: 1pt; }
+.author-email { font-size: 8pt; color: #888; margin-bottom: 8pt; }
+
+.art-box { background-color: #eef2fb; border-left: 4pt solid #1e3a6e; padding: 7pt 10pt; margin-bottom: 7pt; }
+.art-lbl { font-size: 7.5pt; color: #6c757d; font-weight: bold; margin-bottom: 2pt; text-transform: uppercase; }
+.art-title { font-size: 9.5pt; font-weight: bold; color: #1e3a6e; line-height: 1.45; }
+
+.accepted-box { background-color: #e9f7ef; border-left: 4pt solid #28a745; padding: 7pt 10pt; margin-bottom: 7pt; }
+.accepted-main { font-size: 10pt; font-weight: bold; color: #155724; }
+.accepted-sub { font-size: 7.5pt; color: #388e3c; margin-top: 1pt; }
+
+.stmt { font-size: 8.5pt; color: #374151; text-align: justify; line-height: 1.55; margin-bottom: 8pt; padding: 6pt 8pt; background-color: #fafafa; border-left: 3pt solid #c9a84c; }
 
 /* ── INFO TABLE ── */
-.info-tbl { width: 100%; border-collapse: collapse; margin-bottom: 7pt; }
-.info-tbl tr { border-bottom: 0.5pt solid #eaecef; }
-.info-tbl td { padding: 3pt 5pt; font-size: 8.5pt; vertical-align: top; }
-.info-lbl { color: #5a6472; font-weight: bold; width: 33%; white-space: nowrap; }
-.info-sep { color: #aaa; width: 6pt; }
+.info-tbl { width: 100%; border-collapse: collapse; margin-bottom: 8pt; }
+.info-tbl td { padding: 3.5pt 6pt; border-bottom: 0.5pt solid #e5e8ee; font-size: 8.5pt; vertical-align: top; }
+.info-lbl { color: #5a6472; font-weight: bold; width: 34%; white-space: nowrap; }
+.info-sep { width: 8pt; color: #aaa; }
 .info-val { color: #1a1a2e; }
-.article-val { font-weight: bold; color: #1e3a6e; font-size: 9pt; }
-.date-val { font-weight: bold; color: #1a6630; }
-.reg-val {
-    background-color: #eef2f7;
-    padding: 0pt 4pt;
-    border-radius: 3pt;
-    font-size: 8pt;
-    font-family: monospace;
-}
+.val-jrn { font-weight: bold; color: #1e3a6e; }
+.val-date { font-weight: bold; color: #1a6630; }
+.val-reg { background-color: #eef2f7; padding: 0pt 4pt; font-size: 8pt; }
 
-/* ── ACCEPTED BANNER ── */
-.accepted-banner {
-    background-color: #e9f7ef;
-    border: 1pt solid #a3d9b1;
-    border-left: 4pt solid #28a745;
-    padding: 6pt 10pt;
-    margin-bottom: 6pt;
-}
-.accepted-main {
-    font-size: 10.5pt;
-    font-weight: bold;
-    color: #155724;
-    text-transform: uppercase;
-}
-.accepted-en {
-    font-size: 7.5pt;
-    color: #388e3c;
-    margin-top: 1pt;
-}
+/* ── SIGNATURE ── */
+.sig-outer { width: 100%; }
+.sig-outer td { vertical-align: bottom; padding: 0; }
+.sig-right { width: 200pt; text-align: center; }
+.sig-date { font-size: 8pt; color: #495057; margin-bottom: 2pt; }
+.sig-role { font-size: 8pt; font-weight: bold; color: #1e3a6e; margin-bottom: 6pt; }
+.sig-img-wrap { height: 62pt; text-align: center; }
+.sig-img { max-height: 58pt; max-width: 130pt; }
+.sig-blank { height: 58pt; border-bottom: 1.2pt solid #333; margin: 0 20pt; }
+.sig-name { font-size: 9pt; font-weight: bold; color: #1a1a2e; border-top: 1.2pt solid #1a1a2e; padding-top: 4pt; display: inline-block; min-width: 160pt; margin-top: 4pt; }
+.sig-title { font-size: 7.5pt; color: #6c757d; margin-top: 2pt; }
+.sig-jrn { font-size: 7pt; color: #888; }
 
-/* ── STATEMENT ── */
-.statement-box {
-    background-color: #f8f9fc;
-    border: 0.5pt solid #dee2e6;
-    border-left: 3pt solid #c9a84c;
-    padding: 5pt 9pt;
-    font-size: 8.5pt;
-    color: #374151;
-    text-align: justify;
-    line-height: 1.55;
-    margin-bottom: 8pt;
-}
-
-/* ── DIVIDER ── */
-.divider { height: 1pt; background-color: #dee2e6; margin: 0 0 7pt 0; }
-
-/* ── FOOTER: QR + SIG + VERIFY ── */
-.footer-tbl { width: 100%; border-collapse: collapse; }
-.footer-tbl td { padding: 0; vertical-align: top; }
-
-.qr-cell {
-    width: 22%;
-    text-align: center;
-    padding-right: 6pt;
-    border-right: 0.8pt solid #dee2e6;
-}
-.qr-img { width: 72pt; height: 72pt; }
-.qr-placeholder {
-    width: 72pt; height: 72pt;
-    border: 1pt dashed #ccc;
-    margin: 0 auto;
-    padding-top: 26pt;
-    text-align: center;
-    font-size: 6.5pt;
-    color: #aaa;
-}
-.qr-label { font-size: 6.5pt; color: #888; margin-top: 3pt; }
-
-.sig-cell {
-    width: 40%;
-    text-align: center;
-    padding: 0 10pt;
-    border-right: 0.8pt solid #dee2e6;
-}
-.sig-place { font-size: 8pt; color: #495057; margin-bottom: 3pt; }
-.sig-role { font-size: 8pt; font-weight: bold; color: #1e3a6e; margin-bottom: 5pt; }
-.sig-img-wrap { height: 58pt; text-align: center; }
-.sig-img { max-height: 55pt; max-width: 130pt; }
-.sig-line {
-    border-bottom: 1.2pt solid #1a1a2e;
-    height: 55pt;
-    margin: 0 20pt;
-}
-.sig-name { font-size: 8.5pt; font-weight: bold; color: #1a1a2e; margin-top: 4pt; }
-.sig-title { font-size: 7.5pt; color: #6c757d; }
-.sig-journal { font-size: 7pt; color: #888; }
-
-.verify-cell {
-    width: 38%;
-    padding-left: 10pt;
-}
-.verify-title {
-    font-size: 8pt;
-    font-weight: bold;
-    color: #1e3a6e;
-    margin-bottom: 4pt;
-}
-.verify-text { font-size: 7.5pt; color: #495057; line-height: 1.6; }
-.verify-url { font-size: 7pt; color: #1e3a6e; word-break: break-all; }
-.validated-chip {
-    display: inline-block;
-    background-color: #d4edda;
-    color: #155724;
-    border: 0.5pt solid #a3d9b1;
-    border-radius: 20pt;
-    padding: 2pt 8pt;
-    font-size: 7.5pt;
-    font-weight: bold;
-    margin-top: 5pt;
-}
-
-/* ── BOTTOM BAR ── */
-.bottom-bar {
-    background-color: #1e3a6e;
-    padding: 4pt 10pt;
-    text-align: center;
-    font-size: 6.5pt;
-    color: rgba(255,255,255,0.75);
-}
+/* ── FOOTER ── */
+.footer { background-color: #1e3a6e; padding: 10pt 12pt; }
+.footer table { width: 100%; border-collapse: collapse; }
+.footer td { padding: 0; vertical-align: middle; }
+.qr-cell { width: 72pt; text-align: center; }
+.qr-img { width: 68pt; height: 68pt; background-color: #fff; padding: 2pt; }
+.qr-ph { width: 68pt; height: 68pt; border: 1pt dashed rgba(255,255,255,0.4); padding-top: 26pt; text-align: center; font-size: 6pt; color: rgba(255,255,255,0.5); }
+.qr-lbl { font-size: 6.5pt; color: rgba(255,255,255,0.6); text-align: center; margin-top: 2pt; }
+.verify-cell { padding-left: 12pt; }
+.verify-title { font-size: 9pt; font-weight: bold; color: #c9a84c; margin-bottom: 3pt; }
+.verify-url { font-size: 7.5pt; color: rgba(255,255,255,0.75); margin-bottom: 2pt; word-break: break-all; }
+.verify-note { font-size: 7pt; color: rgba(255,255,255,0.5); margin-top: 3pt; }
+.valid-cell { width: 88pt; text-align: center; }
+.valid-badge { display: inline-block; background-color: #28a745; color: #fff; font-size: 8pt; font-weight: bold; padding: 4pt 8pt; border-radius: 10pt; }
 </style>
 </head>
 <body>
 
-@php
-    $isId        = (($lang ?? 'id') === 'id');
-    $loaCode     = isset($loa) ? $loa->loa_code : 'N/A';
-    $artTitle    = isset($request) ? ($request->article_title ?? '-') : '-';
-    $author      = isset($request) ? ($request->author       ?? '-') : '-';
-    $email       = isset($request) ? ($request->author_email ?? '-') : '-';
-    $jName       = isset($journal)   ? ($journal->name   ?? '-') : '-';
-    $eIssn       = isset($journal)   ? ($journal->e_issn ?? '')  : '';
-    $pIssn       = isset($journal)   ? ($journal->p_issn ?? '')  : '';
-    $vol         = isset($request)   ? ($request->volume  ?? '-') : '-';
-    $num         = isset($request)   ? ($request->number  ?? '-') : '-';
-    $month       = isset($request)   ? ($request->month   ?? '-') : '-';
-    $year        = isset($request)   ? ($request->year    ?? '-') : '-';
-    $noReg       = isset($request)   ? ($request->no_reg  ?? '-') : '-';
-    $pubName     = isset($publisher) ? ($publisher->name    ?? '') : '';
-    $pubAddr     = isset($publisher) ? ($publisher->address ?? '') : '';
-    $pubEmail    = isset($publisher) ? ($publisher->email   ?? '') : '';
-    $pubPhone    = isset($publisher) ? ($publisher->phone   ?? '') : '';
-    $chiefEd     = isset($journal)   ? ($journal->chief_editor ?? ($isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief')) : ($isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief');
+<table class="frame">
+<tr><td>
 
-    $rawDate = isset($request) && isset($request->approved_at)
-               ? $request->approved_at
-               : (isset($loa) ? $loa->created_at : null);
-    if ($rawDate) {
-        if ($isId) {
-            $mnId = ['','Januari','Februari','Maret','April','Mei','Juni',
-                       'Juli','Agustus','September','Oktober','November','Desember'];
-            $approvalDate = $rawDate->format('d') . ' ' . $mnId[(int)$rawDate->format('n')] . ' ' . $rawDate->format('Y');
-        } else {
-            $approvalDate = $rawDate->format('d F Y');
-        }
-    } else {
-        $approvalDate = '-';
-    }
+{{-- ── HEADER ── --}}
+<div class="hdr">
+    <table>
+        <tr>
+            <td class="hdr-logo">
+                @if($pubLogoPath)
+                    <img src="{{ $pubLogoPath }}" alt="">
+                @else
+                    <div class="logo-ph">LOGO</div>
+                @endif
+            </td>
+            <td class="hdr-mid">
+                <div class="hdr-pub">{{ strtoupper($pubName ?: 'PUBLISHER') }}</div>
+                <div class="hdr-jrn">{{ $journalName }}</div>
+                @if($eIssn || $pIssn)
+                    <div class="hdr-issn">
+                        @if($eIssn) E-ISSN: {{ $eIssn }} @endif
+                        @if($eIssn && $pIssn) &nbsp;|&nbsp; @endif
+                        @if($pIssn) P-ISSN: {{ $pIssn }} @endif
+                    </div>
+                @endif
+                @if($pubEmail || $pubPhone)
+                    <div class="hdr-ct">
+                        @if($pubEmail) {{ $pubEmail }} @endif
+                        @if($pubEmail && $pubPhone) &nbsp;|&nbsp; @endif
+                        @if($pubPhone) {{ $pubPhone }} @endif
+                    </div>
+                @endif
+            </td>
+            <td class="hdr-logo">
+                @if($jrnLogoPath)
+                    <img src="{{ $jrnLogoPath }}" alt="">
+                @else
+                    <div class="logo-ph">JURNAL</div>
+                @endif
+            </td>
+        </tr>
+    </table>
+</div>
 
-    $pubLogoPath  = isset($publisher) && !empty($publisher->logo)       ? public_path('storage/' . $publisher->logo)       : null;
-    $jrnLogoPath  = isset($journal)   && !empty($journal->logo)         ? public_path('storage/' . $journal->logo)         : null;
-    $stampPath    = isset($journal)   && !empty($journal->ttd_stample)  ? public_path('storage/' . $journal->ttd_stample)  : null;
+{{-- ── GOLD LINE ── --}}
+<div class="gold-line"></div>
 
-    $verifyUrl    = route('loa.verify.result', $loaCode);
-    $nowStr       = now()->format('d F Y, H:i');
+{{-- ── TITLE BAND ── --}}
+<div class="title-band">
+    <div class="doc-title">{{ $certTitle }}</div>
+    <div class="doc-sub">{{ $certSub }}</div>
+    <div class="loa-badge">No: {{ $loaCode }}</div>
+</div>
 
-    $certTitle    = $isId ? 'SURAT PERSETUJUAN NASKAH' : 'LETTER OF ACCEPTANCE';
-    $certSub      = $isId ? '(Letter of Acceptance)'   : '(Surat Persetujuan Naskah)';
+{{-- ── BODY ── --}}
+<div class="body">
 
-    $issnStr = '';
-    if ($eIssn) $issnStr .= 'E-ISSN: ' . $eIssn;
-    if ($eIssn && $pIssn) $issnStr .= '   |   ';
-    if ($pIssn) $issnStr .= 'P-ISSN: ' . $pIssn;
-@endphp
+    <div class="to-label">{{ $isId ? 'Kepada Yth.' : 'To' }}:</div>
+    <div class="author-name">{{ $author }}</div>
+    <div class="author-email">{{ $email }}</div>
 
-<div class="page-frame">
-
-    {{-- ══ HEADER ══ --}}
-    <div class="hdr">
-        <table>
-            <tr>
-                <td class="hdr-logo-cell">
-                    @if($pubLogoPath && file_exists($pubLogoPath))
-                        <img src="{{ $pubLogoPath }}" class="hdr-logo" alt="">
-                    @else
-                        <div class="logo-circle">LOGO</div>
-                    @endif
-                </td>
-                <td class="hdr-center">
-                    <div class="hdr-pub-name">{{ strtoupper($pubName ?: 'PUBLISHER') }}</div>
-                    <div class="hdr-journal-name">{{ $jName }}</div>
-                    @if($issnStr)
-                        <div class="hdr-issn">{{ $issnStr }}</div>
-                    @endif
-                    @if($pubEmail || $pubPhone)
-                        <div class="hdr-contact">
-                            @if($pubEmail) {{ $pubEmail }} @endif
-                            @if($pubEmail && $pubPhone) &nbsp;|&nbsp; @endif
-                            @if($pubPhone) {{ $pubPhone }} @endif
-                        </div>
-                    @endif
-                </td>
-                <td class="hdr-logo-cell">
-                    @if($jrnLogoPath && file_exists($jrnLogoPath))
-                        <img src="{{ $jrnLogoPath }}" class="hdr-logo" alt="">
-                    @else
-                        <div class="logo-circle">JURNAL</div>
-                    @endif
-                </td>
-            </tr>
-        </table>
+    <div class="art-box">
+        <div class="art-lbl">{{ $isId ? 'Judul Artikel' : 'Article Title' }}</div>
+        <div class="art-title">"{{ $artTitle }}"</div>
     </div>
 
-    {{-- ══ TITLE BAND ══ --}}
-    <div class="title-band">
-        <div class="doc-title">{{ $certTitle }}</div>
-        <div class="doc-sub">{{ $certSub }}</div>
-        <div><span class="loa-badge">No: {{ $loaCode }}</span></div>
-    </div>
-
-    {{-- ══ BODY ══ --}}
-    <div class="body-pad">
-
-        {{-- Article Info --}}
-        <table class="info-tbl">
-            <tr>
-                <td class="info-lbl">{{ $isId ? 'Judul Artikel' : 'Article Title' }}</td>
-                <td class="info-sep">:</td>
-                <td class="info-val article-val">{{ $artTitle }}</td>
-            </tr>
-            <tr>
-                <td class="info-lbl">{{ $isId ? 'Penulis' : 'Author(s)' }}</td>
-                <td class="info-sep">:</td>
-                <td class="info-val">{{ $author }}</td>
-            </tr>
-            <tr>
-                <td class="info-lbl">{{ $isId ? 'Email Penulis' : 'Author Email' }}</td>
-                <td class="info-sep">:</td>
-                <td class="info-val">{{ $email }}</td>
-            </tr>
-            <tr>
-                <td class="info-lbl">{{ $isId ? 'Nama Jurnal' : 'Journal Name' }}</td>
-                <td class="info-sep">:</td>
-                <td class="info-val"><strong>{{ $jName }}</strong></td>
-            </tr>
-            <tr>
-                <td class="info-lbl">{{ $isId ? 'Volume / Nomor' : 'Volume / Number' }}</td>
-                <td class="info-sep">:</td>
-                <td class="info-val">Vol.&nbsp;{{ $vol }}&nbsp;&nbsp;/&nbsp;&nbsp;No.&nbsp;{{ $num }}</td>
-            </tr>
-            <tr>
-                <td class="info-lbl">{{ $isId ? 'Edisi Terbit' : 'Issue' }}</td>
-                <td class="info-sep">:</td>
-                <td class="info-val">{{ $month }} {{ $year }}</td>
-            </tr>
-            <tr>
-                <td class="info-lbl">{{ $isId ? 'No. Registrasi' : 'Registration No.' }}</td>
-                <td class="info-sep">:</td>
-                <td class="info-val"><span class="reg-val">{{ $noReg }}</span></td>
-            </tr>
-            <tr>
-                <td class="info-lbl">{{ $isId ? 'Tanggal Disetujui' : 'Approval Date' }}</td>
-                <td class="info-sep">:</td>
-                <td class="info-val date-val">{{ $approvalDate }}</td>
-            </tr>
-        </table>
-
-        {{-- Accepted Banner --}}
-        <div class="accepted-banner">
-            <div class="accepted-main">
-                &#10003;&nbsp;{{ $isId ? 'DITERIMA UNTUK DIPUBLIKASIKAN' : 'ACCEPTED FOR PUBLICATION' }}
-            </div>
-            <div class="accepted-en">
-                {{ $isId ? 'Has Been Accepted for Publication' : 'Telah Diterima untuk Dipublikasikan' }}
-            </div>
+    <div class="accepted-box">
+        <div class="accepted-main">
+            &#10003;&nbsp;{{ $isId ? 'DITERIMA UNTUK DIPUBLIKASIKAN' : 'ACCEPTED FOR PUBLICATION' }}
         </div>
-
-        {{-- Statement --}}
-        <div class="statement-box">
-            @if($isId)
-                Dengan ini dinyatakan bahwa naskah artikel ilmiah di atas telah melalui proses <strong>review</strong> oleh Mitra Bebestari dan diputuskan <strong>DITERIMA</strong> untuk dipublikasikan pada jurnal <strong>{{ $jName }}</strong> edisi Volume {{ $vol }}, Nomor {{ $num }}, {{ $month }} {{ $year }}. Surat persetujuan ini merupakan bukti resmi penerimaan naskah yang sah untuk keperluan akademik dan profesional.
-            @else
-                This is to certify that the manuscript above has completed the <strong>peer-review</strong> process and has been officially <strong>ACCEPTED</strong> for publication in <strong>{{ $jName }}</strong>, Volume {{ $vol }}, Number {{ $num }}, {{ $month }} {{ $year }}. This letter constitutes official proof of acceptance for academic and professional purposes.
-            @endif
+        <div class="accepted-sub">
+            {{ $isId ? 'Has Been Accepted for Publication' : 'Telah Diterima untuk Dipublikasikan' }}
         </div>
-
-        <div class="divider"></div>
-
-        {{-- Footer: QR | Signature | Verification --}}
-        <table class="footer-tbl">
-            <tr>
-                {{-- QR CODE --}}
-                <td class="qr-cell">
-                    @if(isset($qrCode) && $qrCode)
-                        <img src="data:image/svg+xml;base64,{{ $qrCode }}" class="qr-img" alt="QR">
-                    @else
-                        <div class="qr-placeholder">QR<br>CODE</div>
-                    @endif
-                    <div class="qr-label">{{ $isId ? 'Scan untuk verifikasi' : 'Scan to verify' }}</div>
-                </td>
-
-                {{-- SIGNATURE --}}
-                <td class="sig-cell">
-                    <div class="sig-place">{{ $approvalDate }}</div>
-                    <div class="sig-role">{{ $isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief' }}</div>
-
-                    <div class="sig-img-wrap">
-                        @if($stampPath && file_exists($stampPath))
-                            <img src="{{ $stampPath }}" class="sig-img" alt="TTD">
-                        @else
-                            <div class="sig-line"></div>
-                        @endif
-                    </div>
-
-                    <div class="sig-name">{{ $chiefEd }}</div>
-                    <div class="sig-title">{{ $isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief' }}</div>
-                    <div class="sig-journal">{{ $jName }}</div>
-                </td>
-
-                {{-- VERIFICATION --}}
-                <td class="verify-cell">
-                    <div class="verify-title">
-                        &#128274;&nbsp;{{ $isId ? 'Verifikasi Dokumen' : 'Document Verification' }}
-                    </div>
-                    <div class="verify-text">
-                        {{ $isId ? 'Verifikasi keaslian dokumen di:' : 'Verify document authenticity at:' }}<br>
-                        <span class="verify-url">{{ $verifyUrl }}</span><br><br>
-                        {{ $isId ? 'Kode LOA' : 'LOA Code' }}:<br>
-                        <strong>{{ $loaCode }}</strong><br><br>
-                        {{ $isId ? 'Dicetak pada' : 'Generated on' }}:<br>
-                        {{ $nowStr }}
-                    </div>
-                    <div>
-                        <span class="validated-chip">&#10003;&nbsp;{{ $isId ? 'TERVALIDASI' : 'VALIDATED' }}</span>
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-    </div>{{-- /body-pad --}}
-
-    {{-- ══ BOTTOM BAR ══ --}}
-    <div class="bottom-bar">
-        {{ $isId ? 'Dokumen dibuat otomatis oleh' : 'Document generated by' }}
-        <strong style="color:#c9a84c;">LOA Management System</strong>
-        &nbsp;&#183;&nbsp; {{ $loaCode }}
-        &nbsp;&#183;&nbsp; {{ $verifyUrl }}
     </div>
 
-</div>{{-- /page-frame --}}
+    <div class="stmt">
+        @if($isId)
+            Dengan ini dinyatakan bahwa naskah artikel ilmiah di atas telah melalui proses <strong>review</strong>
+            oleh Mitra Bebestari dan diputuskan <strong>DITERIMA</strong> untuk dipublikasikan pada jurnal
+            <strong>{{ $journalName }}</strong> edisi Volume {{ $volume }}, Nomor {{ $number }},
+            {{ $month }} {{ $year }}.
+            Surat persetujuan ini merupakan bukti resmi penerimaan naskah yang sah.
+        @else
+            This is to certify that the manuscript above has completed the <strong>peer-review</strong> process
+            and has been officially <strong>ACCEPTED</strong> for publication in
+            <strong>{{ $journalName }}</strong>, Volume {{ $volume }}, Number {{ $number }},
+            {{ $month }} {{ $year }}.
+            This letter constitutes official proof of acceptance for academic and professional purposes.
+        @endif
+    </div>
+
+    {{-- INFO TABLE --}}
+    <table class="info-tbl">
+        <tr>
+            <td class="info-lbl">{{ $isId ? 'Nama Jurnal' : 'Journal Name' }}</td>
+            <td class="info-sep">:</td>
+            <td class="info-val val-jrn">{{ $journalName }}</td>
+        </tr>
+        <tr>
+            <td class="info-lbl">{{ $isId ? 'Volume / Nomor' : 'Volume / Number' }}</td>
+            <td class="info-sep">:</td>
+            <td class="info-val">Vol. {{ $volume }} &nbsp;/&nbsp; No. {{ $number }}</td>
+        </tr>
+        <tr>
+            <td class="info-lbl">{{ $isId ? 'Edisi Terbit' : 'Issue' }}</td>
+            <td class="info-sep">:</td>
+            <td class="info-val">{{ $month }} {{ $year }}</td>
+        </tr>
+        <tr>
+            <td class="info-lbl">{{ $isId ? 'No. Registrasi' : 'Registration No.' }}</td>
+            <td class="info-sep">:</td>
+            <td class="info-val"><span class="val-reg">{{ $noReg }}</span></td>
+        </tr>
+        <tr>
+            <td class="info-lbl">{{ $isId ? 'Tanggal Disetujui' : 'Approval Date' }}</td>
+            <td class="info-sep">:</td>
+            <td class="info-val val-date">{{ $approvalDate }}</td>
+        </tr>
+    </table>
+
+    {{-- SIGNATURE --}}
+    <table class="sig-outer">
+        <tr>
+            <td>&nbsp;</td>
+            <td class="sig-right">
+                <div class="sig-date">{{ $approvalDate }}</div>
+                <div class="sig-role">{{ $isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief' }}</div>
+                <div class="sig-img-wrap">
+                    @if($stampPath)
+                        <img src="{{ $stampPath }}" class="sig-img" alt="">
+                    @else
+                        <div class="sig-blank"></div>
+                    @endif
+                </div>
+                <div><span class="sig-name">{{ $chiefEditor }}</span></div>
+                <div class="sig-title">{{ $isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief' }}</div>
+                <div class="sig-jrn">{{ $journalName }}</div>
+            </td>
+        </tr>
+    </table>
+
+</div>{{-- /body --}}
+
+{{-- ── FOOTER ── --}}
+<div class="footer">
+    <table>
+        <tr>
+            <td class="qr-cell">
+                @if($qrCode)
+                    <img src="data:image/svg+xml;base64,{{ $qrCode }}" class="qr-img" alt="QR">
+                @else
+                    <div class="qr-ph">QR CODE</div>
+                @endif
+                <div class="qr-lbl">{{ $isId ? 'Scan untuk verifikasi' : 'Scan to verify' }}</div>
+            </td>
+            <td class="verify-cell">
+                <div class="verify-title">&#128274; {{ $isId ? 'Verifikasi Dokumen' : 'Document Verification' }}</div>
+                <div class="verify-url">{{ $verifyUrl }}</div>
+                <div class="verify-url">{{ $isId ? 'Kode LOA' : 'LOA Code' }}: <strong style="color:#fff;">{{ $loaCode }}</strong></div>
+                <div class="verify-note">{{ $isId ? 'Dicetak pada' : 'Generated on' }}: {{ $nowStr }}</div>
+            </td>
+            <td class="valid-cell">
+                <div class="valid-badge">&#10003; {{ $isId ? 'TERVALIDASI' : 'VALIDATED' }}</div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+</td></tr>
+</table>
 
 </body>
 </html>
