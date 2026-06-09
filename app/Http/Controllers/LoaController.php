@@ -6,6 +6,7 @@ use App\Models\LoaRequest;
 use App\Models\LoaValidated;
 use App\Models\LoaTemplate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Barryvdh\DomPDF\Facade\Pdf;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -195,59 +196,82 @@ class LoaController extends Controller
                 ->with(['loaRequest.journal.publisher'])
                 ->firstOrFail();
 
-            $req       = $loaValidated->loaRequest;
-            $journal   = $req?->journal;
-            $publisher = $journal?->publisher;
-            $isId      = ($lang === 'id');
+            // Cache key includes updated_at so it auto-invalidates when LOA data changes
+            $cacheKey = 'pdf_' . $loaCode . '_' . $lang . '_' . $loaValidated->updated_at->timestamp;
 
-            $mnId = ['','Januari','Februari','Maret','April','Mei','Juni',
-                       'Juli','Agustus','September','Oktober','November','Desember'];
+            $pdfBytes = Cache::remember($cacheKey, 86400, function () use ($loaValidated, $loaCode, $lang) {
 
-            $rawDate      = $req?->approved_at ?? $loaValidated->created_at;
-            $approvalDate = $isId
-                ? ($rawDate->format('d').' '.$mnId[(int)$rawDate->format('n')].' '.$rawDate->format('Y'))
-                : $rawDate->format('d F Y');
+                $req       = $loaValidated->loaRequest;
+                $journal   = $req?->journal;
+                $publisher = $journal?->publisher;
+                $isId      = ($lang === 'id');
 
-            $pubLogoPath = $publisher?->logo       ? public_path('storage/'.$publisher->logo)      : null;
-            $jrnLogoPath = $journal?->logo         ? public_path('storage/'.$journal->logo)        : null;
-            $stampPath   = $journal?->ttd_stample  ? public_path('storage/'.$journal->ttd_stample) : null;
+                $mnId = ['','Januari','Februari','Maret','April','Mei','Juni',
+                           'Juli','Agustus','September','Oktober','November','Desember'];
 
-            $qrCode = $this->generateQrCode(route('loa.verify.result', $loaCode));
+                $rawDate      = $req?->approved_at ?? $loaValidated->created_at;
+                $approvalDate = $isId
+                    ? ($rawDate->format('d').' '.$mnId[(int)$rawDate->format('n')].' '.$rawDate->format('Y'))
+                    : $rawDate->format('d F Y');
 
-            $data = [
-                'lang'         => $lang,
-                'isId'         => $isId,
-                'loaCode'      => $loaCode,
-                'artTitle'     => $req?->article_title ?? '-',
-                'author'       => $req?->author        ?? '-',
-                'email'        => $req?->author_email  ?? '-',
-                'journalName'  => $journal?->name      ?? '',
-                'eIssn'        => $journal?->e_issn    ?? '',
-                'pIssn'        => $journal?->p_issn    ?? '',
-                'volume'       => $req?->volume        ?? '-',
-                'number'       => $req?->number        ?? '-',
-                'month'        => $req?->month         ?? '-',
-                'year'         => $req?->year          ?? '-',
-                'noReg'        => $req?->no_reg        ?? '-',
-                'pubName'      => $publisher?->name    ?? '',
-                'pubEmail'     => $publisher?->email   ?? '',
-                'pubPhone'     => $publisher?->phone   ?? '',
-                'chiefEditor'  => $journal?->chief_editor ?? ($isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief'),
-                'approvalDate' => $approvalDate,
-                'pubLogoPath'  => ($pubLogoPath && file_exists($pubLogoPath)) ? $pubLogoPath : null,
-                'jrnLogoPath'  => ($jrnLogoPath && file_exists($jrnLogoPath)) ? $jrnLogoPath : null,
-                'stampPath'    => ($stampPath   && file_exists($stampPath))   ? $stampPath   : null,
-                'qrCode'       => $qrCode,
-                'verifyUrl'    => route('loa.verify.result', $loaCode),
-                'nowStr'       => now()->format('d F Y, H:i'),
-                'certTitle'    => $isId ? 'SURAT PERSETUJUAN NASKAH' : 'LETTER OF ACCEPTANCE',
-                'certSub'      => $isId ? '(Letter of Acceptance)'   : '(Surat Persetujuan Naskah)',
-            ];
+                $pubLogoPath = $publisher?->logo       ? public_path('storage/'.$publisher->logo)      : null;
+                $jrnLogoPath = $journal?->logo         ? public_path('storage/'.$journal->logo)        : null;
+                $stampPath   = $journal?->ttd_stample  ? public_path('storage/'.$journal->ttd_stample) : null;
 
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.loa-new-format', $data);
-            $pdf->setPaper('A4', 'portrait');
+                // Cache QR code separately (24 hours) — expensive to generate
+                $qrCode = Cache::remember('qr_' . $loaCode, 86400, function () use ($loaCode) {
+                    return $this->generateQrCode(route('loa.verify.result', $loaCode));
+                });
 
-            return $pdf->download($loaCode . '_' . $lang . '.pdf');
+                $data = [
+                    'lang'         => $lang,
+                    'isId'         => $isId,
+                    'loaCode'      => $loaCode,
+                    'artTitle'     => $req?->article_title ?? '-',
+                    'author'       => $req?->author        ?? '-',
+                    'email'        => $req?->author_email  ?? '-',
+                    'journalName'  => $journal?->name      ?? '',
+                    'eIssn'        => $journal?->e_issn    ?? '',
+                    'pIssn'        => $journal?->p_issn    ?? '',
+                    'volume'       => $req?->volume        ?? '-',
+                    'number'       => $req?->number        ?? '-',
+                    'month'        => $req?->month         ?? '-',
+                    'year'         => $req?->year          ?? '-',
+                    'noReg'        => $req?->no_reg        ?? '-',
+                    'pubName'      => $publisher?->name    ?? '',
+                    'pubEmail'     => $publisher?->email   ?? '',
+                    'pubPhone'     => $publisher?->phone   ?? '',
+                    'chiefEditor'  => $journal?->chief_editor ?? ($isId ? 'Pemimpin Redaksi' : 'Editor-in-Chief'),
+                    'approvalDate' => $approvalDate,
+                    'pubLogoPath'  => ($pubLogoPath && file_exists($pubLogoPath)) ? $pubLogoPath : null,
+                    'jrnLogoPath'  => ($jrnLogoPath && file_exists($jrnLogoPath)) ? $jrnLogoPath : null,
+                    'stampPath'    => ($stampPath   && file_exists($stampPath))   ? $stampPath   : null,
+                    'qrCode'       => $qrCode,
+                    'verifyUrl'    => route('loa.verify.result', $loaCode),
+                    'nowStr'       => now()->format('d F Y, H:i'),
+                    'certTitle'    => $isId ? 'SURAT PERSETUJUAN NASKAH' : 'LETTER OF ACCEPTANCE',
+                    'certSub'      => $isId ? '(Letter of Acceptance)'   : '(Surat Persetujuan Naskah)',
+                ];
+
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.loa-new-format', $data);
+                $pdf->setPaper('A4', 'portrait');
+                $pdf->setOptions([
+                    'isRemoteEnabled'  => false,
+                    'isPhpEnabled'     => false,
+                    'defaultFont'      => 'DejaVu Sans',
+                    'dpi'              => 96,
+                ]);
+
+                return $pdf->output();
+            });
+
+            $filename = $loaCode . '_' . $lang . '.pdf';
+
+            return response($pdfBytes, 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Length'      => strlen($pdfBytes),
+            ]);
 
         } catch (\Exception $e) {
             \Log::error('PDF Generation Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
