@@ -197,7 +197,8 @@ class LoaController extends Controller
                 ->firstOrFail();
 
             // Cache key includes updated_at so it auto-invalidates when LOA data changes
-            $cacheKey = 'pdf_' . $loaCode . '_' . $lang . '_' . $loaValidated->updated_at->timestamp;
+            $ts = ($loaValidated->updated_at ?? $loaValidated->created_at)?->timestamp ?? time();
+            $cacheKey = 'pdf_' . $loaCode . '_' . $lang . '_' . $ts;
 
             $pdfBytes = Cache::remember($cacheKey, 86400, function () use ($loaValidated, $loaCode, $lang) {
 
@@ -255,12 +256,6 @@ class LoaController extends Controller
 
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.loa-new-format', $data);
                 $pdf->setPaper('A4', 'portrait');
-                $pdf->setOptions([
-                    'isRemoteEnabled'  => false,
-                    'isPhpEnabled'     => false,
-                    'defaultFont'      => 'DejaVu Sans',
-                    'dpi'              => 96,
-                ]);
 
                 return $pdf->output();
             });
@@ -273,7 +268,7 @@ class LoaController extends Controller
                 'Content-Length'      => strlen($pdfBytes),
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('PDF Generation Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             return response()->json([
                 'error'   => 'Gagal membuat PDF',
